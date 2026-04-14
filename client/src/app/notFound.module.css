@@ -1,0 +1,27 @@
+.wrap {
+  padding: 1rem 0;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--foreground, #111111);
+}
+
+.lead {
+  margin: 0 0 1.25rem;
+  font-size: 0.92rem;
+  color: var(--muted, #737373);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.linkBtn {
+  text-decoration: none;
+}

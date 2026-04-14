@@ -1,0 +1,69 @@
+'use client';
+import Link from 'next/link';
+import { useEffect } from 'react';
+
+import { refreshTokensThunk } from '@/entities/user/api/apiUserThunk';
+import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
+import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+
+import styles from './Header.module.css';
+
+export function Header() {
+  const { user } = useAppSelector((state) => state.user);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(refreshTokensThunk());
+  }, [dispatch]);
+
+  const isAuthenticated = !!user;
+
+  return (
+    <nav className={styles.nav}>
+      <div className={styles.inner}>
+        <Link href={CLIENT_ROUTES.HOME} className={styles.brand}>
+          WardrobeAI
+        </Link>
+        <ul className={styles.list}>
+          {isAuthenticated ? (
+            <>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.PROFILE}>
+                  Profile
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.POSTS}>
+                  Wardrobe
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.SIGN_OUT}>
+                  Sign out
+                </Link>
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.HOME}>
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.SIGN_UP}>
+                  Sign up
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.SIGN_IN}>
+                  Sign in
+                </Link>
+              </li>
+            </>
+          )}
+        </ul>
+      </div>
+    </nav>
+  );
+}

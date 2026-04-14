@@ -1,0 +1,16 @@
+.wrap {
+  max-width: 22rem;
+}
+
+.title {
+  margin: 0 0 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted, #737373);
+}
+
+.actions {
+  margin-top: 0.35rem;
+}

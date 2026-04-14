@@ -1,0 +1,6 @@
+.text {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted, #737373);
+  letter-spacing: 0.01em;
+}

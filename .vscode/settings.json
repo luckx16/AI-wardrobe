@@ -1,0 +1,26 @@
+{
+  // Format all files with Prettier on save.
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  // Run ESLint auto-fix on save (removes unused imports, sorts them).
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // Tell ESLint extension which file types to validate.
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+
+  // Point ESLint to the client workspace so it finds eslint.config.mjs.
+  "eslint.workingDirectories": [
+    { "directory": "./client", "changeProcessCWD": true }
+  ],
+
+  // Prettier config is in client/ — point the extension to it.
+  "prettier.configPath": "./client/.prettierrc"
+}
