@@ -1,16 +1,8 @@
-"use client";
-import { useState, useRef, type ChangeEvent } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from './components/dialog';
+'use client';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Input } from './components/input';
-import { Label } from './components/label';
-import type { Season, Category, WardrobeItem } from '../../../src/app/wardrobe/types';
-import { Plus, ImagePlus, X } from 'lucide-react';
+import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
+import { ImagePlus, Plus, X } from 'lucide-react';
 
 import styles from './AddItemDialog.module.css';
 
@@ -37,24 +29,54 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const clearPreview = () => {
+    setImagePreview((currentPreview) => {
+      if (currentPreview) {
+        URL.revokeObjectURL(currentPreview);
+      }
+
+      return null;
+    });
+
+    if (fileRef.current) {
+      fileRef.current.value = '';
+    }
+  };
+
   const reset = () => {
     setName('');
     setCategory('Футболки');
     setSeason('Все сезоны');
     setColor('');
-    setImagePreview(null);
+    clearPreview();
   };
 
-  const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const closeDialog = () => {
+    reset();
+    setOpen(false);
+  };
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
-    setImagePreview(URL.createObjectURL(file));
+
+    setImagePreview((currentPreview) => {
+      if (currentPreview) {
+        URL.revokeObjectURL(currentPreview);
+      }
+
+      return URL.createObjectURL(file);
+    });
   };
 
   const handleSubmit = () => {
     if (!name.trim() || !imagePreview) return;
 
-    const item: WardrobeItem = {
+    onAdd({
       id: crypto.randomUUID(),
       name: name.trim(),
       category,
@@ -62,119 +84,176 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
       color: color.trim() || '—',
       image: imagePreview,
       dateAdded: new Date().toISOString().slice(0, 10),
-    };
+    });
 
-    onAdd(item);
-    reset();
+    setName('');
+    setCategory('Футболки');
+    setSeason('Все сезоны');
+    setColor('');
+    setImagePreview(null);
+    if (fileRef.current) {
+      fileRef.current.value = '';
+    }
     setOpen(false);
   };
 
-  const isValid = name.trim().length > 0 && imagePreview;
+  useEffect(() => {
+    if (!open) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeDialog();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  const isValid = name.trim().length > 0 && Boolean(imagePreview);
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v: boolean) => {
-        setOpen(v);
-        if (!v) reset();
-      }}
-    >
-      <DialogTrigger asChild>
-        <button className={styles.triggerButton}>
-          <Plus size={16} />
-          Добавить
-        </button>
-      </DialogTrigger>
+    <>
+      <button type="button" className={styles.triggerButton} onClick={handleOpen}>
+        <Plus size={16} />
+        Добавить
+      </button>
 
-      <DialogContent className={styles.dialog}>
-        <DialogHeader>
-          <DialogTitle className={styles.title}>Новый предмет</DialogTitle>
-        </DialogHeader>
-
-        <div className={styles.content}>
-          {/* Upload */}
-          <div>
-            <Label className={styles.label}>Фото</Label>
-
-            {imagePreview ? (
-              <div className={styles.preview}>
-                <img src={imagePreview} alt="Preview" />
-                <button
-                  className={styles.removeImage}
-                  onClick={() => {
-                    setImagePreview(null);
-                    if (fileRef.current) fileRef.current.value = '';
-                  }}
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ) : (
-              <div className={styles.uploadBox} onClick={() => fileRef.current?.click()}>
-                <ImagePlus size={32} />
-                <span>Загрузить фото</span>
-              </div>
-            )}
-
-            <input ref={fileRef} type="file" accept="image/*" hidden onChange={handleFile} />
-          </div>
-
-          {/* Name */}
-          <div>
-            <Label className={styles.label}>Название</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={styles.input}
-            />
-          </div>
-
-          {/* Grid */}
-          <div className={styles.grid}>
-            <div>
-              <Label className={styles.label}>Категория</Label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as Category)}
-                className={styles.select}
+      {open ? (
+        <div
+          className={styles.overlay}
+          onClick={closeDialog}
+          role="presentation"
+        >
+          <div
+            className={`${styles.dialog} ${styles.panel}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-item-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.header}>
+              <h2 id="add-item-dialog-title" className={styles.title}>
+                Новый предмет
+              </h2>
+              <button
+                type="button"
+                className={styles.closeButton}
+                onClick={closeDialog}
+                aria-label="Закрыть"
               >
-                {categories.map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
+                <X size={16} />
+              </button>
             </div>
 
-            <div>
-              <Label className={styles.label}>Сезон</Label>
-              <select
-                value={season}
-                onChange={(e) => setSeason(e.target.value as Season)}
-                className={styles.select}
+            <div className={styles.content}>
+              <div>
+                <label className={styles.label}>Фото</label>
+
+                {imagePreview ? (
+                  <div className={styles.preview}>
+                    <img src={imagePreview} alt="Preview" />
+                    <button
+                      type="button"
+                      className={styles.removeImage}
+                      onClick={clearPreview}
+                      aria-label="Удалить изображение"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.uploadBox}
+                    onClick={() => fileRef.current?.click()}
+                  >
+                    <ImagePlus size={32} />
+                    <span>Загрузить фото</span>
+                  </button>
+                )}
+
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleFile}
+                />
+              </div>
+
+              <div>
+                <label className={styles.label}>Название</label>
+                <Input
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.grid}>
+                <div>
+                  <label className={styles.label}>Категория</label>
+                  <select
+                    value={category}
+                    onChange={(event) => setCategory(event.target.value as Category)}
+                    className={styles.select}
+                  >
+                    {categories.map((currentCategory) => (
+                      <option key={currentCategory}>{currentCategory}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={styles.label}>Сезон</label>
+                  <select
+                    value={season}
+                    onChange={(event) => setSeason(event.target.value as Season)}
+                    className={styles.select}
+                  >
+                    {seasons.map((currentSeason) => (
+                      <option key={currentSeason}>{currentSeason}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className={styles.label}>Цвет</label>
+                <Input
+                  value={color}
+                  onChange={(event) => setColor(event.target.value)}
+                  className={styles.input}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!isValid}
+                className={styles.submit}
               >
-                {seasons.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </select>
+                Добавить в гардероб
+              </button>
             </div>
           </div>
-
-          {/* Color */}
-          <div>
-            <Label className={styles.label}>Цвет</Label>
-            <Input
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              className={styles.input}
-            />
-          </div>
-
-          {/* Submit */}
-          <button onClick={handleSubmit} disabled={!isValid} className={styles.submit}>
-            Добавить в гардероб
-          </button>
         </div>
-      </DialogContent>
-    </Dialog>
+      ) : null}
+    </>
   );
 };
 
