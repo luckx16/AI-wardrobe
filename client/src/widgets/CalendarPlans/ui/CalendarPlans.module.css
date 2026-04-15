@@ -1,0 +1,152 @@
+.card {
+  border: 1px solid var(--border, #e8e5e0);
+  border-radius: 8px;
+  background: var(--surface, #ffffff);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Header row */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.titleWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iconWrap {
+  border-radius: 6px;
+  background: var(--surface-elevated, #f5f4f2);
+  padding: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--muted, #737373);
+}
+
+.title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground, #111111);
+}
+
+.allBtn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--accent-bright, #8a6a4a);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.allBtn:hover {
+  background: rgba(138, 106, 74, 0.07);
+}
+
+/* Plans list */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.plan {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.plan:hover {
+  background: var(--surface-elevated, #f5f4f2);
+}
+
+.planBar {
+  width: 3px;
+  height: 2rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.planInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.planTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.planTitle {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--foreground, #111111);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planChevron {
+  width: 1rem;
+  height: 1rem;
+  color: var(--muted, #737373);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.plan:hover .planChevron {
+  opacity: 1;
+}
+
+.planMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.1rem;
+}
+
+.planDate {
+  font-size: 0.72rem;
+  color: var(--muted, #737373);
+}
+
+.planDot {
+  font-size: 0.72rem;
+  color: var(--muted, #737373);
+}
+
+.planOutfit {
+  font-size: 0.72rem;
+  color: var(--accent-bright, #8a6a4a);
+}
