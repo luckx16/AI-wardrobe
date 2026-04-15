@@ -1,0 +1,193 @@
+.form {
+  position: relative;
+  width: 100%;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background-color: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inputWrapper:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+.attachButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+}
+
+.attachButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.attachButton:hover {
+  background-color: var(--surface-elevated);
+  color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+.attachButton:active {
+  transform: translateY(0);
+}
+
+.attachButton svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.textarea {
+  flex: 1;
+  min-height: 3.25rem;
+  max-height: 8rem;
+  padding: 1rem 3.5rem 1rem 0;
+  border: none;
+  background: transparent;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  resize: none;
+  font-family: var(--font-sans);
+}
+
+.textarea::placeholder {
+  color: var(--muted);
+}
+
+.textarea:focus {
+  outline: none;
+}
+
+.textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submitWrapper {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+}
+
+.submitButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submitButton svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.submitButtonActive {
+  background: linear-gradient(135deg, var(--foreground) 0%, #1a1a1a 100%);
+  color: var(--background);
+  transform: scale(1);
+}
+
+.submitButtonActive:hover {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-bright) 100%);
+  transform: scale(1.05);
+}
+
+.submitButtonActive:active {
+  transform: scale(0.95);
+}
+
+.submitButtonDisabled {
+  background-color: var(--surface-elevated);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.hint {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+/* Автоматическое расширение textarea */
+.textarea {
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.textarea::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* Медиа-запрос для мобильных устройств */
+@media (max-width: 640px) {
+  .attachButtons {
+    padding: 0.375rem;
+  }
+  
+  .attachButton {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .attachButton svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  .textarea {
+    font-size: 0.875rem;
+    padding: 0.875rem 3rem 0.875rem 0;
+    min-height: 2.75rem;
+  }
+  
+  .submitButton {
+    width: 2rem;
+    height: 2rem;
+  }
+  
+  .submitButton svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  .hint {
+    font-size: 0.6875rem;
+  }
+}
