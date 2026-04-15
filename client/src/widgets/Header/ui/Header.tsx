@@ -34,8 +34,8 @@ export function Header() {
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href={CLIENT_ROUTES.POSTS}>
-                  Гардероб
+                <Link className={styles.link} href={CLIENT_ROUTES.WARDROBE}>
+                  Wardrobe
                 </Link>
               </li>
               <li>
