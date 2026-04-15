@@ -33,7 +33,7 @@ export function Header() {
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href={CLIENT_ROUTES.POSTS}>
+                <Link className={styles.link} href={CLIENT_ROUTES.WARDROBE}>
                   Wardrobe
                 </Link>
               </li>

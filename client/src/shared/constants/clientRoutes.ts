@@ -4,7 +4,7 @@ export const CLIENT_ROUTES = {
   SIGN_UP: '/sign-up',
   SIGN_IN: '/sign-in',
   PROFILE: '/profile',
-  POSTS: '/posts',
+  WARDROBE: '/wardrobe',
   /** Детальная страница поста */
   POST_DETAIL: (id: number | string) => `/posts/${id}`,
   SIGN_OUT: '/sign-out',
