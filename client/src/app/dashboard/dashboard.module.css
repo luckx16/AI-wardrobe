@@ -1,0 +1,70 @@
+.page {
+  min-height: 100vh;
+  background: var(--background, #fafaf8);
+}
+
+.main {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.welcome {
+  margin-bottom: 2rem;
+}
+
+.welcomeTitle {
+  margin: 0;
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground, #111111);
+}
+
+.welcomeSubtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  color: var(--muted, #737373);
+}
+
+/* Stats grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  animation: fadeIn 0.3s ease both;
+}
+
+@media (min-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.widgetsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .widgetsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.widgetItem {
+  animation: fadeIn 0.3s ease both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

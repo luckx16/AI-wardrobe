@@ -1,0 +1,53 @@
+.root {
+  position: relative;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  align-items: center;
+  padding: 2px;
+  border: 1px solid var(--border, #e8e5e0);
+  border-radius: 999px;
+  background: var(--surface, #ffffff);
+  gap: 2px;
+}
+
+.indicator {
+  position: absolute;
+  inset: 2px;
+  width: calc((100% - 4px) / var(--seg-count, 3));
+  border-radius: 999px;
+  background: rgba(176, 144, 112, 0.16);
+  transform: translateX(calc(var(--seg-index, 0) * 100%));
+  transition: transform 0.22s ease;
+  pointer-events: none;
+}
+
+.btn {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  color: var(--muted, #737373);
+  transition:
+    color 0.15s ease;
+}
+
+.btn:hover {
+  color: var(--foreground, #111111);
+}
+
+.active {
+  color: var(--foreground, #111111);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent, #b09070);
+  outline-offset: 2px;
+}
+
