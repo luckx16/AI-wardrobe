@@ -13,6 +13,7 @@ export function Header() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
+    // На старте приложения пробуем обновить токены (если есть refresh-cookie).
     dispatch(refreshTokensThunk());
   }, [dispatch]);
 
@@ -29,17 +30,17 @@ export function Header() {
             <>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.PROFILE}>
-                  Profile
+                  Профиль
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.POSTS}>
-                  Wardrobe
+                  Гардероб
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.SIGN_OUT}>
-                  Sign out
+                  Выйти
                 </Link>
               </li>
             </>
@@ -47,17 +48,17 @@ export function Header() {
             <>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.HOME}>
-                  Home
+                  Главная
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.SIGN_UP}>
-                  Sign up
+                  Регистрация
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.SIGN_IN}>
-                  Sign in
+                  Вход
                 </Link>
               </li>
             </>
