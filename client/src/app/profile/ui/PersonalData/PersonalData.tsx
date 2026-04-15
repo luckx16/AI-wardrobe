@@ -3,14 +3,14 @@ import React from 'react';
 import formStyles from '@/shared/styles/form.module.css';
 import { Card } from '@/shared/ui';
 
-import styles from './PersonalProfile.module.css';
+import styles from './PersonalData.module.css';
 
-type PersonalProfileProps = {
+type PersonalDataProps = {
   name: string;
   onNameChange: (next: string) => void;
 };
 
-export function PersonalProfile({ name, onNameChange }: PersonalProfileProps): React.JSX.Element {
+export function PersonalData({ name, onNameChange }: PersonalDataProps): React.JSX.Element {
   return (
     <Card
       title="Личные данные"

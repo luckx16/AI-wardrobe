@@ -6,9 +6,9 @@ import { SidebarNav } from '@/shared/ui';
 import { useAppSelector } from '@/shared/hooks';
 
 import { AppearanceAnalysis } from './ui/AppearanceAnalysis/AppearanceAnalysis';
-import { BodyGeometry } from './ui/BodyGeometry/BodyGeometry';
-import { PersonalProfile } from './ui/PersonalProfile/PersonalProfile';
-import { StylePreferences } from './ui/StylePreferences/StylePreferences';
+import { Measurements } from './ui/Measurements/Measurements';
+import { PersonalData } from './ui/PersonalData/PersonalData';
+import { Preferences } from './ui/Preferences/Preferences';
 
 import styles from './profilePage.module.css';
 
@@ -18,7 +18,7 @@ export default function ProfilePage(): React.JSX.Element {
   const [displayName, setDisplayName] = useState<string>(user?.name ?? '');
 
   // Нужен для подсветки активного пункта навигации при клике по якорям.
-  const [activeSection, setActiveSection] = useState<'personal' | 'appearance' | 'measurements' | 'style'>(
+  const [activeSection, setActiveSection] = useState<'personal' | 'appearance' | 'measurements' | 'prefs'>(
     'personal',
   );
 
@@ -28,7 +28,7 @@ export default function ProfilePage(): React.JSX.Element {
       { key: 'personal', label: 'Личные данные', href: '#personal', active: activeSection === 'personal' },
       { key: 'appearance', label: 'Анализ внешности', href: '#appearance', active: activeSection === 'appearance' },
       { key: 'measurements', label: 'Измерения', href: '#measurements', active: activeSection === 'measurements' },
-      { key: 'style', label: 'Предпочтения', href: '#style', active: activeSection === 'style' },
+      { key: 'prefs', label: 'Предпочтения', href: '#prefs', active: activeSection === 'prefs' },
     ],
     [activeSection],
   );
@@ -60,16 +60,16 @@ export default function ProfilePage(): React.JSX.Element {
 
           <div className={styles.stack}>
             <section id="personal" className={styles.anchorSection} aria-label="Личные данные">
-              <PersonalProfile name={displayName} onNameChange={setDisplayName} />
+              <PersonalData name={displayName} onNameChange={setDisplayName} />
             </section>
             <section id="appearance" className={styles.anchorSection} aria-label="Анализ внешности">
               <AppearanceAnalysis />
             </section>
             <section id="measurements" className={styles.anchorSection} aria-label="Измерения">
-              <BodyGeometry />
+              <Measurements />
             </section>
-            <section id="style" className={styles.anchorSection} aria-label="Предпочтения">
-              <StylePreferences />
+            <section id="prefs" className={styles.anchorSection} aria-label="Предпочтения">
+              <Preferences />
             </section>
           </div>
 
