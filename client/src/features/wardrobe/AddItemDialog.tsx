@@ -1,25 +1,27 @@
-import { useState, useRef, type ChangeEvent } from "react";
+"use client";
+import { useState, useRef, type ChangeEvent } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import type { Season, Category, WardrobeItem } from "@/data/wardrobeItems";
-import { Plus, ImagePlus, X } from "lucide-react";
+} from './components/dialog';
+import { Input } from './components/input';
+import { Label } from './components/label';
+import type { Season, Category, WardrobeItem } from '../../../src/app/wardrobe/types';
+import { Plus, ImagePlus, X } from 'lucide-react';
 
-const seasons: Season[] = ["Зима", "Весна", "Лето", "Осень", "Все сезоны"];
+import styles from './AddItemDialog.module.css';
+
+const seasons: Season[] = ['Зима', 'Весна', 'Лето', 'Осень', 'Все сезоны'];
 const categories: Category[] = [
-  "Верхняя одежда",
-  "Футболки",
-  "Брюки",
-  "Свитеры",
-  "Обувь",
-  "Рубашки",
+  'Верхняя одежда',
+  'Футболки',
+  'Брюки',
+  'Свитеры',
+  'Обувь',
+  'Рубашки',
 ];
 
 interface AddItemDialogProps {
@@ -28,39 +30,40 @@ interface AddItemDialogProps {
 
 const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState<Category>("Футболки");
-  const [season, setSeason] = useState<Season>("Все сезоны");
-  const [color, setColor] = useState("");
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState<Category>('Футболки');
+  const [season, setSeason] = useState<Season>('Все сезоны');
+  const [color, setColor] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
-    setName("");
-    setCategory("Футболки");
-    setSeason("Все сезоны");
-    setColor("");
+    setName('');
+    setCategory('Футболки');
+    setSeason('Все сезоны');
+    setColor('');
     setImagePreview(null);
   };
 
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setImagePreview(url);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = () => {
     if (!name.trim() || !imagePreview) return;
+
     const item: WardrobeItem = {
       id: crypto.randomUUID(),
       name: name.trim(),
       category,
       season,
-      color: color.trim() || "—",
+      color: color.trim() || '—',
       image: imagePreview,
       dateAdded: new Date().toISOString().slice(0, 10),
     };
+
     onAdd(item);
     reset();
     setOpen(false);
@@ -68,106 +71,88 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
 
   const isValid = name.trim().length > 0 && imagePreview;
 
-  const selectClasses =
-    "w-full rounded-md border border-border bg-surface-elevated px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring";
-
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(v: boolean) => {
+        setOpen(v);
+        if (!v) reset();
+      }}
+    >
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5 border-border text-foreground hover:bg-surface-elevated"
-        >
-          <Plus className="h-4 w-4" />
+        <button className={styles.triggerButton}>
+          <Plus size={16} />
           Добавить
-        </Button>
+        </button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-md bg-surface border-border">
+      <DialogContent className={styles.dialog}>
         <DialogHeader>
-          <DialogTitle className="text-foreground">Новый предмет</DialogTitle>
+          <DialogTitle className={styles.title}>Новый предмет</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 pt-2">
-          {/* Image upload */}
+        <div className={styles.content}>
+          {/* Upload */}
           <div>
-            <Label className="text-xs font-medium text-muted uppercase tracking-wider mb-2 block">
-              Фото
-            </Label>
+            <Label className={styles.label}>Фото</Label>
+
             {imagePreview ? (
-              <div className="relative w-full aspect-[4/5] max-h-56 rounded-lg overflow-hidden border border-border">
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="h-full w-full object-cover"
-                />
+              <div className={styles.preview}>
+                <img src={imagePreview} alt="Preview" />
                 <button
-                  onClick={() => { setImagePreview(null); if (fileRef.current) fileRef.current.value = ""; }}
-                  className="absolute top-2 right-2 p-1 rounded-full bg-foreground/70 text-background hover:bg-foreground transition-colors"
+                  className={styles.removeImage}
+                  onClick={() => {
+                    setImagePreview(null);
+                    if (fileRef.current) fileRef.current.value = '';
+                  }}
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X size={14} />
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="w-full aspect-[4/5] max-h-56 rounded-lg border-2 border-dashed border-border hover:border-accent flex flex-col items-center justify-center gap-2 text-muted hover:text-accent transition-colors"
-              >
-                <ImagePlus className="h-8 w-8" />
-                <span className="text-xs font-medium">Загрузить фото</span>
-              </button>
+              <div className={styles.uploadBox} onClick={() => fileRef.current?.click()}>
+                <ImagePlus size={32} />
+                <span>Загрузить фото</span>
+              </div>
             )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFile}
-            />
+
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={handleFile} />
           </div>
 
           {/* Name */}
           <div>
-            <Label htmlFor="item-name" className="text-xs font-medium text-muted uppercase tracking-wider">
-              Название
-            </Label>
+            <Label className={styles.label}>Название</Label>
             <Input
-              id="item-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Например: Кашемировый свитер"
-              className="mt-1.5 border-border bg-surface-elevated text-foreground placeholder:text-muted/50"
+              className={styles.input}
             />
           </div>
 
-          {/* Category & Season row */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Grid */}
+          <div className={styles.grid}>
             <div>
-              <Label className="text-xs font-medium text-muted uppercase tracking-wider">
-                Категория
-              </Label>
+              <Label className={styles.label}>Категория</Label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as Category)}
-                className={`${selectClasses} mt-1.5`}
+                className={styles.select}
               >
                 {categories.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c}>{c}</option>
                 ))}
               </select>
             </div>
+
             <div>
-              <Label className="text-xs font-medium text-muted uppercase tracking-wider">
-                Сезон
-              </Label>
+              <Label className={styles.label}>Сезон</Label>
               <select
                 value={season}
                 onChange={(e) => setSeason(e.target.value as Season)}
-                className={`${selectClasses} mt-1.5`}
+                className={styles.select}
               >
                 {seasons.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                  <option key={s}>{s}</option>
                 ))}
               </select>
             </div>
@@ -175,26 +160,18 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
 
           {/* Color */}
           <div>
-            <Label htmlFor="item-color" className="text-xs font-medium text-muted uppercase tracking-wider">
-              Цвет
-            </Label>
+            <Label className={styles.label}>Цвет</Label>
             <Input
-              id="item-color"
               value={color}
               onChange={(e) => setColor(e.target.value)}
-              placeholder="Например: Бежевый"
-              className="mt-1.5 border-border bg-surface-elevated text-foreground placeholder:text-muted/50"
+              className={styles.input}
             />
           </div>
 
           {/* Submit */}
-          <Button
-            onClick={handleSubmit}
-            disabled={!isValid}
-            className="w-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40"
-          >
+          <button onClick={handleSubmit} disabled={!isValid} className={styles.submit}>
             Добавить в гардероб
-          </Button>
+          </button>
         </div>
       </DialogContent>
     </Dialog>

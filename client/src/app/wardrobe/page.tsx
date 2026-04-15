@@ -1,3 +1,4 @@
+"use client";
 import { useMemo, useState, useCallback } from "react";
 import WardrobeCard from "../../features/wardrobe/WardrobeCard";
 import WardrobeToolbar from "../../features/wardrobe/WardrobeToolbar";
@@ -9,7 +10,7 @@ import {
   type WardrobeItem,
 } from "./types";
 
-import styles from "./Index.module.css";
+import styles from "./Wardrobe.module.css";
 
 type SortField = "name" | "season" | "dateAdded" | "category";
 

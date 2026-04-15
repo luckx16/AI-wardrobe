@@ -1,4 +1,4 @@
-import type { Season, Category } from "@/data/wardrobeItems";
+import type { Season, Category } from "../../../src/app/wardrobe/types";
 
 type SortField = "name" | "season" | "dateAdded" | "category";
 

@@ -1,0 +1,34 @@
+.triggerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 10px;
+  border-radius: 6px;
+
+  border: 1px solid var(--border);
+  background: var(--surface);
+
+  color: var(--foreground);
+}
+
+.dialog {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.submit {
+  width: 100%;
+  padding: 10px 12px;
+
+  border-radius: 6px;
+
+  background: var(--foreground);
+  color: var(--background);
+
+  border: none;
+}
+
+.submit:disabled {
+  opacity: 0.4;
+}

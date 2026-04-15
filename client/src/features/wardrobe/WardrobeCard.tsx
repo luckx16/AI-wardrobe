@@ -1,4 +1,4 @@
-import type { WardrobeItem } from "@/data/wardrobeItems";
+import type { WardrobeItem } from "../../../src/app/wardrobe/types";
 
 interface WardrobeCardProps {
   item: WardrobeItem;
