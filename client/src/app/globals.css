@@ -64,6 +64,7 @@ a:focus-visible {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  padding-top: var(--header-h, 0px);
 }
 
 .app-main {
