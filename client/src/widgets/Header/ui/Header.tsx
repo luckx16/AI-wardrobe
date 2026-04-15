@@ -39,6 +39,11 @@ export function Header() {
                 </Link>
               </li>
               <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.OUTFIT_BUILDER}>
+                  Outfit Builder
+                </Link>
+              </li>
+              <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.SIGN_OUT}>
                   Выйти
                 </Link>

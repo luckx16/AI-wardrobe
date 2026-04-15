@@ -5,6 +5,7 @@ export const CLIENT_ROUTES = {
   SIGN_IN: '/sign-in',
   PROFILE: '/profile',
   POSTS: '/posts',
+  OUTFIT_BUILDER: '/outfit-builder',
   /** Детальная страница поста */
   POST_DETAIL: (id: number | string) => `/posts/${id}`,
   SIGN_OUT: '/sign-out',
