@@ -1,29 +1,39 @@
-import type { Season, Category } from "../../../src/app/wardrobe/types";
+import type { Season, Category } from '../../app/wardrobe/types';
+import styles from './WardrobeToolbar.module.css';
 
-type SortField = "name" | "season" | "dateAdded" | "category";
+type SortField = 'name' | 'season' | 'dateAdded' | 'category';
 
 interface WardrobeToolbarProps {
   sortBy: SortField;
   onSortChange: (field: SortField) => void;
-  filterSeason: Season | "all";
-  onFilterSeasonChange: (season: Season | "all") => void;
-  filterCategory: Category | "all";
-  onFilterCategoryChange: (cat: Category | "all") => void;
+  filterSeason: Season | 'all';
+  onFilterSeasonChange: (season: Season | 'all') => void;
+  filterCategory: Category | 'all';
+  onFilterCategoryChange: (cat: Category | 'all') => void;
   totalCount: number;
   addButton?: React.ReactNode;
 }
 
-const seasons: (Season | "all")[] = ["all", "Зима", "Весна", "Лето", "Осень", "Все сезоны"];
-const categories: (Category | "all")[] = [
-  "all", "Верхняя одежда", "Футболки", "Брюки", "Свитеры", "Обувь", "Рубашки",
+const seasons: (Season | 'all')[] = ['all', 'Зима', 'Весна', 'Лето', 'Осень', 'Все сезоны'];
+const categories: (Category | 'all')[] = [
+  'all',
+  'Верхняя одежда',
+  'Футболки',
+  'Брюки',
+  'Свитеры',
+  'Обувь',
+  'Рубашки',
 ];
 
 const sortOptions: { value: SortField; label: string }[] = [
-  { value: "name", label: "По названию" },
-  { value: "season", label: "По сезону" },
-  { value: "category", label: "По категории" },
-  { value: "dateAdded", label: "По дате" },
+  { value: 'name', label: 'По названию' },
+  { value: 'season', label: 'По сезону' },
+  { value: 'category', label: 'По категории' },
+  { value: 'dateAdded', label: 'По дате' },
 ];
+
+const cx = (...classNames: Array<string | false | null | undefined>) =>
+  classNames.filter(Boolean).join(' ');
 
 const WardrobeToolbar = ({
   sortBy,
@@ -36,37 +46,27 @@ const WardrobeToolbar = ({
   addButton,
 }: WardrobeToolbarProps) => {
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-baseline justify-between">
+    <div className={styles.root}>
+      <div className={styles.header}>
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">
-            Мой гардероб
-          </h1>
-          <p className="text-sm text-muted mt-1">
-            {totalCount} {totalCount === 1 ? "предмет" : "предметов"}
+          <h1 className={styles.title}>Мой гардероб</h1>
+          <p className={styles.count}>
+            {totalCount} {totalCount === 1 ? 'предмет' : 'предметов'}
           </p>
         </div>
         {addButton}
       </div>
 
-      {/* Filters & Sort */}
-      <div className="flex flex-wrap gap-3 items-center border-b border-border pb-4">
-        {/* Sort */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted uppercase tracking-wider">
-            Сортировка
-          </span>
-          <div className="flex gap-1">
+      <div className={styles.controls}>
+        <div className={styles.group}>
+          <span className={styles.label}>Сортировка</span>
+          <div className={styles.sortList}>
             {sortOptions.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => onSortChange(opt.value)}
-                className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
-                  sortBy === opt.value
-                    ? "bg-foreground text-background"
-                    : "text-muted hover:text-foreground hover:bg-surface-elevated"
-                }`}
+                type="button"
+                className={cx(styles.sortButton, sortBy === opt.value && styles.sortButtonActive)}
               >
                 {opt.label}
               </button>
@@ -74,39 +74,33 @@ const WardrobeToolbar = ({
           </div>
         </div>
 
-        <div className="w-px h-5 bg-border hidden sm:block" />
+        <div className={styles.divider} />
 
-        {/* Season filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted uppercase tracking-wider">
-            Сезон
-          </span>
+        <div className={styles.group}>
+          <span className={styles.label}>Сезон</span>
           <select
             value={filterSeason}
-            onChange={(e) => onFilterSeasonChange(e.target.value as Season | "all")}
-            className="text-xs bg-surface-elevated border border-border rounded-md px-2 py-1.5 text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            onChange={(e) => onFilterSeasonChange(e.target.value as Season | 'all')}
+            className={styles.select}
           >
             {seasons.map((s) => (
               <option key={s} value={s}>
-                {s === "all" ? "Все" : s}
+                {s === 'all' ? 'Все' : s}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Category filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted uppercase tracking-wider">
-            Категория
-          </span>
+        <div className={styles.group}>
+          <span className={styles.label}>Категория</span>
           <select
             value={filterCategory}
-            onChange={(e) => onFilterCategoryChange(e.target.value as Category | "all")}
-            className="text-xs bg-surface-elevated border border-border rounded-md px-2 py-1.5 text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            onChange={(e) => onFilterCategoryChange(e.target.value as Category | 'all')}
+            className={styles.select}
           >
             {categories.map((c) => (
               <option key={c} value={c}>
-                {c === "all" ? "Все" : c}
+                {c === 'all' ? 'Все' : c}
               </option>
             ))}
           </select>

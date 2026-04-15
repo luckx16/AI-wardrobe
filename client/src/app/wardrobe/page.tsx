@@ -1,25 +1,19 @@
-"use client";
-import { useMemo, useState, useCallback } from "react";
-import WardrobeCard from "../../features/wardrobe/WardrobeCard";
-import WardrobeToolbar from "../../features/wardrobe/WardrobeToolbar";
-import AddItemDialog from "../../features/wardrobe/AddItemDialog";
-import {
-  wardrobeItems,
-  type Season,
-  type Category,
-  type WardrobeItem,
-} from "./types";
+'use client';
 
-import styles from "./Wardrobe.module.css";
+import { useMemo, useState, useCallback } from 'react';
+import WardrobeCard from '../../features/wardrobe/WardrobeCard';
+import WardrobeToolbar from '../../features/wardrobe/WardrobeToolbar';
+import AddItemDialog from '../../features/wardrobe/AddItemDialog';
+import { wardrobeItems, type Season, type Category, type WardrobeItem } from './types';
+import styles from './WardrobePage.module.css';
 
-type SortField = "name" | "season" | "dateAdded" | "category";
+type SortField = 'name' | 'season' | 'dateAdded' | 'category';
 
-const Index = () => {
+const WardrobePage = () => {
   const [items, setItems] = useState<WardrobeItem[]>(wardrobeItems);
-  const [sortBy, setSortBy] = useState<SortField>("name");
-  const [filterSeason, setFilterSeason] = useState<Season | "all">("all");
-  const [filterCategory, setFilterCategory] =
-    useState<Category | "all">("all");
+  const [sortBy, setSortBy] = useState<SortField>('name');
+  const [filterSeason, setFilterSeason] = useState<Season | 'all'>('all');
+  const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all');
 
   const handleAddItem = useCallback((item: WardrobeItem) => {
     setItems((prev) => [item, ...prev]);
@@ -28,17 +22,17 @@ const Index = () => {
   const filtered = useMemo(() => {
     let result = [...items];
 
-    if (filterSeason !== "all") {
+    if (filterSeason !== 'all') {
       result = result.filter((i) => i.season === filterSeason);
     }
-    if (filterCategory !== "all") {
+    if (filterCategory !== 'all') {
       result = result.filter((i) => i.category === filterCategory);
     }
 
     result.sort((a, b) => {
-      if (sortBy === "name") return a.name.localeCompare(b.name, "ru");
-      if (sortBy === "season") return a.season.localeCompare(b.season, "ru");
-      if (sortBy === "category") return a.category.localeCompare(b.category, "ru");
+      if (sortBy === 'name') return a.name.localeCompare(b.name, 'ru');
+      if (sortBy === 'season') return a.season.localeCompare(b.season, 'ru');
+      if (sortBy === 'category') return a.category.localeCompare(b.category, 'ru');
       return b.dateAdded.localeCompare(a.dateAdded);
     });
 
@@ -46,7 +40,7 @@ const Index = () => {
   }, [items, sortBy, filterSeason, filterCategory]);
 
   return (
-    <div className={styles.root}>
+    <div className={styles.page}>
       <div className={styles.container}>
         <WardrobeToolbar
           sortBy={sortBy}
@@ -60,11 +54,9 @@ const Index = () => {
         />
 
         {filtered.length === 0 ? (
-          <div className={styles.empty}>
+          <div className={styles.emptyState}>
             <p className={styles.emptyTitle}>Ничего не найдено</p>
-            <p className={styles.emptySubtitle}>
-              Попробуйте изменить фильтры
-            </p>
+            <p className={styles.emptyText}>Попробуйте изменить фильтры</p>
           </div>
         ) : (
           <div className={styles.grid}>
@@ -78,4 +70,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default WardrobePage;
