@@ -1,71 +1,60 @@
 const fs = require('fs').promises;
 const path = require('path');
-const sharp = require('sharp');
-// Это чисто JS библиотека для удаления фона (не требует Python!)
-const { removeBackground } = require('@imgly/background-removal');
+const { Jimp } = require('jimp');
+const { removeBackground } = require('@imgly/background-removal-node');
 
 class ImageProcessingService {
-  /**
-   * Главный метод: удаляет фон и оптимизирует изображение
-   * @param {string} inputPath - путь к временному файлу
-   * @param {string} outputPath - куда сохранить результат
-   * @returns {Promise<string>} - путь к обработанному файлу
-   */
   static async removeBackgroundAndOptimize(inputPath, outputPath) {
     try {
-      // 1. Читаем оригинальное изображение
-      const imageBuffer = await fs.readFile(inputPath);
+      console.log(`🖼️ Processing image: ${path.basename(inputPath)}`);
 
-      // 2. Удаляем фон с помощью @imgly/background-removal
-      const blob = await removeBackground(imageBuffer, {
-        model: 'medium', // quality: 'small' | 'medium' | 'large' (чем выше, тем точнее)
+      // Определяем формат по расширению файла
+      const ext = path.extname(inputPath).toLowerCase();
+      const mimeType = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+      console.log('Detected MIME type:', mimeType);
+
+      // Используем file URL вместо буфера - это более надежный способ
+      const fileUrl = `file://${inputPath}`;
+      console.log('Using file URL:', fileUrl);
+
+      // Удаляем фон
+      const resultBlob = await removeBackground(fileUrl, {
+        model: 'small',
         output: {
-          format: 'image/png', // Сохраняем в PNG для прозрачности
+          format: 'image/png',
         },
       });
 
-      // Проверяем, что blob получен корректно
-      if (!blob) {
-        throw new Error('Background removal returned no blob');
-      }
+      console.log('Result blob type:', resultBlob?.type);
 
       // Конвертируем Blob в Buffer
-      const arrayBuffer = await blob.arrayBuffer();
-      const transparentImageBuffer = Buffer.from(arrayBuffer);
+      const resultBuffer = Buffer.from(await resultBlob.arrayBuffer());
+      console.log('Result buffer size:', resultBuffer.length);
 
-      // 3. Оптимизируем и изменяем размер через sharp
-      const optimizedBuffer = await sharp(transparentImageBuffer)
-        .resize(800, 800, { fit: 'inside', withoutEnlargement: true }) // Максимум 800x800
-        .png({ quality: 85, compressionLevel: 8 }) // Сжимаем PNG
-        .toBuffer();
+      // Оптимизируем через Jimp
+      const image = await Jimp.read(resultBuffer);
+      console.log('Image width:', image.width, 'height:', image.height);
+      image.resize({ w: 800 });
+      await image.write(outputPath);
 
-      // 4. Сохраняем обработанный файл
-      await fs.writeFile(outputPath, optimizedBuffer);
-
-      console.log('Image processed:', path.basename(outputPath));
+      console.log(`✅ Image processed: ${path.basename(outputPath)}`);
       return outputPath;
     } catch (error) {
-      console.error('Background removal failed:', error.message || error);
-      // Если удаление фона не удалось, просто сохраняем оригинал
+      console.error('Background removal failed:', error.message);
       console.log('Falling back to original image...');
       await fs.copyFile(inputPath, outputPath);
       return outputPath;
     }
   }
 
-  /**
-   * Извлекает базовые метаданные из изображения (опционально)
-   * Можно расширить для определения цвета и т.д.
-   */
   static async extractImageMetadata(imagePath) {
     try {
-      const metadata = await sharp(imagePath).metadata();
+      const image = await Jimp.read(imagePath);
       return {
-        width: metadata.width,
-        height: metadata.height,
-        format: metadata.format,
-        size: metadata.size,
-        // Здесь можно добавить анализ цвета через библиотеки типа 'color-thief-node'
+        width: image.width,
+        height: image.height,
+        format: 'png',
+        size: (await fs.stat(imagePath)).size,
       };
     } catch (error) {
       console.error('Metadata extraction failed:', error);
