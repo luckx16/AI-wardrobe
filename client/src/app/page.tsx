@@ -1,8 +1,29 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
+import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
+import { useAppSelector } from '@/shared/hooks';
+
 import styles from './page.module.css';
 
 export default function Home() {
+  const router = useRouter();
+  const user = useAppSelector((state) => state.user.user);
+  const isAuthenticated = Boolean(user);
+
+  const handleTryClick = () => {
+    router.push(
+      isAuthenticated ? CLIENT_ROUTES.DASHBOARD : `${CLIENT_ROUTES.AUTH}?tab=sign-in`,
+    );
+  };
+
+  const handleStartClick = () => {
+    router.push(
+      isAuthenticated ? CLIENT_ROUTES.DASHBOARD : `${CLIENT_ROUTES.AUTH}?tab=sign-up`,
+    );
+  };
+
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
@@ -17,11 +38,9 @@ export default function Home() {
           Управляйте гардеробом, создавайте образы и получайте ежедневные
           рекомендации от AI-стилиста - все в одном приложении.
         </p>
-        <button className={styles.primaryCta}>Попробовать →</button>
-      {/* <div>
-        <img src="" alt="" />
-      </div> */}
-        
+        <button className={styles.primaryCta} type="button" onClick={handleTryClick}>
+          Попробовать →
+        </button>
       </section>
       <section className={styles.closetSection}>
         <p className={`${styles.badge} ${styles.animatedBadge}`}>
@@ -164,23 +183,11 @@ export default function Home() {
             Присоединяйтесь к тысячам пользователей, которые уже открыли новый
             способ одеваться с помощью AI.
           </p>
-          <button className={styles.primaryCta}>Начать →</button>
+          <button className={styles.primaryCta} type="button" onClick={handleStartClick}>
+            Начать →
+          </button>
         </div>
       </section>
-
-      
-
-      <footer className={styles.footer}>
-        <div className={styles.logo}>
-          <span className={styles.logoBadge}>W</span>
-          <span className={styles.logoText}>WardrobeAI</span>
-        </div>
-        <div className={styles.footerLinks}>
-          <a href="#why-ai">О нас</a>
-          <a href="#features">Функции</a>
-        </div>
-        <p>© 2026 WardrobeAI. Все права защищены.</p>
-      </footer>
     </main>
   );
 }

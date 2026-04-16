@@ -111,3 +111,12 @@
   border: 0;
 }
 
+.photoPreview {
+  width: min(220px, 100%);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(232, 229, 224, 0.9);
+  background: rgba(245, 244, 242, 0.35);
+}
+

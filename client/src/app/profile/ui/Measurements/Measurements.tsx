@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
 import formStyles from '@/shared/styles/form.module.css';
 import { Card } from '@/shared/ui';
+import { resolveAssetUrl, uploadBodyPhoto } from '@/shared/lib/uploadApi';
 
 import styles from './Measurements.module.css';
 
@@ -91,6 +92,9 @@ export function Measurements({
   onBodyPhotoChange,
   onFieldChange,
 }: MeasurementsProps): React.JSX.Element {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const metrics: Array<Omit<MetricItemProps, 'value' | 'onChange'>> = [
     { label: 'Обхват груди (см)', name: 'chestCm', placeholder: 'Например: 92', type: 'number', inputMode: 'numeric' },
     { label: 'Обхват талии (см)', name: 'waistCm', placeholder: 'Например: 74', type: 'number', inputMode: 'numeric' },
@@ -113,31 +117,58 @@ export function Measurements({
     <Card title="Измерения" description="Замеры и пропорции для более точных рекомендаций.">
       <div className={styles.layout}>
         <div className={styles.photoCard} aria-label="Фото в полный рост">
-          <div className={styles.photoIcon} aria-hidden="true" />
+          {bodyPhoto ? (
+            <img
+              className={styles.photoPreview}
+              src={resolveAssetUrl(bodyPhoto)}
+              alt="Фото в полный рост"
+            />
+          ) : (
+            <div className={styles.photoIcon} aria-hidden="true" />
+          )}
           <div className={styles.photoText}>
             <p className={styles.photoTitle}>Фото в полный рост</p>
-            <p className={styles.photoHint}>Помогает точнее определить особенности фигуры.</p>
+            {!bodyPhoto ? (
+              <p className={styles.photoHint}>
+                Сделайте фото в полный рост в облегающей одежде. Рекомендуемые параметры фото: JPG/PNG до 10MB
+              </p>
+            ) : null}
           </div>
           <label className={styles.uploadBtn} htmlFor="profile-fullbody-photo">
-            Загрузить
+            {isUploading ? 'Загрузка…' : 'Загрузить'}
           </label>
           <input
             id="profile-fullbody-photo"
             className={styles.fileInput}
             type="file"
             accept="image/*"
-            onChange={(e) => {
+            disabled={isUploading}
+            onChange={async (e) => {
               const file = e.target.files?.[0];
               if (!file) {
                 onBodyPhotoChange(null);
                 return;
               }
-              const reader = new FileReader();
-              reader.onload = () => onBodyPhotoChange(typeof reader.result === 'string' ? reader.result : null);
-              reader.readAsDataURL(file);
+
+              setIsUploading(true);
+              setUploadError(null);
+              try {
+                const uploaded = await uploadBodyPhoto(file);
+                onBodyPhotoChange(uploaded.url);
+              } catch {
+                setUploadError('Не удалось загрузить фото');
+              } finally {
+                setIsUploading(false);
+                e.target.value = '';
+              }
             }}
           />
-          {bodyPhoto ? (
+          {uploadError ? (
+            <div className={styles.photoText}>
+              <p className={styles.photoHint}>{uploadError}</p>
+            </div>
+          ) : null}
+          {bodyPhoto && !uploadError ? (
             <div className={styles.photoText}>
               <p className={styles.photoHint}>Фото загружено</p>
             </div>

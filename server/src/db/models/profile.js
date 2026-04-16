@@ -4,7 +4,7 @@ module.exports = (sequelize, DataTypes) => {
   class Profile extends Model {
     static associate(models) {
       Profile.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
-      // Profile.hasMany(models.Event, { foreignKey: 'user_id', as: 'events' });
+      Profile.hasMany(models.Event, { foreignKey: 'user_id', as: 'events' });
     }
   }
 
@@ -87,7 +87,7 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'Profile',
       tableName: 'profiles',
       timestamps: true,
-      underscored: true,
+      underscored: false,
     }
   );
 
