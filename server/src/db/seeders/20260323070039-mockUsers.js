@@ -7,17 +7,17 @@ module.exports = {
       {
         name: 'Max',
         email: 'max@mail.ru',
-        password: hashPassword('123')
+        password: hashPassword('12345678Qq!')
       },
       {
         name: 'Anna',
         email: 'anna@mail.ru',
-        password: hashPassword('123')
+        password: hashPassword('12345678Qq!')
       },
       {
         name: 'Bob',
         email: 'bob@gmail.com',
-        password: hashPassword('123')
+        password: hashPassword('12345678Qq!')
       },
     ], {});
 
