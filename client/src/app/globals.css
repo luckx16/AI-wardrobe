@@ -83,3 +83,10 @@ a:focus-visible {
   letter-spacing: 0.02em;
   color: var(--foreground);
 }
+
+input,
+textarea,
+button,
+select {
+  font-family: inherit;
+}
