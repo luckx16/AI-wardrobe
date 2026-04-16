@@ -9,6 +9,10 @@ router.route('/')
   .post(upload.single('image'), ClothController.createCloth);
   // .post(verifyAccessToken, upload.single('image'), ClothController.createCloth);
 
+// POST /api/cloth/remove-background - удалить фон для превью
+router.route('/remove-background')
+  .post(upload.single('image'), ClothController.removeBackground);
+
 // GET /api/cloth/:id/status - проверка статуса обработки
 router.route('/:id/status')
   .get(ClothController.getProcessingStatus);

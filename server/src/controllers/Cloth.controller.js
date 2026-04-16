@@ -145,6 +145,48 @@ class ClothController {
       return res.status(500).json(formatResponse(500, 'Internal server error'));
     }
   }
+
+  /**
+   * POST /api/cloth/remove-background
+   * Синхронно удаляет фон и возвращает URL обработанного изображения.
+   * Используется фронтом для превью при добавлении вещи.
+   */
+  static async removeBackground(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json(formatResponse(400, 'Image is required'));
+      }
+
+      const tempImagePath = req.file.path;
+      const processedImageName = `processed-${Date.now()}-${req.file.filename}.png`;
+      const processedImagePath = path.join(
+        __dirname,
+        '..',
+        'uploads',
+        'processed',
+        processedImageName,
+      );
+
+      const resultPath = await ImageProcessingService.removeBackgroundAndOptimize(
+        tempImagePath,
+        processedImagePath,
+      );
+
+      await fs.unlink(tempImagePath).catch(console.error);
+
+      return res.json(
+        formatResponse(200, 'Background removed', {
+          url: `/uploads/processed/${path.basename(resultPath)}`,
+        }),
+      );
+    } catch (error) {
+      console.error('Remove background error:', error);
+      if (req.file) {
+        await fs.unlink(req.file.path).catch(console.error);
+      }
+      return res.status(500).json(formatResponse(500, 'Internal server error', null, error.message));
+    }
+  }
 }
 
 module.exports = ClothController;

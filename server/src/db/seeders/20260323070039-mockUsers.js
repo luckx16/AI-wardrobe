@@ -11,7 +11,7 @@ module.exports = {
         email: 'max@mail.ru',
         password: hashPassword('12345678Qq!'),
         telephone: null,
-        verified: false,
+        verified: true,
       },
       {
         name: 'Anna',
