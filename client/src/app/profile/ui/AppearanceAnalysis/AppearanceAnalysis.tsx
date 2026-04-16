@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 
 import { Card, SegmentedControl } from '@/shared/ui';
 
@@ -9,10 +9,21 @@ import styles from './AppearanceAnalysis.module.css';
 type Contrast = 'low' | 'medium' | 'high';
 type Undertone = 'cool' | 'warm' | 'neutral';
 
-export function AppearanceAnalysis(): React.JSX.Element {
-  // Здесь пока локальный UI-стейт (позже можно подключить к форме/стору).
-  const [contrast, setContrast] = useState<Contrast>('medium');
-  const [undertone, setUndertone] = useState<Undertone>('neutral');
+type AppearanceAnalysisProps = {
+  contrast: Contrast;
+  undertone: Undertone;
+  onContrastChange: (next: Contrast) => void;
+  onUndertoneChange: (next: Undertone) => void;
+  disabled: boolean;
+};
+
+export function AppearanceAnalysis({
+  contrast,
+  undertone,
+  onContrastChange,
+  onUndertoneChange,
+  disabled,
+}: AppearanceAnalysisProps): React.JSX.Element {
 
   const contrastOptions = useMemo(
     () =>
@@ -49,8 +60,9 @@ export function AppearanceAnalysis(): React.JSX.Element {
             ariaLabel="Уровень контраста"
             value={contrast}
             options={contrastOptions}
-            onChange={setContrast}
+            onChange={onContrastChange}
             className={styles.segmented}
+            disabled={disabled}
           />
         </div>
 
@@ -63,8 +75,9 @@ export function AppearanceAnalysis(): React.JSX.Element {
             ariaLabel="Подтон кожи"
             value={undertone}
             options={undertoneOptions}
-            onChange={setUndertone}
+            onChange={onUndertoneChange}
             className={styles.segmented}
+            disabled={disabled}
           />
         </div>
       </div>

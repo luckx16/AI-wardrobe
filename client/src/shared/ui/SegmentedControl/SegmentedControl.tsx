@@ -15,6 +15,7 @@ type SegmentedControlProps<T extends string> = {
   options: ReadonlyArray<SegmentedOption<T>>;
   onChange: (next: T) => void;
   className?: string;
+  disabled?: boolean;
 };
 
 export function SegmentedControl<T extends string>({
@@ -23,6 +24,7 @@ export function SegmentedControl<T extends string>({
   options,
   onChange,
   className,
+  disabled,
 }: SegmentedControlProps<T>): React.JSX.Element {
   // Индекс активной опции нужен для CSS-переменных, которые двигают "плашку" под выбранный сегмент.
   const activeIndex = Math.max(
@@ -35,6 +37,7 @@ export function SegmentedControl<T extends string>({
       className={`${styles.root}${className ? ` ${className}` : ''}`}
       role="group"
       aria-label={ariaLabel}
+      aria-disabled={disabled || undefined}
       style={
         {
           // CSS-переменные используются в `.indicator` для ширины/смещения.
@@ -52,7 +55,11 @@ export function SegmentedControl<T extends string>({
             type="button"
             className={`${styles.btn}${isActive ? ` ${styles.active}` : ''}`}
             aria-pressed={isActive}
-            onClick={() => onChange(opt.value)}
+            onClick={() => {
+              if (disabled) return;
+              onChange(opt.value);
+            }}
+            disabled={disabled}
           >
             {opt.label}
           </button>

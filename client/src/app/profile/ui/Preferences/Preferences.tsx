@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Card } from '@/shared/ui';
 import formStyles from '@/shared/styles/form.module.css';
@@ -8,6 +8,13 @@ import formStyles from '@/shared/styles/form.module.css';
 import styles from './Preferences.module.css';
 
 type Chip = { id: string; text: string };
+
+export type PreferencesValue = {
+  wishes: string;
+  essentials: string[];
+  noGo: string[];
+  additions: string;
+};
 
 function normalizeChipText(raw: string): string {
   // Нормализация нужна, чтобы не добавлять "пустые" и странно-отформатированные элементы.
@@ -29,6 +36,7 @@ type ChipInputProps = {
   onAdd: () => void;
   onRemove: (id: string) => void;
   inputId: string;
+  disabled: boolean;
 };
 
 function ChipInput({
@@ -41,6 +49,7 @@ function ChipInput({
   onAdd,
   onRemove,
   inputId,
+  disabled,
 }: ChipInputProps): React.JSX.Element {
   // Блокируем добавление, если поле пустое/из пробелов.
   const canAdd = !!normalizeChipText(value);
@@ -57,11 +66,12 @@ function ChipInput({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
+          disabled={disabled}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
               // Добавление по Enter — такой же сценарий, как клик по кнопке.
-              onAdd();
+              if (!disabled) onAdd();
             }
           }}
         />
@@ -69,7 +79,7 @@ function ChipInput({
           type="button"
           className={`${formStyles.btnGhost} ${formStyles.btnSmall}`}
           onClick={onAdd}
-          disabled={!canAdd}
+          disabled={disabled || !canAdd}
         >
           Добавить
         </button>
@@ -85,6 +95,7 @@ function ChipInput({
                 className={styles.chipRemove}
                 aria-label="Удалить"
                 onClick={() => onRemove(it.id)}
+                disabled={disabled}
               >
                 ×
               </button>
@@ -96,40 +107,59 @@ function ChipInput({
   );
 }
 
-export function Preferences(): React.JSX.Element {
-  // Инпуты/чипы — локальный стейт (позже можно подключить к форме/стору).
+type PreferencesProps = {
+  value: PreferencesValue;
+  onChange: (next: PreferencesValue) => void;
+  disabled: boolean;
+};
+
+function toChips(prefix: string, items: string[]): Chip[] {
+  return items.map((text, idx) => ({ id: `${prefix}-${idx}-${text}`, text }));
+}
+
+function chipsToStrings(items: Chip[]): string[] {
+  return items.map((x) => x.text);
+}
+
+export function Preferences({ value, onChange, disabled }: PreferencesProps): React.JSX.Element {
   const [essentialsValue, setEssentialsValue] = useState('');
   const [noGoValue, setNoGoValue] = useState('');
-  const [constraintsValue, setConstraintsValue] = useState('');
 
-  const [essentials, setEssentials] = useState<Chip[]>([]);
-  const [noGo, setNoGo] = useState<Chip[]>([]);
-  const [constraints, setConstraints] = useState<Chip[]>([]);
+  const [essentials, setEssentials] = useState<Chip[]>(() => toChips('ess', value.essentials));
+  const [noGo, setNoGo] = useState<Chip[]>(() => toChips('nogo', value.noGo));
+
+  useEffect(() => {
+    setEssentials(toChips('ess', value.essentials));
+  }, [value.essentials]);
+
+  useEffect(() => {
+    setNoGo(toChips('nogo', value.noGo));
+  }, [value.noGo]);
 
   const canAddEssentials = useMemo(() => !!normalizeChipText(essentialsValue), [essentialsValue]);
   const canAddNoGo = useMemo(() => !!normalizeChipText(noGoValue), [noGoValue]);
-  const canAddConstraints = useMemo(() => !!normalizeChipText(constraintsValue), [constraintsValue]);
 
   const addEssential = useCallback(() => {
     const text = normalizeChipText(essentialsValue);
     if (!text) return;
-    setEssentials((prev) => [{ id: makeId('ess'), text }, ...prev]);
+    setEssentials((prev) => {
+      const next = [{ id: makeId('ess'), text }, ...prev];
+      onChange({ ...value, essentials: chipsToStrings(next) });
+      return next;
+    });
     setEssentialsValue('');
-  }, [essentialsValue]);
+  }, [essentialsValue, onChange, value]);
 
   const addNoGo = useCallback(() => {
     const text = normalizeChipText(noGoValue);
     if (!text) return;
-    setNoGo((prev) => [{ id: makeId('nogo'), text }, ...prev]);
+    setNoGo((prev) => {
+      const next = [{ id: makeId('nogo'), text }, ...prev];
+      onChange({ ...value, noGo: chipsToStrings(next) });
+      return next;
+    });
     setNoGoValue('');
-  }, [noGoValue]);
-
-  const addConstraint = useCallback(() => {
-    const text = normalizeChipText(constraintsValue);
-    if (!text) return;
-    setConstraints((prev) => [{ id: makeId('con'), text }, ...prev]);
-    setConstraintsValue('');
-  }, [constraintsValue]);
+  }, [noGoValue, onChange, value]);
 
   return (
     <Card
@@ -146,7 +176,9 @@ export function Preferences(): React.JSX.Element {
             name="styleNotes"
             className={`${formStyles.textarea} ${styles.textarea}`}
             placeholder="Например: подчеркнуть ноги, скрыть живот, выглядеть выше"
-            defaultValue=""
+            value={value.wishes}
+            onChange={(e) => onChange({ ...value, wishes: e.target.value })}
+            disabled={disabled}
           />
         </div>
 
@@ -159,7 +191,14 @@ export function Preferences(): React.JSX.Element {
             items={essentials}
             onValueChange={setEssentialsValue}
             onAdd={addEssential}
-            onRemove={(id) => setEssentials((prev) => prev.filter((x) => x.id !== id))}
+            disabled={disabled}
+            onRemove={(id) =>
+              setEssentials((prev) => {
+                const next = prev.filter((x) => x.id !== id);
+                onChange({ ...value, essentials: chipsToStrings(next) });
+                return next;
+              })
+            }
           />
           <ChipInput
             inputId="profile-style-nogo"
@@ -170,7 +209,14 @@ export function Preferences(): React.JSX.Element {
             items={noGo}
             onValueChange={setNoGoValue}
             onAdd={addNoGo}
-            onRemove={(id) => setNoGo((prev) => prev.filter((x) => x.id !== id))}
+            disabled={disabled}
+            onRemove={(id) =>
+              setNoGo((prev) => {
+                const next = prev.filter((x) => x.id !== id);
+                onChange({ ...value, noGo: chipsToStrings(next) });
+                return next;
+              })
+            }
           />
         </div>
 
@@ -185,42 +231,11 @@ export function Preferences(): React.JSX.Element {
               className={`${formStyles.input} ${styles.addInput}`}
               type="text"
               placeholder="Передвигаюсь на машине, поэтому почти не ношу тёплую одежду"
-              value={constraintsValue}
-              onChange={(e) => setConstraintsValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addConstraint();
-                }
-              }}
+              value={value.additions}
+              onChange={(e) => onChange({ ...value, additions: e.target.value })}
+              disabled={disabled}
             />
-            <button
-              type="button"
-              className={`${formStyles.btnGhost} ${formStyles.btnSmall}`}
-              onClick={addConstraint}
-              disabled={!canAddConstraints}
-            >
-              Добавить
-            </button>
           </div>
-
-          {constraints.length ? (
-            <div className={styles.chips} aria-label="Дополнительные пожелания">
-              {constraints.map((it) => (
-                <span key={it.id} className={styles.chip}>
-                  <span className={styles.chipText}>{it.text}</span>
-                  <button
-                    type="button"
-                    className={styles.chipRemove}
-                    aria-label="Удалить"
-                    onClick={() => setConstraints((prev) => prev.filter((x) => x.id !== it.id))}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          ) : null}
         </div>
       </div>
     </Card>
