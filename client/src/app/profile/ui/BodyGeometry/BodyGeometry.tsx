@@ -3,7 +3,7 @@ import React from 'react';
 import { Card } from '@/shared/ui';
 import formStyles from '@/shared/styles/form.module.css';
 
-import styles from './Measurements.module.css';
+import styles from './BodyGeometry.module.css';
 
 type Metric = {
   label: string;
@@ -51,7 +51,7 @@ function MetricItem({ label, name, placeholder, inputMode, type }: Metric): Reac
   );
 }
 
-export function Measurements(): React.JSX.Element {
+export function BodyGeometry(): React.JSX.Element {
   const metrics: Metric[] = [
     { label: 'Обхват груди (см)', name: 'chestCm', placeholder: 'Например: 92', type: 'number', inputMode: 'numeric' },
     { label: 'Обхват талии (см)', name: 'waistCm', placeholder: 'Например: 74', type: 'number', inputMode: 'numeric' },

@@ -5,7 +5,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Card } from '@/shared/ui';
 import formStyles from '@/shared/styles/form.module.css';
 
-import styles from './Preferences.module.css';
+import styles from './StylePreferences.module.css';
 
 type Chip = { id: string; text: string };
 
@@ -96,7 +96,7 @@ function ChipInput({
   );
 }
 
-export function Preferences(): React.JSX.Element {
+export function StylePreferences(): React.JSX.Element {
   // Инпуты/чипы — локальный стейт (позже можно подключить к форме/стору).
   const [essentialsValue, setEssentialsValue] = useState('');
   const [noGoValue, setNoGoValue] = useState('');
