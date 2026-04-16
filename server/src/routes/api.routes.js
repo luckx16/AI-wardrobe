@@ -6,6 +6,7 @@ const profileRoutes = require('./profile.routes');
 const uploadRoutes = require('./upload.routes');
 const lookRoutes = require('./look.routes');
 const eventRoutes = require('./event.routes');
+const clothRoutes = require('./cloth.routes');
 
 router.use('/users', usersRoutes);
 router.use('/auth', authRoutes);
@@ -14,5 +15,7 @@ router.use('/profile', profileRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/looks', lookRoutes);
 router.use('/events', eventRoutes);
+router.use('/cloth', clothRoutes);
+
 
 module.exports = router;
