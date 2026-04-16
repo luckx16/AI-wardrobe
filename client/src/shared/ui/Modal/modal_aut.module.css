@@ -1,0 +1,214 @@
+.label {
+  display: block;
+  margin: 14px 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #403b35;
+}
+
+.errorText {
+  margin: 6px 0 0;
+  color: #ce5265;
+  font-size: 12px;
+}
+
+.submitButton {
+  width: 100%;
+  height: 46px;
+  margin-top: 18px;
+  border: none;
+  border-radius: 10px;
+  background: #b7946f;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.submitButton:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.secondaryButton {
+  width: 100%;
+  height: 44px;
+  margin-top: 10px;
+  border: 1px solid #ddd4ca;
+  border-radius: 10px;
+  background: #fff;
+  color: #5f564e;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondaryButton:hover {
+  border-color: #c7b8a8;
+}
+
+.resendButton {
+  width: 100%;
+  margin-top: 10px;
+  border: none;
+  background: transparent;
+  color: #8a7663;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.resendButton:disabled {
+  cursor: default;
+  color: #aba39b;
+}
+
+.otpField {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.otpFieldError .otpCell {
+  border-color: #ce5265;
+}
+
+.otpNativeInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.otpCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  border: 1px solid #e2ddd7;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff, #f7f2ed);
+  color: #2c2c2c;
+  font-size: 20px;
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.otpCellActive {
+  border-color: #b7946f;
+  box-shadow: 0 0 0 3px rgba(183, 148, 111, 0.14);
+  transform: translateY(-1px);
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(39, 28, 18, 0.42);
+  backdrop-filter: blur(8px);
+  animation: modalFadeIn 0.22s ease;
+}
+
+.modalCard {
+  position: relative;
+  width: min(100%, 430px);
+  border: 1px solid rgba(221, 214, 205, 0.95);
+  border-radius: 24px;
+  background: rgba(250, 250, 250, 0.97);
+  box-shadow: 0 24px 60px rgba(44, 32, 21, 0.2);
+  animation: modalCardIn 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.modalForm {
+  padding: 24px 22px 22px;
+}
+
+.modalClose {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e2ddd7;
+  border-radius: 999px;
+  background: #fff;
+  color: #5f564e;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modalBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  border: 1px solid #e8dfd6;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #f6f1ec;
+  color: #8a7663;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.modalTitle {
+  margin: 0;
+  color: #1e1e1e;
+  font-size: 32px;
+  line-height: 1.12;
+}
+
+.modalLead {
+  margin: 10px 0 0;
+  color: #7a746e;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.terms {
+  margin: 14px 0 0;
+  text-align: center;
+  color: #8b8580;
+  font-size: 13px;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 1000px) {
+  .otpCell {
+    height: 48px;
+    font-size: 18px;
+  }
+}
