@@ -1,11 +1,32 @@
 'use client';
 
-import { EventModal, EventsCalendar, EventSidebar, useEventsCalendar } from '@/features/events';
+import { useMemo, useState } from 'react';
+
+import { EventModal, EventsCalendar,EventSidebar } from '@/entities/events';
+import { toDateStr } from '@/entities/events/lib/calendar';
+import { useAppSelector } from '@/shared/hooks';
 
 import styles from './events.module.css';
 
 export default function EventsPage() {
-  const calendar = useEventsCalendar();
+  const today = new Date();
+  const todayStr = toDateStr(today);
+
+  const { events } = useAppSelector((state) => state.events);
+
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const eventsByDate = useMemo(() => {
+    const map: Record<string, typeof events> = {};
+    events.forEach((e) => {
+      const key = e.date.slice(0, 10);
+      (map[key] ||= []).push(e);
+    });
+    return map;
+  }, [events]);
+
+  const selectedEvents = eventsByDate[selectedDate] ?? [];
 
   return (
     <div className={styles.page}>
@@ -14,37 +35,26 @@ export default function EventsPage() {
           <h1 className={styles.title}>Мои события</h1>
           <p className={styles.subtitle}>Планируй образы для каждого события</p>
         </div>
-        <button className={styles.addButton} onClick={calendar.openModal}>
+        <button className={styles.addButton} onClick={() => setModalOpen(true)}>
           + Новое событие
         </button>
       </div>
 
       <div className={styles.content}>
         <EventsCalendar
-          viewYear={calendar.viewYear}
-          viewMonth={calendar.viewMonth}
-          days={calendar.days}
-          selectedDate={calendar.selectedDate}
-          todayStr={calendar.todayStr}
-          eventsByDate={calendar.eventsByDate}
-          onSelectDate={calendar.setSelectedDate}
-          onPrevMonth={calendar.prevMonth}
-          onNextMonth={calendar.nextMonth}
+          selectedDate={selectedDate}
+          eventsByDate={eventsByDate}
+          onSelectDate={setSelectedDate}
         />
         <EventSidebar
-          selectedDate={calendar.selectedDate}
-          selectedEvents={calendar.selectedEvents}
-          onDelete={calendar.deleteEvent}
+          selectedDate={selectedDate}
+          selectedEvents={selectedEvents}
+          onDelete={() => {}}
         />
       </div>
 
-      {calendar.modalOpen && (
-        <EventModal
-          form={calendar.form}
-          onChange={calendar.handleFormChange}
-          onSave={calendar.saveEvent}
-          onClose={calendar.closeModal}
-        />
+      {modalOpen && (
+        <EventModal initialDate={selectedDate} onClose={() => setModalOpen(false)} />
       )}
     </div>
   );

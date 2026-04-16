@@ -11,7 +11,7 @@ class EventService {
 
   async findByUserId(userId, filters = {}) {
     const where = { user_id: userId };
-    
+
     if (filters.dateFrom) {
       where.date = { [Op.gte]: filters.dateFrom };
     }

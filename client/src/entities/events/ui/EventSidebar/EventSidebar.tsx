@@ -4,7 +4,7 @@ import styles from './EventSidebar.module.css';
 interface Props {
   selectedDate: string;
   selectedEvents: StyleEvent[];
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
 }
 
 export function EventSidebar({ selectedDate, selectedEvents, onDelete }: Props) {
@@ -24,8 +24,10 @@ export function EventSidebar({ selectedDate, selectedEvents, onDelete }: Props) 
           <div className={styles.eventCard} key={ev.id}>
             <div className={styles.eventHeader}>
               <div>
-                <div className={styles.eventName}>{ev.name}</div>
-                {ev.look && <span className={styles.eventLook}>👗 {ev.look}</span>}
+                <div className={styles.eventName}>{ev.title}</div>
+                {ev.activityType && (
+                  <span className={styles.eventLook}>{ev.activityType}</span>
+                )}
               </div>
               <button
                 className={styles.deleteBtn}

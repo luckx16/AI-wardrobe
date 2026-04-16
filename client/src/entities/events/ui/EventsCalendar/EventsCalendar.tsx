@@ -1,44 +1,52 @@
-import { MONTHS, WEEKDAYS } from '../../lib/calendar';
+import { useMemo, useState } from 'react';
+
+import { getDays, MONTHS, toDateStr, WEEKDAYS } from '../../lib/calendar';
 import { StyleEvent } from '../../model/types';
 import styles from './EventsCalendar.module.css';
 
 interface Props {
-  viewYear: number;
-  viewMonth: number;
-  days: { date: Date; current: boolean }[];
   selectedDate: string;
-  todayStr: string;
   eventsByDate: Record<string, StyleEvent[]>;
   onSelectDate: (date: string) => void;
-  onPrevMonth: () => void;
-  onNextMonth: () => void;
 }
 
-function toDateStr(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
+export function EventsCalendar({ selectedDate, eventsByDate, onSelectDate }: Props) {
+  const today = new Date();
+  const todayStr = toDateStr(today);
 
-export function EventsCalendar({
-  viewYear,
-  viewMonth,
-  days,
-  selectedDate,
-  todayStr,
-  eventsByDate,
-  onSelectDate,
-  onPrevMonth,
-  onNextMonth,
-}: Props) {
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+
+  const days = useMemo(() => getDays(viewYear, viewMonth), [viewYear, viewMonth]);
+
+  function prevMonth() {
+    if (viewMonth === 0) {
+      setViewYear((y) => y - 1);
+      setViewMonth(11);
+    } else {
+      setViewMonth((m) => m - 1);
+    }
+  }
+
+  function nextMonth() {
+    if (viewMonth === 11) {
+      setViewYear((y) => y + 1);
+      setViewMonth(0);
+    } else {
+      setViewMonth((m) => m + 1);
+    }
+  }
+
   return (
     <div className={styles.calendar}>
       <div className={styles.calendarNav}>
-        <button className={styles.navBtn} onClick={onPrevMonth}>
+        <button className={styles.navBtn} onClick={prevMonth}>
           ←
         </button>
         <span className={styles.calendarMonth}>
           {MONTHS[viewMonth]} {viewYear}
         </span>
-        <button className={styles.navBtn} onClick={onNextMonth}>
+        <button className={styles.navBtn} onClick={nextMonth}>
           →
         </button>
       </div>
@@ -74,7 +82,7 @@ export function EventsCalendar({
                 <div className={styles.dayEvents}>
                   {dayEvents.slice(0, 2).map((ev) => (
                     <span key={ev.id} className={styles.dayEventTag}>
-                      {ev.name}
+                      {ev.title}
                     </span>
                   ))}
                   {dayEvents.length > 2 && (

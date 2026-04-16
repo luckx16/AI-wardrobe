@@ -2,12 +2,14 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import { userReducer } from '@/entities/user/slice/userSlice';
+import { eventsReducer } from '@/entities/events/model/eventsSlice';
 
 // Создание store
 export const store = configureStore({
   reducer: {
     // Сущности внутри store
     user: userReducer,
+    events: eventsReducer,
   },
 });
 
