@@ -1,17 +1,9 @@
 import './globals.css';
 
-import { JetBrains_Mono } from 'next/font/google';
-
 import type { Metadata } from 'next';
 
 import { ReduxProvider } from '@/app/providers/ReduxProvider';
 import { Footer, Header } from '@/widgets';
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin', 'cyrillic'],
-  display: 'swap',
-  variable: '--font-mono',
-});
 
 export const metadata: Metadata = {
   title: 'Next.js Blog',
@@ -20,8 +12,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={jetbrainsMono.variable}>
-      <body className={jetbrainsMono.className}>
+    <html lang="en">
+      <body>
         <ReduxProvider>
           <div className="app-shell">
             <Header />
