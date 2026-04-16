@@ -2,11 +2,17 @@ const path = require('path');
 const { Profile } = require('../db/models');
 const { fileService } = require('../services/fileService');
 
+function getUserId(req, res) {
+  const id = req.user?.id ?? res.locals.user?.id;
+  return id ?? null;
+}
+
 class UploadController {
   // Загрузка портретного фото
   async uploadPortraitPhoto(req, res) {
     try {
-      const userId = req.user?.id; // из middleware авторизации
+      const userId = getUserId(req, res);
+      if (!userId) return res.status(403).json({ error: 'Invalid access token' });
       
       if (!req.file) {
         return res.status(400).json({ error: 'Файл не загружен' });
@@ -53,7 +59,8 @@ class UploadController {
   // Загрузка фото в полный рост
   async uploadBodyPhoto(req, res) {
     try {
-      const userId = req.user?.id;
+      const userId = getUserId(req, res);
+      if (!userId) return res.status(403).json({ error: 'Invalid access token' });
       
       if (!req.file) {
         return res.status(400).json({ error: 'Файл не загружен' });
@@ -96,7 +103,8 @@ class UploadController {
   // Удаление фото
   async deletePhoto(req, res) {
     try {
-      const userId = req.user?.id;
+      const userId = getUserId(req, res);
+      if (!userId) return res.status(403).json({ error: 'Invalid access token' });
       const { field } = req.params; // 'portrait_photo' или 'body_photo'
 
       if (!['portrait_photo', 'body_photo'].includes(field)) {
@@ -136,7 +144,8 @@ class UploadController {
   // Загрузка нескольких фото (опционально)
   async uploadMultiplePhotos(req, res) {
     try {
-      const userId = req.user?.id;
+      const userId = getUserId(req, res);
+      if (!userId) return res.status(403).json({ error: 'Invalid access token' });
       
       if (!req.files || req.files.length === 0) {
         return res.status(400).json({ error: 'Файлы не загружены' });
