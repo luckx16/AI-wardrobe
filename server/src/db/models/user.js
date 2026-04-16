@@ -2,6 +2,10 @@ const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
+    static associate(models) {
+      User.hasOne(models.Profile, { foreignKey: 'user_id', as: 'profile' });
+    }
+
     static validateEmail(email) {
       const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
       return emailPattern.test(email);
