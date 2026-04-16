@@ -26,11 +26,31 @@
 }
 
 .brand {
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   color: var(--foreground, #111111);
+  text-decoration: none;
+}
+
+.brandLogoWrap {
+  width: 3.5rem;
+  height: 3.5rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandLogo {
+  object-fit: contain;
+  object-position: center;
+}
+
+.brandText {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .list {

@@ -96,15 +96,31 @@ function ChipInput({
   );
 }
 
-export function StylePreferences(): React.JSX.Element {
-  // Инпуты/чипы — локальный стейт (позже можно подключить к форме/стору).
+type StylePreferencesProps = {
+  wishes: string;
+  prefs: Chip[];
+  dislikes: Chip[];
+  additions: Chip[];
+  onWishesChange: (next: string) => void;
+  onPrefsChange: (next: Chip[]) => void;
+  onDislikesChange: (next: Chip[]) => void;
+  onAdditionsChange: (next: Chip[]) => void;
+};
+
+export function StylePreferences({
+  wishes,
+  prefs,
+  dislikes,
+  additions,
+  onWishesChange,
+  onPrefsChange,
+  onDislikesChange,
+  onAdditionsChange,
+}: StylePreferencesProps): React.JSX.Element {
+  // Инпуты добавления — локальный стейт, а сами значения профиля храним в родителе.
   const [essentialsValue, setEssentialsValue] = useState('');
   const [noGoValue, setNoGoValue] = useState('');
   const [constraintsValue, setConstraintsValue] = useState('');
-
-  const [essentials, setEssentials] = useState<Chip[]>([]);
-  const [noGo, setNoGo] = useState<Chip[]>([]);
-  const [constraints, setConstraints] = useState<Chip[]>([]);
 
   const canAddEssentials = useMemo(() => !!normalizeChipText(essentialsValue), [essentialsValue]);
   const canAddNoGo = useMemo(() => !!normalizeChipText(noGoValue), [noGoValue]);
@@ -113,23 +129,23 @@ export function StylePreferences(): React.JSX.Element {
   const addEssential = useCallback(() => {
     const text = normalizeChipText(essentialsValue);
     if (!text) return;
-    setEssentials((prev) => [{ id: makeId('ess'), text }, ...prev]);
+    onPrefsChange([{ id: makeId('ess'), text }, ...prefs]);
     setEssentialsValue('');
-  }, [essentialsValue]);
+  }, [essentialsValue, onPrefsChange, prefs]);
 
   const addNoGo = useCallback(() => {
     const text = normalizeChipText(noGoValue);
     if (!text) return;
-    setNoGo((prev) => [{ id: makeId('nogo'), text }, ...prev]);
+    onDislikesChange([{ id: makeId('nogo'), text }, ...dislikes]);
     setNoGoValue('');
-  }, [noGoValue]);
+  }, [dislikes, noGoValue, onDislikesChange]);
 
   const addConstraint = useCallback(() => {
     const text = normalizeChipText(constraintsValue);
     if (!text) return;
-    setConstraints((prev) => [{ id: makeId('con'), text }, ...prev]);
+    onAdditionsChange([{ id: makeId('con'), text }, ...additions]);
     setConstraintsValue('');
-  }, [constraintsValue]);
+  }, [additions, constraintsValue, onAdditionsChange]);
 
   return (
     <Card
@@ -146,7 +162,8 @@ export function StylePreferences(): React.JSX.Element {
             name="styleNotes"
             className={`${formStyles.textarea} ${styles.textarea}`}
             placeholder="Например: подчеркнуть ноги, скрыть живот, выглядеть выше"
-            defaultValue=""
+            value={wishes}
+            onChange={(e) => onWishesChange(e.target.value)}
           />
         </div>
 
@@ -156,10 +173,10 @@ export function StylePreferences(): React.JSX.Element {
             label="База (что нравится)"
             placeholder="Например: спорт-шик"
             value={essentialsValue}
-            items={essentials}
+            items={prefs}
             onValueChange={setEssentialsValue}
             onAdd={addEssential}
-            onRemove={(id) => setEssentials((prev) => prev.filter((x) => x.id !== id))}
+            onRemove={(id) => onPrefsChange(prefs.filter((x) => x.id !== id))}
           />
           <ChipInput
             inputId="profile-style-nogo"
@@ -167,10 +184,10 @@ export function StylePreferences(): React.JSX.Element {
             placeholder="Например: жёлтый цвет"
             tone="danger"
             value={noGoValue}
-            items={noGo}
+            items={dislikes}
             onValueChange={setNoGoValue}
             onAdd={addNoGo}
-            onRemove={(id) => setNoGo((prev) => prev.filter((x) => x.id !== id))}
+            onRemove={(id) => onDislikesChange(dislikes.filter((x) => x.id !== id))}
           />
         </div>
 
@@ -204,16 +221,16 @@ export function StylePreferences(): React.JSX.Element {
             </button>
           </div>
 
-          {constraints.length ? (
+          {additions.length ? (
             <div className={styles.chips} aria-label="Дополнительные пожелания">
-              {constraints.map((it) => (
+              {additions.map((it) => (
                 <span key={it.id} className={styles.chip}>
                   <span className={styles.chipText}>{it.text}</span>
                   <button
                     type="button"
                     className={styles.chipRemove}
                     aria-label="Удалить"
-                    onClick={() => setConstraints((prev) => prev.filter((x) => x.id !== it.id))}
+                    onClick={() => onAdditionsChange(additions.filter((x) => x.id !== it.id))}
                   >
                     ×
                   </button>

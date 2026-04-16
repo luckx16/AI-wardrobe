@@ -4,7 +4,7 @@
   "description": "",
   "main": "./src/app.js",
   "scripts": {
-    "start": "node ./src/app.js",
+    "start": "node --env-file .env ./src/app.js",
     "dev": "node --watch --env-file .env ./src/app.js",
     "db:create": "sequelize db:create",
     "db:migrate": "sequelize db:migrate",
@@ -22,6 +22,7 @@
     "express": "^5.2.1",
     "gigachat": "^0.0.18",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
     "pg": "^8.20.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.8",

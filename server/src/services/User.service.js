@@ -1,4 +1,4 @@
-const { User, Post, sequelize } = require('../db/models')
+const { User, sequelize } = require('../db/models')
 
 class UserService {
     // R
