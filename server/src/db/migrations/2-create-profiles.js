@@ -1,8 +1,29 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.sequelize.query('CREATE TYPE enum_profiles_skin_tone AS ENUM (\'fair\', \'light\', \'medium\', \'olive\', \'tan\', \'brown\', \'dark\')');
-    await queryInterface.sequelize.query('CREATE TYPE enum_profiles_contrast AS ENUM (\'low\', \'medium\', \'high\')');
-    await queryInterface.sequelize.query('CREATE TYPE enum_profiles_proportion AS ENUM (\'pear\', \'apple\', \'hourglass\', \'rectangle\', \'inverted_triangle\')');
+    await queryInterface.sequelize.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_profiles_skin_tone') THEN
+          CREATE TYPE enum_profiles_skin_tone AS ENUM ('cool', 'warm', 'neutral');
+        END IF;
+      END$$;
+    `);
+    await queryInterface.sequelize.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_profiles_contrast') THEN
+          CREATE TYPE enum_profiles_contrast AS ENUM ('low', 'medium', 'high');
+        END IF;
+      END$$;
+    `);
+    await queryInterface.sequelize.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_profiles_proportion') THEN
+          CREATE TYPE enum_profiles_proportion AS ENUM ('standard', 'long', 'short');
+        END IF;
+      END$$;
+    `);
 
     await queryInterface.createTable('profiles', {
       id: {
@@ -11,9 +32,9 @@ module.exports = {
         autoIncrement: true,
       },
       user_id: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.INTEGER,
         allowNull: false,
-        references: { model: 'users', key: 'id' },
+        references: { model: 'Users', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
@@ -25,33 +46,35 @@ module.exports = {
         type: 'enum_profiles_contrast',
         allowNull: true,
       },
-      portrait_photo: { type: Sequelize.TEXT },
-      body_photo: { type: Sequelize.TEXT },
-      height: { type: Sequelize.FLOAT },
-      waist: { type: Sequelize.FLOAT },
-      bust: { type: Sequelize.FLOAT },
-      hips: { type: Sequelize.FLOAT },
-      foot_length: { type: Sequelize.FLOAT },
+      portrait_photo: { type: Sequelize.TEXT, allowNull: true },
+      body_photo: { type: Sequelize.TEXT, allowNull: true },
+      height: { type: Sequelize.FLOAT, allowNull: true },
+      waist: { type: Sequelize.FLOAT, allowNull: true },
+      bust: { type: Sequelize.FLOAT, allowNull: true },
+      hips: { type: Sequelize.FLOAT, allowNull: true },
+      foot_length: { type: Sequelize.FLOAT, allowNull: true },
       proportion: {
         type: 'enum_profiles_proportion',
         allowNull: true,
       },
-      wishes: { type: Sequelize.TEXT },
-      prefs: { 
+      wishes: { type: Sequelize.TEXT, allowNull: true },
+      prefs: {
         type: Sequelize.JSONB,
+        allowNull: true,
         defaultValue: {},
       },
-      dislikes: { 
+      dislikes: {
         type: Sequelize.JSONB,
+        allowNull: true,
         defaultValue: {},
       },
-      additions: { type: Sequelize.TEXT },
-      created_at: {
+      additions: { type: Sequelize.TEXT, allowNull: true },
+      createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
-      updated_at: {
+      updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
