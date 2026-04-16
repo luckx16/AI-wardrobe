@@ -1,16 +1,25 @@
+'use client';
+
 import React from 'react';
 
 import formStyles from '@/shared/styles/form.module.css';
 import { Card } from '@/shared/ui';
 
-import styles from './PersonalProfile.module.css';
+import styles from './PersonalData.module.css';
 
-type PersonalProfileProps = {
+type PersonalDataProps = {
   name: string;
   onNameChange: (next: string) => void;
+  portraitPhoto: string | null;
+  onPortraitPhotoChange: (next: string | null) => void;
 };
 
-export function PersonalProfile({ name, onNameChange }: PersonalProfileProps): React.JSX.Element {
+export function PersonalData({
+  name,
+  onNameChange,
+  portraitPhoto,
+  onPortraitPhotoChange,
+}: PersonalDataProps): React.JSX.Element {
   return (
     <Card
       title="Личные данные"
@@ -59,7 +68,24 @@ export function PersonalProfile({ name, onNameChange }: PersonalProfileProps): R
             <label className={styles.fileLabel} htmlFor="profile-photo">
               Выбрать файл
             </label>
-            <input id="profile-photo" className={styles.fileInput} type="file" accept="image/*" />
+            <input
+              id="profile-photo"
+              className={styles.fileInput}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) {
+                  onPortraitPhotoChange(null);
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onload = () =>
+                  onPortraitPhotoChange(typeof reader.result === 'string' ? reader.result : null);
+                reader.readAsDataURL(file);
+              }}
+            />
+            {portraitPhoto ? <p className={styles.photoHint}>Фото загружено</p> : null}
           </div>
         </div>
       </div>
