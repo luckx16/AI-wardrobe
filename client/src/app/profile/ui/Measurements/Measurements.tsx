@@ -13,37 +13,7 @@ type Metric = {
   type?: string;
 };
 
-type MeasurementsValue = {
-  bustCm: string;
-  waistCm: string;
-  hipsCm: string;
-  heightCm: string;
-  footCm: string;
-  legRatio: '' | 'standard' | 'long' | 'short';
-};
-
-type MeasurementsProps = {
-  value: MeasurementsValue;
-  onChange: (next: MeasurementsValue) => void;
-  bodyPhotoUrl: string;
-  onBodyPhotoSelect: (file: File) => void | Promise<void>;
-  disabled: boolean;
-};
-
-function MetricItem({
-  label,
-  name,
-  placeholder,
-  inputMode,
-  type,
-  value,
-  onChange,
-  disabled,
-}: Metric & {
-  value: string;
-  onChange: (next: string) => void;
-  disabled: boolean;
-}): React.JSX.Element {
+function MetricItem({ label, name, placeholder, inputMode, type }: Metric): React.JSX.Element {
   const isLegRatio = name === 'legRatio';
   return (
     <div className={styles.metric}>
@@ -56,9 +26,7 @@ function MetricItem({
           id={`metric-${name}`}
           className={`${formStyles.input} ${styles.metricInput}`}
           name={name}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
+          defaultValue=""
         >
           <option value="">Не выбрано</option>
           <option value="standard">Стандартные</option>
@@ -71,27 +39,19 @@ function MetricItem({
           className={`${formStyles.input} ${styles.metricInput}`}
           name={name}
           placeholder={placeholder}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          defaultValue=""
           type={type ?? 'text'}
           inputMode={inputMode}
           // Числовые значения не могут быть отрицательными.
           min={type === 'number' ? 0 : undefined}
           step={type === 'number' ? 'any' : undefined}
-          disabled={disabled}
         />
       )}
     </div>
   );
 }
 
-export function Measurements({
-  value,
-  onChange,
-  bodyPhotoUrl,
-  onBodyPhotoSelect,
-  disabled,
-}: MeasurementsProps): React.JSX.Element {
+export function Measurements(): React.JSX.Element {
   const metrics: Metric[] = [
     { label: 'Обхват груди (см)', name: 'chestCm', placeholder: 'Например: 92', type: 'number', inputMode: 'numeric' },
     { label: 'Обхват талии (см)', name: 'waistCm', placeholder: 'Например: 74', type: 'number', inputMode: 'numeric' },
@@ -109,65 +69,17 @@ export function Measurements({
           <div className={styles.photoText}>
             <p className={styles.photoTitle}>Фото в полный рост</p>
             <p className={styles.photoHint}>Помогает точнее определить особенности фигуры.</p>
-            {bodyPhotoUrl ? (
-              <a className={styles.photoHint} href={bodyPhotoUrl} target="_blank" rel="noreferrer">
-                Открыть загруженное фото
-              </a>
-            ) : null}
           </div>
           <label className={styles.uploadBtn} htmlFor="profile-fullbody-photo">
             Загрузить
           </label>
-          <input
-            id="profile-fullbody-photo"
-            className={styles.fileInput}
-            type="file"
-            accept="image/*"
-            disabled={disabled}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              void onBodyPhotoSelect(file);
-              e.target.value = '';
-            }}
-          />
+          <input id="profile-fullbody-photo" className={styles.fileInput} type="file" accept="image/*" />
         </div>
 
         <div className={styles.metrics}>
-          {metrics.map((m) => {
-            const current =
-              m.name === 'chestCm'
-                ? value.bustCm
-                : m.name === 'waistCm'
-                  ? value.waistCm
-                  : m.name === 'hipsCm'
-                    ? value.hipsCm
-                    : m.name === 'heightCm'
-                      ? value.heightCm
-                      : m.name === 'footCm'
-                        ? value.footCm
-                        : value.legRatio;
-
-            return (
-              <MetricItem
-                key={m.name}
-                {...m}
-                value={current}
-                disabled={disabled}
-                onChange={(next) => {
-                  onChange({
-                    ...value,
-                    bustCm: m.name === 'chestCm' ? next : value.bustCm,
-                    waistCm: m.name === 'waistCm' ? next : value.waistCm,
-                    hipsCm: m.name === 'hipsCm' ? next : value.hipsCm,
-                    heightCm: m.name === 'heightCm' ? next : value.heightCm,
-                    footCm: m.name === 'footCm' ? next : value.footCm,
-                    legRatio: (m.name === 'legRatio' ? next : value.legRatio) as MeasurementsValue['legRatio'],
-                  });
-                }}
-              />
-            );
-          })}
+          {metrics.map((m) => (
+            <MetricItem key={m.name} {...m} />
+          ))}
         </div>
       </div>
     </Card>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import { Card } from '@/shared/ui';
 import formStyles from '@/shared/styles/form.module.css';
@@ -8,13 +8,6 @@ import formStyles from '@/shared/styles/form.module.css';
 import styles from './Preferences.module.css';
 
 type Chip = { id: string; text: string };
-
-export type PreferencesValue = {
-  wishes: string;
-  essentials: string[];
-  noGo: string[];
-  additions: string;
-};
 
 function normalizeChipText(raw: string): string {
   // Нормализация нужна, чтобы не добавлять "пустые" и странно-отформатированные элементы.
@@ -36,7 +29,6 @@ type ChipInputProps = {
   onAdd: () => void;
   onRemove: (id: string) => void;
   inputId: string;
-  disabled: boolean;
 };
 
 function ChipInput({
@@ -49,7 +41,6 @@ function ChipInput({
   onAdd,
   onRemove,
   inputId,
-  disabled,
 }: ChipInputProps): React.JSX.Element {
   // Блокируем добавление, если поле пустое/из пробелов.
   const canAdd = !!normalizeChipText(value);
@@ -66,12 +57,11 @@ function ChipInput({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
-          disabled={disabled}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
               // Добавление по Enter — такой же сценарий, как клик по кнопке.
-              if (!disabled) onAdd();
+              onAdd();
             }
           }}
         />
@@ -79,7 +69,7 @@ function ChipInput({
           type="button"
           className={`${formStyles.btnGhost} ${formStyles.btnSmall}`}
           onClick={onAdd}
-          disabled={disabled || !canAdd}
+          disabled={!canAdd}
         >
           Добавить
         </button>
@@ -95,7 +85,6 @@ function ChipInput({
                 className={styles.chipRemove}
                 aria-label="Удалить"
                 onClick={() => onRemove(it.id)}
-                disabled={disabled}
               >
                 ×
               </button>
@@ -107,59 +96,40 @@ function ChipInput({
   );
 }
 
-type PreferencesProps = {
-  value: PreferencesValue;
-  onChange: (next: PreferencesValue) => void;
-  disabled: boolean;
-};
-
-function toChips(prefix: string, items: string[]): Chip[] {
-  return items.map((text, idx) => ({ id: `${prefix}-${idx}-${text}`, text }));
-}
-
-function chipsToStrings(items: Chip[]): string[] {
-  return items.map((x) => x.text);
-}
-
-export function Preferences({ value, onChange, disabled }: PreferencesProps): React.JSX.Element {
+export function Preferences(): React.JSX.Element {
+  // Инпуты/чипы — локальный стейт (позже можно подключить к форме/стору).
   const [essentialsValue, setEssentialsValue] = useState('');
   const [noGoValue, setNoGoValue] = useState('');
+  const [constraintsValue, setConstraintsValue] = useState('');
 
-  const [essentials, setEssentials] = useState<Chip[]>(() => toChips('ess', value.essentials));
-  const [noGo, setNoGo] = useState<Chip[]>(() => toChips('nogo', value.noGo));
-
-  useEffect(() => {
-    setEssentials(toChips('ess', value.essentials));
-  }, [value.essentials]);
-
-  useEffect(() => {
-    setNoGo(toChips('nogo', value.noGo));
-  }, [value.noGo]);
+  const [essentials, setEssentials] = useState<Chip[]>([]);
+  const [noGo, setNoGo] = useState<Chip[]>([]);
+  const [constraints, setConstraints] = useState<Chip[]>([]);
 
   const canAddEssentials = useMemo(() => !!normalizeChipText(essentialsValue), [essentialsValue]);
   const canAddNoGo = useMemo(() => !!normalizeChipText(noGoValue), [noGoValue]);
+  const canAddConstraints = useMemo(() => !!normalizeChipText(constraintsValue), [constraintsValue]);
 
   const addEssential = useCallback(() => {
     const text = normalizeChipText(essentialsValue);
     if (!text) return;
-    setEssentials((prev) => {
-      const next = [{ id: makeId('ess'), text }, ...prev];
-      onChange({ ...value, essentials: chipsToStrings(next) });
-      return next;
-    });
+    setEssentials((prev) => [{ id: makeId('ess'), text }, ...prev]);
     setEssentialsValue('');
-  }, [essentialsValue, onChange, value]);
+  }, [essentialsValue]);
 
   const addNoGo = useCallback(() => {
     const text = normalizeChipText(noGoValue);
     if (!text) return;
-    setNoGo((prev) => {
-      const next = [{ id: makeId('nogo'), text }, ...prev];
-      onChange({ ...value, noGo: chipsToStrings(next) });
-      return next;
-    });
+    setNoGo((prev) => [{ id: makeId('nogo'), text }, ...prev]);
     setNoGoValue('');
-  }, [noGoValue, onChange, value]);
+  }, [noGoValue]);
+
+  const addConstraint = useCallback(() => {
+    const text = normalizeChipText(constraintsValue);
+    if (!text) return;
+    setConstraints((prev) => [{ id: makeId('con'), text }, ...prev]);
+    setConstraintsValue('');
+  }, [constraintsValue]);
 
   return (
     <Card
@@ -176,9 +146,7 @@ export function Preferences({ value, onChange, disabled }: PreferencesProps): Re
             name="styleNotes"
             className={`${formStyles.textarea} ${styles.textarea}`}
             placeholder="Например: подчеркнуть ноги, скрыть живот, выглядеть выше"
-            value={value.wishes}
-            onChange={(e) => onChange({ ...value, wishes: e.target.value })}
-            disabled={disabled}
+            defaultValue=""
           />
         </div>
 
@@ -191,14 +159,7 @@ export function Preferences({ value, onChange, disabled }: PreferencesProps): Re
             items={essentials}
             onValueChange={setEssentialsValue}
             onAdd={addEssential}
-            disabled={disabled}
-            onRemove={(id) =>
-              setEssentials((prev) => {
-                const next = prev.filter((x) => x.id !== id);
-                onChange({ ...value, essentials: chipsToStrings(next) });
-                return next;
-              })
-            }
+            onRemove={(id) => setEssentials((prev) => prev.filter((x) => x.id !== id))}
           />
           <ChipInput
             inputId="profile-style-nogo"
@@ -209,14 +170,7 @@ export function Preferences({ value, onChange, disabled }: PreferencesProps): Re
             items={noGo}
             onValueChange={setNoGoValue}
             onAdd={addNoGo}
-            disabled={disabled}
-            onRemove={(id) =>
-              setNoGo((prev) => {
-                const next = prev.filter((x) => x.id !== id);
-                onChange({ ...value, noGo: chipsToStrings(next) });
-                return next;
-              })
-            }
+            onRemove={(id) => setNoGo((prev) => prev.filter((x) => x.id !== id))}
           />
         </div>
 
@@ -231,11 +185,42 @@ export function Preferences({ value, onChange, disabled }: PreferencesProps): Re
               className={`${formStyles.input} ${styles.addInput}`}
               type="text"
               placeholder="Передвигаюсь на машине, поэтому почти не ношу тёплую одежду"
-              value={value.additions}
-              onChange={(e) => onChange({ ...value, additions: e.target.value })}
-              disabled={disabled}
+              value={constraintsValue}
+              onChange={(e) => setConstraintsValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addConstraint();
+                }
+              }}
             />
+            <button
+              type="button"
+              className={`${formStyles.btnGhost} ${formStyles.btnSmall}`}
+              onClick={addConstraint}
+              disabled={!canAddConstraints}
+            >
+              Добавить
+            </button>
           </div>
+
+          {constraints.length ? (
+            <div className={styles.chips} aria-label="Дополнительные пожелания">
+              {constraints.map((it) => (
+                <span key={it.id} className={styles.chip}>
+                  <span className={styles.chipText}>{it.text}</span>
+                  <button
+                    type="button"
+                    className={styles.chipRemove}
+                    aria-label="Удалить"
+                    onClick={() => setConstraints((prev) => prev.filter((x) => x.id !== it.id))}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </Card>
