@@ -1,6 +1,7 @@
 "use client"
 
 import { SparklesIcon, UserIcon } from "@/shared/ui"
+
 import styles from './MessageBubble.module.css'
 
 export interface MessageBubbleProps {

@@ -1,4 +1,4 @@
-import type { Season, Category } from '../../app/wardrobe/types';
+import type { Category,Season } from '../../app/wardrobe/types';
 import styles from './WardrobeToolbar.module.css';
 
 type SortField = 'name' | 'season' | 'dateAdded' | 'category';

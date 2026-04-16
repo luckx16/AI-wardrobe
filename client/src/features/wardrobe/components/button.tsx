@@ -1,6 +1,7 @@
 import * as React from "react";
-import styles from "./button.module.css";
+
 import { cn } from "../../../shared/lib/cnInputs";
+import styles from "./button.module.css";
 
 type Variant = "default" | "outline" | "ghost";
 type Size = "sm" | "md" | "lg" | "icon";

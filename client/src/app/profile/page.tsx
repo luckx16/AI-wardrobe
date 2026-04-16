@@ -2,15 +2,14 @@
 
 import React, { useMemo, useState } from 'react';
 
-import { SidebarNav } from '@/shared/ui';
 import { useAppSelector } from '@/shared/hooks';
+import { SidebarNav } from '@/shared/ui';
 
+import styles from './profilePage.module.css';
 import { AppearanceAnalysis } from './ui/AppearanceAnalysis/AppearanceAnalysis';
 import { BodyGeometry } from './ui/BodyGeometry/BodyGeometry';
 import { PersonalProfile } from './ui/PersonalProfile/PersonalProfile';
 import { StylePreferences } from './ui/StylePreferences/StylePreferences';
-
-import styles from './profilePage.module.css';
 
 export default function ProfilePage(): React.JSX.Element {
   // Имя берём из стора, но даём редактировать локально (пока без сохранения на сервер).
@@ -18,16 +17,31 @@ export default function ProfilePage(): React.JSX.Element {
   const [displayName, setDisplayName] = useState<string>(user?.name ?? '');
 
   // Нужен для подсветки активного пункта навигации при клике по якорям.
-  const [activeSection, setActiveSection] = useState<'personal' | 'appearance' | 'measurements' | 'style'>(
-    'personal',
-  );
+  const [activeSection, setActiveSection] = useState<
+    'personal' | 'appearance' | 'measurements' | 'style'
+  >('personal');
 
   const navItems = useMemo(
     () => [
       // Якорные ссылки на секции страницы. Подсветка управляется `activeSection`.
-      { key: 'personal', label: 'Личные данные', href: '#personal', active: activeSection === 'personal' },
-      { key: 'appearance', label: 'Анализ внешности', href: '#appearance', active: activeSection === 'appearance' },
-      { key: 'measurements', label: 'Измерения', href: '#measurements', active: activeSection === 'measurements' },
+      {
+        key: 'personal',
+        label: 'Личные данные',
+        href: '#personal',
+        active: activeSection === 'personal',
+      },
+      {
+        key: 'appearance',
+        label: 'Анализ внешности',
+        href: '#appearance',
+        active: activeSection === 'appearance',
+      },
+      {
+        key: 'measurements',
+        label: 'Измерения',
+        href: '#measurements',
+        active: activeSection === 'measurements',
+      },
       { key: 'style', label: 'Предпочтения', href: '#style', active: activeSection === 'style' },
     ],
     [activeSection],
@@ -86,4 +100,3 @@ export default function ProfilePage(): React.JSX.Element {
     </div>
   );
 }
-

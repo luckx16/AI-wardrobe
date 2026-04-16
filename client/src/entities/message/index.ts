@@ -1,3 +1,3 @@
-export { MessageBubble } from "./ui/message-bubble"
+export type { ChatState,Message } from "./model/types"
 export type { MessageBubbleProps } from "./ui/message-bubble"
-export type { Message, ChatState } from "./model/types"
+export { MessageBubble } from "./ui/message-bubble"

@@ -1,7 +1,9 @@
 "use client"
 
-import { useState, type FormEvent, type KeyboardEvent } from "react"
-import { ArrowUpIcon, PaperclipIcon, ImageIcon } from "@/shared/ui"
+import { type FormEvent, type KeyboardEvent,useState } from "react"
+
+import { ArrowUpIcon, ImageIcon,PaperclipIcon } from "@/shared/ui"
+
 import styles from './ChatInput.module.css'
 
 interface ChatInputProps {

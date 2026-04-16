@@ -1,7 +1,9 @@
 "use client"
 
 import { type FC, type SVGProps } from "react"
-import { ShirtIcon, SunIcon, BriefcaseIcon, SparklesIcon } from "@/shared/ui"
+
+import { BriefcaseIcon, ShirtIcon, SparklesIcon,SunIcon } from "@/shared/ui"
+
 import styles from './SuggestionChips.module.css'
 
 interface SuggestionChipsProps {

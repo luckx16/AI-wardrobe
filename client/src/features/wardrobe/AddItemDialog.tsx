@@ -1,6 +1,11 @@
 'use client';
 
-import { useState, useRef, type ChangeEvent } from 'react';
+import { type ChangeEvent,useRef, useState } from 'react';
+
+import { ImagePlus, Plus, X } from 'lucide-react';
+
+import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
+import styles from './AddItemDialog.module.css';
 import {
   Dialog,
   DialogContent,
@@ -8,9 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './components/dialog';
-import type { Season, Category, WardrobeItem } from '../../app/wardrobe/types';
-import { Plus, ImagePlus, X } from 'lucide-react';
-import styles from './AddItemDialog.module.css';
 
 const seasons: Season[] = ['Зима', 'Весна', 'Лето', 'Осень', 'Все сезоны'];
 const categories: Category[] = [
