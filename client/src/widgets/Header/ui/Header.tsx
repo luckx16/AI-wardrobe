@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
@@ -23,7 +24,17 @@ export function Header() {
     <nav className={styles.nav}>
       <div className={styles.inner}>
         <Link href={CLIENT_ROUTES.HOME} className={styles.brand}>
-          WardrobeAI
+          <span className={styles.brandLogoWrap}>
+            <Image
+              src="/logo/logo_type.png"
+              alt="WardrobeAI logo"
+              fill
+              sizes="80px"
+              className={styles.brandLogo}
+              priority
+            />
+          </span>
+          <span className={styles.brandText}>WardrobeAI</span>
         </Link>
         <ul className={styles.list}>
           {isAuthenticated ? (
@@ -57,12 +68,12 @@ export function Header() {
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href={CLIENT_ROUTES.SIGN_UP}>
+                <Link className={styles.link} href={`${CLIENT_ROUTES.AUTH}?tab=sign-up`}>
                   Регистрация
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href={CLIENT_ROUTES.SIGN_IN}>
+                <Link className={styles.link} href={`${CLIENT_ROUTES.AUTH}?tab=sign-in`}>
                   Вход
                 </Link>
               </li>

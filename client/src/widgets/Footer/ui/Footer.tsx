@@ -1,3 +1,5 @@
+'use client';
+
 import styles from './Footer.module.css';
 
 export function Footer(): React.JSX.Element {
