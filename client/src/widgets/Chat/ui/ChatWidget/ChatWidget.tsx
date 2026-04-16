@@ -1,9 +1,11 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { MessageBubble, type Message } from "@/entities/message"
+import { useEffect,useRef, useState } from "react"
+
+import { type Message,MessageBubble } from "@/entities/message"
 import { ChatInput, SuggestionChips } from "@/features/send-message"
 import { ChatHeader } from "@/widgets"
+
 import styles from './ChatWidget.module.css'
 
 const INITIAL_MESSAGES: Message[] = [

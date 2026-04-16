@@ -1,6 +1,7 @@
 "use client"
 
-import { SparklesIcon, HistoryIcon, SettingsIcon, ChevronDownIcon } from "@/shared/ui"
+import { ChevronDownIcon,HistoryIcon, SettingsIcon, SparklesIcon } from "@/shared/ui"
+
 import styles from './ChatHeader.module.css'
 
 export function ChatHeader() {

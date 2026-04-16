@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Card } from '@/shared/ui';
 import formStyles from '@/shared/styles/form.module.css';
+import { Card } from '@/shared/ui';
 
 import styles from './BodyGeometry.module.css';
 
