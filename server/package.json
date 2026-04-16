@@ -4,7 +4,7 @@
   "description": "",
   "main": "./src/app.js",
   "scripts": {
-    "start": "node ./src/app.js",
+    "start": "node --env-file .env ./src/app.js",
     "dev": "node --watch --env-file .env ./src/app.js",
     "db:create": "sequelize db:create",
     "db:migrate": "sequelize db:migrate",
