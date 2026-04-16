@@ -1,5 +1,5 @@
 const path = require('path');
-const { Profile } = require('../models');
+const { Profile } = require('../db/models');
 const { fileService } = require('../services/fileService');
 
 class UploadController {
