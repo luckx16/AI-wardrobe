@@ -1,4 +1,4 @@
-const { Profile } = require('../models');
+const { Profile } = require('../db/models');
 
 class ProfileService {
   async findByUserId(userId) {

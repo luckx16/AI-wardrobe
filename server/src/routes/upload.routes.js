@@ -24,7 +24,7 @@ router.post(
 
 // Удаление фото
 router.delete(
-  '/:field(portrait_photo|body_photo)',
+  '/:field',
   (req, res) => uploadController.deletePhoto(req, res)
 );
 
