@@ -1,3 +1,5 @@
+'use strict';
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -15,16 +17,27 @@ module.exports = {
         onDelete: 'CASCADE',
       },
       role: {
-        type: Sequelize.TEXT,
+        type: Sequelize.ENUM('user', 'assistant', 'system'),
         allowNull: false,
       },
       content: {
-        type: Sequelize.TEXT,
+        type: Sequelize.JSONB,
         allowNull: false,
+        defaultValue: {},
       },
-      image_prompt: {
-        type: Sequelize.TEXT,
+      suggested_look_id: {
+        type: Sequelize.BIGINT,
         allowNull: true,
+        references: { model: 'looks', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      },
+      event_id: {
+        type: Sequelize.BIGINT,
+        allowNull: true,
+        references: { model: 'events', key: 'id' },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       createdAt: {
         allowNull: false,
@@ -39,10 +52,13 @@ module.exports = {
     });
 
     await queryInterface.addIndex('chat_messages', ['chat_id']);
+    await queryInterface.addIndex('chat_messages', ['suggested_look_id']);
+    await queryInterface.addIndex('chat_messages', ['event_id']);
     await queryInterface.addIndex('chat_messages', ['createdAt']);
   },
 
-  async down(queryInterface) {
+  async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('chat_messages');
+    await queryInterface.sequelize.query(`DROP TYPE IF EXISTS "enum_chat_messages_role";`);
   },
 };

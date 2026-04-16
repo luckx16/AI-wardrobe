@@ -69,7 +69,12 @@ class AuthController {
             const candidate = await User.findOne({ where: { email } });
 
             if (!candidate) {
-                const newUser = await AuthService.createNewUser({ name, email, password: hashPassword(password) });
+                const newUser = await AuthService.createNewUser({
+                    name,
+                    email,
+                    password: hashPassword(password),
+                    verified: false,
+                });
                 const { accessToken, refreshToken } = generateJWT({ user: newUser });
 
                 res.status(201)

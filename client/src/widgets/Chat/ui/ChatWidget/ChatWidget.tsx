@@ -12,7 +12,7 @@ import {
   getChatMessages,
   getChats,
   sendChatMessage,
-  updateChatName,
+  updateChatTitle,
 } from '@/features/chat/api/chatApi';
 import { ChatInput, SuggestionChips } from '@/features/send-message';
 import { useAppSelector } from '@/shared/hooks';
@@ -31,19 +31,11 @@ const INITIAL_MESSAGES: Message[] = [
 ];
 
 function formatChatName(chat: ClientChat, index: number) {
-  if (chat.name?.trim()) {
-    return chat.name.trim();
+  if (chat.title?.trim()) {
+    return chat.title.trim();
   }
 
-  const fallbackDate = chat.updatedAt ?? chat.createdAt;
-  if (!fallbackDate) {
-    return `Чат ${index + 1}`;
-  }
-
-  return `Чат ${new Date(fallbackDate).toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-  })}`;
+  return `Чат ${index + 1}`;
 }
 
 function buildChatNameFromMessage(text: string) {
@@ -56,9 +48,21 @@ function buildChatNameFromMessage(text: string) {
   return sliced.length < normalized.length ? `${sliced}...` : sliced;
 }
 
-function isTemporaryChatName(name: string | null | undefined) {
-  const value = name?.trim().toLowerCase() ?? '';
+function isTemporaryChatTitle(title: string | null | undefined) {
+  const value = title?.trim().toLowerCase() ?? '';
   return !value || value === 'ai wardrobe' || value.startsWith('новый чат');
+}
+
+function formatChatListDate(chat: ClientChat, index: number) {
+  const raw = chat.updatedAt ?? chat.createdAt;
+  if (!raw) {
+    return `#${index + 1}`;
+  }
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) {
+    return `#${index + 1}`;
+  }
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
 }
 
 export function ChatWidget() {
@@ -162,17 +166,17 @@ export function ChatWidget() {
       setIsBootstrapping(true);
 
       const now = new Date();
-      const chatName = `Новый чат ${now.toLocaleDateString('ru-RU', {
+      const chatTitle = `Новый чат ${now.toLocaleDateString('ru-RU', {
         day: '2-digit',
         month: '2-digit',
       })}`;
-      const newChatId = await createChat(chatName);
+      const newChatId = await createChat(chatTitle);
 
       const newChat: ClientChat = {
         id: newChatId,
-        name: chatName,
-        createdAt: now,
-        updatedAt: now,
+        title: chatTitle,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
       };
 
       setChats((prev) => [newChat, ...prev]);
@@ -249,25 +253,26 @@ export function ChatWidget() {
     try {
       let currentChatId = chatId;
       if (!currentChatId) {
-        const initialChatName = buildChatNameFromMessage(trimmed);
-        const createdChatId = await createChat(initialChatName);
+        const initialChatTitle = buildChatNameFromMessage(trimmed);
+        const createdChatId = await createChat(initialChatTitle);
         currentChatId = createdChatId;
         setChatId(createdChatId);
+        const t = new Date().toISOString();
         setChats((prev) => [
           {
             id: createdChatId,
-            name: initialChatName,
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            title: initialChatTitle,
+            createdAt: t,
+            updatedAt: t,
           },
           ...prev,
         ]);
       }
 
       const existingChat = chats.find((chat) => chat.id === currentChatId);
-      if (existingChat && isTemporaryChatName(existingChat.name)) {
-        const nextChatName = buildChatNameFromMessage(trimmed);
-        const updatedChat = await updateChatName(currentChatId, nextChatName);
+      if (existingChat && isTemporaryChatTitle(existingChat.title)) {
+        const nextChatTitle = buildChatNameFromMessage(trimmed);
+        const updatedChat = await updateChatTitle(currentChatId, nextChatTitle);
         setChats((prev) => [
           updatedChat,
           ...prev.filter((chat) => chat.id !== currentChatId),
@@ -278,11 +283,12 @@ export function ChatWidget() {
 
       setChats((prev) => {
         const currentChat = prev.find((chat) => chat.id === currentChatId);
+        const t = new Date().toISOString();
         const updatedChat: ClientChat = {
           id: currentChatId,
-          name: currentChat?.name ?? buildChatNameFromMessage(trimmed),
-          createdAt: currentChat?.createdAt ?? new Date(),
-          updatedAt: new Date(),
+          title: currentChat?.title ?? buildChatNameFromMessage(trimmed),
+          createdAt: currentChat?.createdAt ?? t,
+          updatedAt: t,
         };
 
         return [updatedChat, ...prev.filter((chat) => chat.id !== currentChatId)];
@@ -348,9 +354,7 @@ export function ChatWidget() {
                     onClick={() => void handleSelectChat(chat.id)}
                   >
                     <span className={styles.chatListTitle}>{formatChatName(chat, index)}</span>
-                    <span className={styles.chatListMeta}>
-                      {new Date(chat.updatedAt ?? chat.createdAt ?? Date.now()).toLocaleDateString('ru-RU')}
-                    </span>
+                    <span className={styles.chatListMeta}>{formatChatListDate(chat, index)}</span>
                   </button>
                   {chatPendingDeleteId === chat.id ? (
                     <div className={styles.deleteConfirm}>

@@ -4,6 +4,9 @@ module.exports = (sequelize, DataTypes) => {
   class ChatMessage extends Model {
     static associate(models) {
       ChatMessage.belongsTo(models.Chat, { foreignKey: 'chat_id', as: 'chat' });
+      ChatMessage.belongsTo(models.Look, { foreignKey: 'suggested_look_id', as: 'suggestedLook' });
+      ChatMessage.belongsTo(models.Event, { foreignKey: 'event_id', as: 'linkedEvent' });
+      ChatMessage.hasMany(models.MessageCloth, { foreignKey: 'message_id', as: 'messageCloths' });
     }
   }
 
@@ -19,15 +22,20 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       role: {
-        type: DataTypes.TEXT,
+        type: DataTypes.ENUM('user', 'assistant', 'system'),
         allowNull: false,
       },
       content: {
-        type: DataTypes.TEXT,
+        type: DataTypes.JSONB,
         allowNull: false,
+        defaultValue: {},
       },
-      image_prompt: {
-        type: DataTypes.TEXT,
+      suggested_look_id: {
+        type: DataTypes.BIGINT,
+        allowNull: true,
+      },
+      event_id: {
+        type: DataTypes.BIGINT,
         allowNull: true,
       },
     },

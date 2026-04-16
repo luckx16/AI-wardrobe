@@ -20,8 +20,6 @@ module.exports = {
           processed_at: new Date().toISOString()
         }),
         processing_status: 'completed',
-        createdAt: new Date(),
-        updatedAt: new Date()
       },
       {
         title: 'Кожаные ботинки',
@@ -40,8 +38,6 @@ module.exports = {
           processed_at: new Date().toISOString()
         }),
         processing_status: 'completed',
-        createdAt: new Date(),
-        updatedAt: new Date()
       },
       {
         title: 'Солнцезащитные очки',
@@ -60,8 +56,6 @@ module.exports = {
           processed_at: new Date().toISOString()
         }),
         processing_status: 'completed',
-        createdAt: new Date(),
-        updatedAt: new Date()
       }
     ], {});
   },

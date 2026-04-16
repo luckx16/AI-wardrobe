@@ -12,10 +12,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'cloth_id',
         as: 'lookCloth',
       });
-      // Cloth.hasMany(models.MessageCloth, {
-      //   foreignKey: 'cloth_id',
-      //   as: 'messageCloth',
-      // });
+      Cloth.hasMany(models.MessageCloth, {
+        foreignKey: 'cloth_id',
+        as: 'messageCloth',
+      });
     }
   }
 
@@ -64,13 +64,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       image: DataTypes.TEXT,
-      worn_at: DataTypes.DATE,
+      worn_at: DataTypes.DATEONLY,
       ai_metadata: {
         type: DataTypes.JSONB,
         defaultValue: {},
       },
       processing_status: {
-        type: DataTypes.ENUM('pending', 'completed', 'failed'),
+        type: DataTypes.ENUM('pending', 'processing', 'completed', 'failed'),
         defaultValue: 'pending',
       },
     },
@@ -78,6 +78,7 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: 'Cloth',
       tableName: 'Cloths',
+      timestamps: true,
     },
   );
 

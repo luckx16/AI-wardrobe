@@ -1,14 +1,14 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class LookCloth extends Model {
+  class MessageCloth extends Model {
     static associate(models) {
-      LookCloth.belongsTo(models.Look, { foreignKey: 'look_id', as: 'look' });
-      LookCloth.belongsTo(models.Cloth, { foreignKey: 'cloth_id', as: 'cloth' });
+      MessageCloth.belongsTo(models.Cloth, { foreignKey: 'cloth_id', as: 'cloth' });
+      MessageCloth.belongsTo(models.ChatMessage, { foreignKey: 'message_id', as: 'message' });
     }
   }
 
-  LookCloth.init(
+  MessageCloth.init(
     {
       id: {
         type: DataTypes.BIGINT,
@@ -19,25 +19,25 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BIGINT,
         allowNull: false,
       },
-      look_id: {
+      message_id: {
         type: DataTypes.BIGINT,
         allowNull: false,
       },
     },
     {
       sequelize,
-      modelName: 'LookCloth',
-      tableName: 'look_cloths',
+      modelName: 'MessageCloth',
+      tableName: 'message_cloths',
       timestamps: true,
       underscored: false,
       indexes: [
         {
           unique: true,
-          fields: ['cloth_id', 'look_id'],
+          fields: ['cloth_id', 'message_id'],
         },
       ],
     },
   );
 
-  return LookCloth;
+  return MessageCloth;
 };
