@@ -2,29 +2,6 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Создаем ENUM для category (с обувью и аксессуарами)
-    await queryInterface.sequelize.query(`
-      CREATE TYPE "enum_Cloths_category" AS ENUM (
-        'футболка', 'рубашка', 'платье', 'брюки', 
-        'юбка', 'куртка', 'свитер', 'худи', 
-        'шорты', 'обувь', 'аксессуары', 'другое'
-      );
-    `);
-
-    // Создаем ENUM для season
-    await queryInterface.sequelize.query(`
-      CREATE TYPE "enum_Cloths_season" AS ENUM (
-        'лето', 'зима', 'весна', 'осень', 'всесезон'
-      );
-    `);
-
-    // Создаем ENUM для processing_status (как вы просили)
-    await queryInterface.sequelize.query(`
-      CREATE TYPE "enum_Cloths_processing_status" AS ENUM (
-        'pending', 'processing', 'completed', 'failed'
-      );
-    `);
-
     await queryInterface.createTable('Cloths', {
       id: {
         allowNull: false,
@@ -92,7 +69,7 @@ module.exports = {
         allowNull: true,
       },
       worn_at: {
-        type: Sequelize.DATE,
+        type: Sequelize.DATEONLY,
         allowNull: true,
         comment: 'Когда последний раз надевали',
       },
@@ -104,7 +81,7 @@ module.exports = {
       },
       processing_status: {
         type: Sequelize.ENUM,
-        values: ['pending', 'completed', 'failed'],
+        values: ['pending', 'processing', 'completed', 'failed'],
         allowNull: false,
         defaultValue: 'pending',
         comment: 'Статус обработки изображения',
@@ -130,10 +107,5 @@ module.exports = {
 
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Cloths');
-
-    // Удаляем ENUM типы
-    await queryInterface.sequelize.query(`DROP TYPE IF EXISTS "enum_Cloths_category";`);
-    await queryInterface.sequelize.query(`DROP TYPE IF EXISTS "enum_Cloths_season";`);
-    await queryInterface.sequelize.query(`DROP TYPE IF EXISTS "enum_Cloths_processing_status";`);
   },
 };

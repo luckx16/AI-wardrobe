@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
       User.hasOne(models.Profile, { foreignKey: 'user_id', as: 'profile' });
       User.hasMany(models.Look, { foreignKey: 'user_id', as: 'looks' });
       User.hasMany(models.Event, { foreignKey: 'user_id', as: 'events' });
+      User.hasMany(models.Chat, { foreignKey: 'user_id', as: 'chats' });
     }
 
     static validateEmail(email) {
@@ -97,12 +98,22 @@ module.exports = (sequelize, DataTypes) => {
   User.init(
     {
       name: DataTypes.TEXT,
+      surname: DataTypes.TEXT,
+      age: DataTypes.INTEGER,
       email: DataTypes.TEXT,
       password: DataTypes.TEXT,
+      telephone: DataTypes.TEXT,
+      verified: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       sequelize,
       modelName: 'User',
+      tableName: 'Users',
+      timestamps: true,
     },
   );
   return User;

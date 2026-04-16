@@ -3,6 +3,7 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Chat extends Model {
     static associate(models) {
+      Chat.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
       Chat.hasMany(models.ChatMessage, { foreignKey: 'chat_id', as: 'messages' });
     }
   }
@@ -18,7 +19,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BIGINT,
         allowNull: false,
       },
-      name: {
+      title: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      context_summary: {
         type: DataTypes.TEXT,
         allowNull: true,
       },

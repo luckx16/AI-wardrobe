@@ -4,31 +4,55 @@ const { generateAiReply } = require('../services/AiChat.service');
 
 const HISTORY_LIMIT = 20;
 
+function messageContentToText(content) {
+  if (content == null) return '';
+  if (typeof content === 'string') return content;
+  if (typeof content === 'object' && typeof content.text === 'string') return content.text;
+  return '';
+}
+
+function messageImagePrompt(content) {
+  if (content && typeof content === 'object' && 'imagePrompt' in content) {
+    const v = content.imagePrompt;
+    return typeof v === 'string' ? v : null;
+  }
+  return null;
+}
+
 function toClientMessage(message) {
   return {
     id: message.id?.toString?.() ?? String(message.id),
     role: message.role,
-    content: message.content,
-    imagePrompt: message.image_prompt ?? null,
+    content: messageContentToText(message.content),
+    imagePrompt: messageImagePrompt(message.content),
     createdAt: message.createdAt,
+    updatedAt: message.updatedAt,
   };
+}
+
+function resolveChatTitle(body) {
+  if (typeof body?.title === 'string') return body.title;
+  if (typeof body?.name === 'string') return body.name;
+  return 'AI Wardrobe';
 }
 
 class ChatController {
   static async createChat(req, res) {
     try {
       const { user } = res.locals;
-      const name = typeof req.body?.name === 'string' ? req.body.name : 'AI Wardrobe';
+      const title = resolveChatTitle(req.body);
 
       const chat = await Chat.create({
         user_id: user.id,
-        name,
+        title,
       });
 
       return res.status(201).json(
         formatResponse(201, 'Chat created', {
           id: chat.id.toString(),
-          name: chat.name,
+          title: chat.title,
+          createdAt: chat.createdAt,
+          updatedAt: chat.updatedAt,
         }),
       );
     } catch (error) {
@@ -54,7 +78,8 @@ class ChatController {
           'Chats loaded',
           chats.map((chat) => ({
             id: chat.id.toString(),
-            name: chat.name,
+            title: chat.title,
+            contextSummary: chat.context_summary,
             createdAt: chat.createdAt,
             updatedAt: chat.updatedAt,
           })),
@@ -71,10 +96,10 @@ class ChatController {
     try {
       const { user } = res.locals;
       const { chatId } = req.params;
-      const name = String(req.body?.name ?? '').trim();
+      const title = String(req.body?.title ?? req.body?.name ?? '').trim();
 
-      if (!name) {
-        return res.status(400).json(formatResponse(400, 'Chat name is required', null));
+      if (!title) {
+        return res.status(400).json(formatResponse(400, 'Chat title is required', null));
       }
 
       const chat = await Chat.findOne({
@@ -86,14 +111,14 @@ class ChatController {
       }
 
       await chat.update({
-        name,
-        updatedAt: new Date(),
+        title,
       });
 
       return res.json(
         formatResponse(200, 'Chat updated', {
           id: chat.id.toString(),
-          name: chat.name,
+          title: chat.title,
+          contextSummary: chat.context_summary,
           createdAt: chat.createdAt,
           updatedAt: chat.updatedAt,
         }),
@@ -180,7 +205,6 @@ class ChatController {
         return res.status(404).json(formatResponse(404, 'Chat not found', null));
       }
 
-      // Берём историю "до" текущего сообщения, чтобы сервис добавил текст сам.
       const prevMessagesDesc = await ChatMessage.findAll({
         where: { chat_id: chatId },
         order: [['createdAt', 'DESC']],
@@ -190,12 +214,15 @@ class ChatController {
       const historyMessages = prevMessagesDesc
         .slice()
         .reverse()
-        .map((m) => ({ role: m.role, content: m.content }));
+        .map((m) => ({
+          role: m.role,
+          content: messageContentToText(m.content),
+        }));
 
       const userMessage = await ChatMessage.create({
         chat_id: chatId,
         role: 'user',
-        content: text,
+        content: { text },
       });
 
       const aiResult = await generateAiReply({
@@ -208,8 +235,10 @@ class ChatController {
       const assistantMessage = await ChatMessage.create({
         chat_id: chatId,
         role: 'assistant',
-        content: aiResult.replyText ?? '...',
-        image_prompt: aiResult.imagePrompt ?? null,
+        content: {
+          text: aiResult.replyText ?? '...',
+          imagePrompt: aiResult.imagePrompt ?? null,
+        },
       });
 
       await chat.update({ updatedAt: new Date() });

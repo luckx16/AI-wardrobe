@@ -7,19 +7,23 @@ export type ClientChatMessage = {
   role: 'user' | 'assistant';
   content: string;
   imagePrompt: string | null;
-  createdAt?: Date;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 type CreateChatData = {
   id: string;
-  name: string | null;
+  title: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type ClientChat = {
   id: string;
-  name: string | null;
-  createdAt?: Date;
-  updatedAt?: Date;
+  title: string | null;
+  contextSummary?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 type SendMessageData = {
@@ -28,9 +32,9 @@ type SendMessageData = {
   assistantMessage: ClientChatMessage;
 };
 
-export async function createChat(name = 'AI Wardrobe'): Promise<string> {
+export async function createChat(title = 'AI Wardrobe'): Promise<string> {
   const { data } = await axiosInstance.post<ServerResponseType<CreateChatData>>(CHAT_API_ROUTES.CHATS, {
-    name,
+    title,
   });
 
   return data.data.id;
@@ -42,10 +46,10 @@ export async function getChats(): Promise<ClientChat[]> {
   return data.data;
 }
 
-export async function updateChatName(chatId: string, name: string): Promise<ClientChat> {
+export async function updateChatTitle(chatId: string, title: string): Promise<ClientChat> {
   const { data } = await axiosInstance.patch<ServerResponseType<ClientChat>>(
     CHAT_API_ROUTES.CHAT(chatId),
-    { name },
+    { title },
   );
 
   return data.data;

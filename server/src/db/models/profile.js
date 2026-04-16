@@ -4,7 +4,6 @@ module.exports = (sequelize, DataTypes) => {
   class Profile extends Model {
     static associate(models) {
       Profile.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
-      Profile.hasMany(models.Event, { foreignKey: 'user_id', as: 'events' });
     }
   }
 
@@ -19,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BIGINT,
         allowNull: false,
         references: {
-          model: 'users',
+          model: 'Users',
           key: 'id',
         },
       },
@@ -88,7 +87,7 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'profiles',
       timestamps: true,
       underscored: false,
-    }
+    },
   );
 
   return Profile;

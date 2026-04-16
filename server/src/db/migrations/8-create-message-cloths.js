@@ -1,33 +1,26 @@
+'use strict';
+
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('events', {
+    await queryInterface.createTable('message_cloths', {
       id: {
         type: Sequelize.BIGINT,
         primaryKey: true,
         autoIncrement: true,
       },
-      user_id: {
+      cloth_id: {
         type: Sequelize.BIGINT,
         allowNull: false,
-        references: { model: 'Users', key: 'id' },
+        references: { model: 'Cloths', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      title: {
-        type: Sequelize.TEXT,
-        allowNull: false,
-      },
-      date: {
-        type: Sequelize.DATE,
-        allowNull: false,
-      },
-      activity_type: { type: Sequelize.TEXT },
-      look_id: {
+      message_id: {
         type: Sequelize.BIGINT,
-        allowNull: true,
-        references: { model: 'looks', key: 'id' },
+        allowNull: false,
+        references: { model: 'chat_messages', key: 'id' },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onDelete: 'CASCADE',
       },
       createdAt: {
         allowNull: false,
@@ -41,12 +34,11 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex('events', ['user_id']);
-    await queryInterface.addIndex('events', ['date']);
-    await queryInterface.addIndex('events', ['look_id']);
+    await queryInterface.addIndex('message_cloths', ['cloth_id', 'message_id'], { unique: true });
+    await queryInterface.addIndex('message_cloths', ['message_id']);
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('events');
+    await queryInterface.dropTable('message_cloths');
   },
 };
