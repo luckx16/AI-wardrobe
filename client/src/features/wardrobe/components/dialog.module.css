@@ -2,12 +2,11 @@
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgb(0 0 0 / 0.3);
-  backdrop-filter: blur(6px);
+  background: rgb(0 0 0 / 0.8);
   animation: overlayIn 0.2s ease;
 }
 
-.overlay[data-state='closed'] {
+.overlay[data-state="closed"] {
   animation: overlayOut 0.2s ease;
 }
 
@@ -22,13 +21,13 @@
   padding: 1.5rem;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 0.125rem);
- background: var(--surface-elevated);
+  background: var(--background);
   box-shadow: 0 24px 64px -28px rgb(0 0 0 / 0.45);
   transform: translate(-50%, -50%);
   animation: contentIn 0.2s ease;
 }
 
-.content[data-state='closed'] {
+.content[data-state="closed"] {
   animation: contentOut 0.2s ease;
 }
 

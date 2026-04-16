@@ -1,15 +1,52 @@
 :root {
-  --background: #fafaf8;
-  --foreground: #111111;
-  --muted: #737373;
-  --surface: #ffffff;
-  --surface-elevated: #f5f4f2;
-  --border: #e8e5e0;
-  --accent: #b09070;
+  --accent: #a8896e;
   --accent-bright: #8a6a4a;
+  --accent-foreground: #ffffff;
+
+  --background: #fafaf8;
+  --border: #e6e2dd;
+
+  --card: #ffffff;
+  --card-foreground: #121212;
+
   --danger: #c83246;
-  --success: #2a8f68;
+  --destructive: #cc2e44;
+  --destructive-foreground: #ffffff;
+
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --foreground: #111111;
+
+  --input: #e6e2dd;
+
+  --muted: #737373;
+  --muted-foreground: #737373;
+
+  --popover: #ffffff;
+  --popover-foreground: #121212;
+
+  --primary: #a8896e;
+  --primary-foreground: #ffffff;
+
+  --radius: 0.625rem;
+  --ring: #a8896e;
+
+  --secondary: #f3f2ef;
+  --secondary-foreground: #121212;
+
+  --sidebar-accent: #f2f2f3;
+  --sidebar-accent-foreground: #1a1a1b;
+  --sidebar-background: #fafafa;
+  --sidebar-border: #e7eaee;
+  --sidebar-foreground: #3f3f42;
+  --sidebar-primary: #1a1a1b;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-ring: #3b82f6;
+
+  --success: #2fa37a;
+
+  --surface: #ffffff;
+  --surface-elevated: #f5f3f1;
 }
 
 html {
