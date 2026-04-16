@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: hsl(var(--background));
+  background: var(--background);
 }
 
 .container {
@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: center;
   padding: 6rem 0;
-  color: hsl(var(--muted));
+  color: var(--muted);
   text-align: center;
 }
 

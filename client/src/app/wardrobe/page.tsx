@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback,useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import AddItemDialog from '../../features/wardrobe/AddItemDialog';
+import ItemDetailDialog from '../../features/wardrobe/ItemDetailDialog';
 import WardrobeCard from '../../features/wardrobe/WardrobeCard';
 import WardrobeToolbar from '../../features/wardrobe/WardrobeToolbar';
-import { type Category, type Season, type WardrobeItem,wardrobeItems } from './types';
+import { type Category, type Season, type WardrobeItem, wardrobeItems } from './types';
 import styles from './WardrobePage.module.css';
 
 type SortField = 'name' | 'season' | 'dateAdded' | 'category';
@@ -15,9 +16,14 @@ const WardrobePage = () => {
   const [sortBy, setSortBy] = useState<SortField>('name');
   const [filterSeason, setFilterSeason] = useState<Season | 'all'>('all');
   const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all');
+  const [selectedItem, setSelectedItem] = useState<WardrobeItem | null>(null);
 
   const handleAddItem = useCallback((item: WardrobeItem) => {
     setItems((prev) => [item, ...prev]);
+  }, []);
+
+  const handleDeleteItem = useCallback((id: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
   }, []);
 
   const filtered = useMemo(() => {
@@ -62,11 +68,24 @@ const WardrobePage = () => {
         ) : (
           <div className={styles.grid}>
             {filtered.map((item, i) => (
-              <WardrobeCard key={item.id} item={item} index={i} />
+              <WardrobeCard
+                key={item.id}
+                item={item}
+                index={i}
+                onDelete={handleDeleteItem}
+                onClick={() => setSelectedItem(item)}
+              />
             ))}
           </div>
         )}
       </div>
+      <ItemDetailDialog
+        item={selectedItem}
+        open={!!selectedItem}
+        onOpenChange={(v) => {
+          if (!v) setSelectedItem(null);
+        }}
+      />
     </div>
   );
 };

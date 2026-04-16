@@ -1,14 +1,30 @@
+import { Trash2 } from 'lucide-react';
+
 import type { WardrobeItem } from '../../app/wardrobe/types';
 import styles from './WardrobeCard.module.css';
 
 interface WardrobeCardProps {
   item: WardrobeItem;
   index: number;
+  onDelete?: (id: string) => void;
+  onClick?: () => void;
 }
 
-const WardrobeCard = ({ item, index }: WardrobeCardProps) => {
+const WardrobeCard = ({ item, index, onDelete, onClick }: WardrobeCardProps) => {
   return (
-    <div className={styles.card} style={{ animationDelay: `${index * 60}ms` }}>
+    <div className={styles.card} style={{ animationDelay: `${index * 60}ms` }} onClick={onClick}>
+      {onDelete && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(item.id);
+          }}
+          className={styles.delete}
+          aria-label="Удалить"
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
       <div className={styles.imageWrap}>
         <img
           src={item.image}
