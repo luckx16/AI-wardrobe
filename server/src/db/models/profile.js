@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       skin_tone: {
-        type: DataTypes.ENUM('fair', 'light', 'medium', 'olive', 'tan', 'brown', 'dark'),
+        type: DataTypes.ENUM('cool', 'warm', 'neutral'),
         allowNull: true,
       },
       contrast: {
@@ -60,7 +60,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       proportion: {
-        type: DataTypes.ENUM('pear', 'apple', 'hourglass', 'rectangle', 'inverted_triangle'),
+        type: DataTypes.ENUM('standard', 'long', 'short'),
         allowNull: true,
       },
       wishes: {
