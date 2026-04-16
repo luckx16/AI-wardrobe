@@ -4,6 +4,8 @@ module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
       User.hasOne(models.Profile, { foreignKey: 'user_id', as: 'profile' });
+      User.hasMany(models.Look, { foreignKey: 'user_id', as: 'looks' });
+      User.hasMany(models.Event, { foreignKey: 'user_id', as: 'events' });
     }
 
     static validateEmail(email) {

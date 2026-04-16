@@ -1,30 +1,5 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.sequelize.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_profiles_skin_tone') THEN
-          CREATE TYPE enum_profiles_skin_tone AS ENUM ('cool', 'warm', 'neutral');
-        END IF;
-      END$$;
-    `);
-    await queryInterface.sequelize.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_profiles_contrast') THEN
-          CREATE TYPE enum_profiles_contrast AS ENUM ('low', 'medium', 'high');
-        END IF;
-      END$$;
-    `);
-    await queryInterface.sequelize.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_profiles_proportion') THEN
-          CREATE TYPE enum_profiles_proportion AS ENUM ('standard', 'long', 'short');
-        END IF;
-      END$$;
-    `);
-
     await queryInterface.createTable('profiles', {
       id: {
         type: Sequelize.BIGINT,
@@ -32,18 +7,18 @@ module.exports = {
         autoIncrement: true,
       },
       user_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
         references: { model: 'Users', key: 'id' },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
       skin_tone: {
-        type: 'enum_profiles_skin_tone',
+        type: Sequelize.ENUM('cool', 'warm', 'neutral'),
         allowNull: true,
       },
       contrast: {
-        type: 'enum_profiles_contrast',
+        type: Sequelize.ENUM('low', 'medium', 'high'),
         allowNull: true,
       },
       portrait_photo: { type: Sequelize.TEXT, allowNull: true },
@@ -54,7 +29,7 @@ module.exports = {
       hips: { type: Sequelize.FLOAT, allowNull: true },
       foot_length: { type: Sequelize.FLOAT, allowNull: true },
       proportion: {
-        type: 'enum_profiles_proportion',
+        type: Sequelize.ENUM('standard', 'long', 'short'),
         allowNull: true,
       },
       wishes: { type: Sequelize.TEXT, allowNull: true },
@@ -72,12 +47,12 @@ module.exports = {
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.fn('NOW'),
       },
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
+        defaultValue: Sequelize.fn('NOW'),
       },
     });
 
@@ -86,8 +61,5 @@ module.exports = {
 
   down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable('profiles');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS enum_profiles_skin_tone');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS enum_profiles_contrast');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS enum_profiles_proportion');
   },
 };

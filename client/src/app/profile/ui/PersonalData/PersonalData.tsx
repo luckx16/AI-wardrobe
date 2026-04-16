@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
 import formStyles from '@/shared/styles/form.module.css';
 import { Card } from '@/shared/ui';
+import { resolveAssetUrl, uploadPortraitPhoto } from '@/shared/lib/uploadApi';
 
 import styles from './PersonalData.module.css';
 
@@ -20,6 +21,9 @@ export function PersonalData({
   portraitPhoto,
   onPortraitPhotoChange,
 }: PersonalDataProps): React.JSX.Element {
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   return (
     <Card
       title="Личные данные"
@@ -64,28 +68,51 @@ export function PersonalData({
         <div className={styles.photoUpload}>
           <div className={styles.photoDrop} aria-label="Загрузка портретного фото">
             <p className={styles.photoTitle}>Портретное фото</p>
-            <p className={styles.photoHint}>Вам необходимо сделать фото при естественном освещении (для этого можно встать у окна) без макияжа и других изменений. Рекомендуемые параметры фото: JPG/PNG до 10MB, квадрат</p>
+            {!portraitPhoto ? (
+              <p className={styles.photoHint}>
+                Вам необходимо сделать фото при естественном освещении (для этого можно встать у окна) без макияжа и
+                других изменений. Рекомендуемые параметры фото: JPG/PNG до 10MB, квадрат
+              </p>
+            ) : null}
+            {portraitPhoto ? (
+              <img
+                className={styles.photoPreview}
+                src={resolveAssetUrl(portraitPhoto)}
+                alt="Портретное фото"
+              />
+            ) : null}
             <label className={styles.fileLabel} htmlFor="profile-photo">
-              Выбрать файл
+              {isUploading ? 'Загрузка…' : 'Выбрать файл'}
             </label>
             <input
               id="profile-photo"
               className={styles.fileInput}
               type="file"
               accept="image/*"
-              onChange={(e) => {
+              disabled={isUploading}
+              onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) {
                   onPortraitPhotoChange(null);
                   return;
                 }
-                const reader = new FileReader();
-                reader.onload = () =>
-                  onPortraitPhotoChange(typeof reader.result === 'string' ? reader.result : null);
-                reader.readAsDataURL(file);
+
+                setIsUploading(true);
+                setUploadError(null);
+                try {
+                  const uploaded = await uploadPortraitPhoto(file);
+                  onPortraitPhotoChange(uploaded.url);
+                } catch {
+                  setUploadError('Не удалось загрузить фото');
+                } finally {
+                  setIsUploading(false);
+                  // Позволяем выбрать тот же файл повторно (после ошибки или повторной загрузки).
+                  e.target.value = '';
+                }
               }}
             />
-            {portraitPhoto ? <p className={styles.photoHint}>Фото загружено</p> : null}
+            {uploadError ? <p className={styles.photoHint}>{uploadError}</p> : null}
+            {portraitPhoto && !uploadError ? <p className={styles.photoHint}>Фото загружено</p> : null}
           </div>
         </div>
       </div>

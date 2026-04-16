@@ -10,9 +10,19 @@ function verifyAccessToken(req, res, next) {
         }
 
         const accessToken = authorizationHeader.split(' ')[1];
-        const { user } = jwt.verify(accessToken, process.env.JWT_ACCESS);
+        const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS);
+        // Токен мог подписываться как { user: {...} } или как { id, ... }.
+        const user =
+            decoded && typeof decoded === 'object' && 'user' in decoded ? decoded.user : decoded;
+        const idRaw =
+            user && typeof user === 'object' && 'id' in user ? user.id : undefined;
+        const idNum = typeof idRaw === 'number' ? idRaw : Number(idRaw);
+        if (!user || typeof user !== 'object' || !Number.isFinite(idNum) || idNum <= 0) {
+            return res.status(403).send('Invalid access token');
+        }
 
-        res.locals.user = user;
+        req.user = { ...user, id: idNum };
+        res.locals.user = req.user;
 
         next();
     } catch (error) {
