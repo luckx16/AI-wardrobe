@@ -15,7 +15,7 @@ export function Header() {
 
   useEffect(() => {
     // На старте приложения пробуем обновить токены (если есть refresh-cookie).
-    dispatch(refreshTokensThunk());
+    void dispatch(refreshTokensThunk()).unwrap().catch(() => undefined);
   }, [dispatch]);
 
   const isAuthenticated = !!user;
