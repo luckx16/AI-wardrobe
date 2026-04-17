@@ -4,39 +4,60 @@ import { useState } from 'react';
 
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 
-import { createEventThunk } from '../../api/eventsThunk';
-import { CreateEventFromClient } from '../../model/types';
+import { createEventThunk, updateEventThunk } from '../../api/eventsThunk';
+import { EventDataFromClient, IEvent } from '../../model/types';
 import styles from './EventModal.module.css';
 
 interface EventModalProps {
   initialDate: string;
   onClose: () => void;
+  editedEvent: IEvent | null;
 }
 
-const makeEmptyForm = (date: string): CreateEventFromClient => ({
+const getEmptyFormInitial = (date: string): EventDataFromClient => ({
   title: '',
   date,
-  activityType: '',
+  activity_type: '',
 });
 
-export function EventModal({ initialDate, onClose }: EventModalProps) {
+export function EventModal({ initialDate, editedEvent, onClose }: EventModalProps) {
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector((state) => state.events.isLoading);
 
-  const [form, setForm] = useState<CreateEventFromClient>(makeEmptyForm(initialDate));
+  const isEditing = !!editedEvent;
 
-  function handleChange(field: keyof CreateEventFromClient, value: string) {
+  const getFormInitialData = (): EventDataFromClient =>
+    isEditing
+      ? {
+          title: editedEvent.title,
+          date: editedEvent.date,
+          activity_type: editedEvent.activity_type ?? undefined,
+        }
+      : getEmptyFormInitial(initialDate);
+
+  const [form, setForm] = useState<EventDataFromClient>(getFormInitialData);
+
+  function handleChange(field: keyof EventDataFromClient, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
   }
 
   async function handleSave() {
     if (!form.title.trim() || !form.date) return;
-    const eventDataFromClient: CreateEventFromClient = {
+
+    const trimedFormActivityType = form.activity_type?.trim();
+
+    const eventDataFromClient: EventDataFromClient = {
       title: form.title.trim(),
       date: form.date,
-      ...(form.activityType?.trim() && { activityType: form.activityType.trim() }),
+      ...(trimedFormActivityType && { activity_type: trimedFormActivityType }),
     };
-    await dispatch(createEventThunk(eventDataFromClient));
+
+    if (isEditing) {
+      await dispatch(updateEventThunk({ editedEventId: editedEvent.id, ...eventDataFromClient }));
+    } else {
+      await dispatch(createEventThunk(eventDataFromClient));
+    }
+
     onClose();
   }
 
@@ -70,8 +91,8 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
           <input
             className={styles.input}
             placeholder="Например: Деловая встреча, Прогулка…"
-            value={form.activityType ?? ''}
-            onChange={(e) => handleChange('activityType', e.target.value)}
+            value={form.activity_type ?? ''}
+            onChange={(e) => handleChange('activity_type', e.target.value)}
           />
         </div>
 

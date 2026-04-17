@@ -1,8 +1,8 @@
 // Импорт сущностей для формирования store
 import { configureStore } from '@reduxjs/toolkit';
 
-import { userReducer } from '@/entities/user/slice/userSlice';
 import { eventsReducer } from '@/entities/events/model/eventsSlice';
+import { userReducer } from '@/entities/user/slice/userSlice';
 
 // Создание store
 export const store = configureStore({

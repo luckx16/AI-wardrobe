@@ -1,45 +1,71 @@
-import { StyleEvent } from '../../model/types';
+import clsx from 'clsx';
+import { Pencil, X } from 'lucide-react';
+
+import { IEvent } from '../../model/types';
 import styles from './EventSidebar.module.css';
 
-interface Props {
+interface EventSidebarProps {
   selectedDate: string;
-  selectedEvents: StyleEvent[];
-  onDelete: (id: number) => void;
+  eventsOfSelectedDateArr: IEvent[];
+  deleteEventHandler: (id: number) => void;
+  openUpdateModalHandler: (eventObj: IEvent) => void;
+  isLoading: boolean;
 }
 
-export function EventSidebar({ selectedDate, selectedEvents, onDelete }: Props) {
+export function EventSidebar({
+  selectedDate,
+  eventsOfSelectedDateArr,
+  deleteEventHandler,
+  openUpdateModalHandler,
+}: EventSidebarProps) {
+  const isEmptyArr = eventsOfSelectedDateArr.length === 0;
+  const selectedDayAndMonth = new Date(selectedDate + 'T00:00').toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+  });
+  const isToday =
+    selectedDayAndMonth ===
+    new Date().toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+    });
+
   return (
     <div className={styles.sidebar}>
       <span className={styles.sidebarTitle}>
-        {new Date(selectedDate + 'T00:00').toLocaleDateString('ru-RU', {
-          day: 'numeric',
-          month: 'long',
-        })}
+        {selectedDate} {isToday && '(Сегодня)'}
       </span>
 
-      {selectedEvents.length === 0 ? (
-        <div className={styles.noEvents}>Нет событий на эту дату</div>
-      ) : (
-        selectedEvents.map((ev) => (
+      {isEmptyArr && <div className={styles.noEvents}>Нет событий на эту дату</div>}
+
+      {!isEmptyArr &&
+        eventsOfSelectedDateArr.map((ev) => (
           <div className={styles.eventCard} key={ev.id}>
             <div className={styles.eventHeader}>
               <div>
                 <div className={styles.eventName}>{ev.title}</div>
-                {ev.activityType && (
-                  <span className={styles.eventLook}>{ev.activityType}</span>
-                )}
+                {ev.activity_type && <span className={styles.eventLook}>{ev.activity_type}</span>}
               </div>
-              <button
-                className={styles.deleteBtn}
-                onClick={() => onDelete(ev.id)}
-                title="Удалить"
-              >
-                ✕
-              </button>
+              <div className={styles.activeBtns}>
+                <button
+                  className={clsx(styles.btn, styles.editBtn)}
+                  onClick={() => openUpdateModalHandler(ev)}
+                  title="Редактировать"
+                >
+                  <Pencil size={16} />
+                </button>
+
+                <button
+                  className={clsx(styles.btn, styles.deleteBtn)}
+                  onClick={() => deleteEventHandler(ev.id)}
+                  title="Удалить"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
           </div>
-        ))
-      )}
+        ))}
     </div>
   );
 }

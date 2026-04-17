@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 
 import { getDays, MONTHS, toDateStr, WEEKDAYS } from '../../lib/calendar';
-import { StyleEvent } from '../../model/types';
+import { IEvent } from '../../model/types';
 import styles from './EventsCalendar.module.css';
 
 interface Props {
   selectedDate: string;
-  eventsByDate: Record<string, StyleEvent[]>;
+  eventsByDate: Record<string, IEvent[]>;
   onSelectDate: (date: string) => void;
 }
 

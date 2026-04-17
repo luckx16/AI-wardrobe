@@ -1,16 +1,18 @@
-export interface StyleEvent {
+export interface IEvent {
   id: number;
   userId: number;
   title: string;
   date: string;
-  activityType: string | null;
+  activity_type: string | null;
   lookId: number | null;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateEventFromClient {
+export interface EventDataFromClient {
   title: string;
   date: string;
-  activityType?: string;
+  activity_type?: string;
 }
+
+export type ArrayEventsType = Array<IEvent>;
