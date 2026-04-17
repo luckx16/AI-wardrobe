@@ -105,34 +105,6 @@
   font-size: 16px;
 }
 
-.methodTabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 12px;
-  border-radius: 10px;
-  background: #efeeec;
-  padding: 4px;
-}
-
-.methodTab {
-  height: 38px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: #8c8379;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.methodTabActive {
-  background: #fff;
-  color: #3c332c;
-  box-shadow: 0 1px 4px rgba(73, 60, 46, 0.12);
-}
-
 .label {
   display: block;
   margin: 14px 0 6px;
@@ -192,57 +164,6 @@
 .passwordToggle:hover {
   color: #5f564e;
   background: rgba(183, 148, 111, 0.08);
-}
-
-.phoneField {
-  width: 100%;
-}
-
-.phoneFieldError :global(.iti__selected-country-primary),
-.phoneFieldError :global(.iti__tel-input) {
-  border-color: #ce5265;
-}
-
-.phoneInput {
-  width: 100%;
-}
-
-.phoneField :global(.iti) {
-  width: 100%;
-}
-
-.phoneField :global(.iti__tel-input) {
-  width: 100%;
-  height: 44px;
-  padding-left: 86px;
-  border: 1px solid #e2ddd7;
-  border-radius: 10px;
-  background: #f8f8f8;
-  color: #2c2c2c;
-  font-family: inherit;
-  font-size: 15px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.phoneField :global(.iti__tel-input:focus) {
-  outline: none;
-  border-color: #b7946f;
-  box-shadow: 0 0 0 3px rgba(183, 148, 111, 0.15);
-}
-
-.phoneField :global(.iti__country-container) {
-  left: 1px;
-}
-
-.phoneField :global(.iti__selected-country-primary) {
-  height: 42px;
-  border-radius: 10px 0 0 10px;
-}
-
-.phoneField :global(.iti__dropdown-content) {
-  border: 1px solid #e2ddd7;
-  border-radius: 12px;
-  box-shadow: 0 10px 26px rgba(71, 58, 45, 0.14);
 }
 
 .inputError {

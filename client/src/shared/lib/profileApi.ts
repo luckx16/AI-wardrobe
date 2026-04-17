@@ -1,5 +1,5 @@
-import { axiosInstance } from '@/shared/lib/axiosInstance';
 import { PROFILE_API_ROUTES } from '@/shared/constants/profileApiRoutes';
+import { axiosInstance } from '@/shared/lib/axiosInstance';
 
 type Contrast = 'low' | 'medium' | 'high';
 type SkinTone = 'cool' | 'warm' | 'neutral';

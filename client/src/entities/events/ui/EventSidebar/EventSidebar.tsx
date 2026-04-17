@@ -1,0 +1,71 @@
+import clsx from 'clsx';
+import { Pencil, X } from 'lucide-react';
+
+import { IEvent } from '../../model/types';
+import styles from './EventSidebar.module.css';
+
+interface EventSidebarProps {
+  selectedDate: string;
+  eventsOfSelectedDateArr: IEvent[];
+  deleteEventHandler: (id: number) => void;
+  openUpdateModalHandler: (eventObj: IEvent) => void;
+  isLoading: boolean;
+}
+
+export function EventSidebar({
+  selectedDate,
+  eventsOfSelectedDateArr,
+  deleteEventHandler,
+  openUpdateModalHandler,
+}: EventSidebarProps) {
+  const isEmptyArr = eventsOfSelectedDateArr.length === 0;
+  const selectedDayAndMonth = new Date(selectedDate + 'T00:00').toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+  });
+  const isToday =
+    selectedDayAndMonth ===
+    new Date().toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+    });
+
+  return (
+    <div className={styles.sidebar}>
+      <span className={styles.sidebarTitle}>
+        {selectedDate} {isToday && '(Сегодня)'}
+      </span>
+
+      {isEmptyArr && <div className={styles.noEvents}>Нет событий на эту дату</div>}
+
+      {!isEmptyArr &&
+        eventsOfSelectedDateArr.map((ev) => (
+          <div className={styles.eventCard} key={ev.id}>
+            <div className={styles.eventHeader}>
+              <div>
+                <div className={styles.eventName}>{ev.title}</div>
+                {ev.activity_type && <span className={styles.eventLook}>{ev.activity_type}</span>}
+              </div>
+              <div className={styles.activeBtns}>
+                <button
+                  className={clsx(styles.btn, styles.editBtn)}
+                  onClick={() => openUpdateModalHandler(ev)}
+                  title="Редактировать"
+                >
+                  <Pencil size={16} />
+                </button>
+
+                <button
+                  className={clsx(styles.btn, styles.deleteBtn)}
+                  onClick={() => deleteEventHandler(ev.id)}
+                  title="Удалить"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+    </div>
+  );
+}

@@ -1,0 +1,99 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebarTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.loadingIcon {
+  animation: spin 2s linear infinite;
+}
+
+.eventCard {
+  animation: var(--anim-animate-up);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.15s;
+}
+
+.eventCard:hover {
+  border-color: var(--accent);
+}
+
+.eventHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.eventName {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.eventLook {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--accent-bright);
+  background: var(--surface-elevated);
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.noEvents {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--muted);
+  font-size: 14px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.activeBtns {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+  align-items: center;
+}
+
+.btn {
+  padding: 4px;
+  background: none;
+  border: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+
+  border-radius: 4px;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+.editBtn {
+  color: var(--muted);
+}
+.editBtn:hover {
+  background: var(--border);
+}
+
+.deleteBtn {
+  color: var(--muted);
+}
+
+.deleteBtn:hover {
+  color: var(--danger);
+  background: var(--border);
+}

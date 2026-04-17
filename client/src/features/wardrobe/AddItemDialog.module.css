@@ -129,6 +129,42 @@
   display: none;
 }
 
+.photoActions {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.removeBackgroundButton {
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-elevated);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.removeBackgroundButton:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.removeBackgroundButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.removeBackgroundError {
+  margin: 0;
+  color: var(--destructive);
+  font-size: 0.75rem;
+}
+
 .textInput,
 .select {
   width: 100%;

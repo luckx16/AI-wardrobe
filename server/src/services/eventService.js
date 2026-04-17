@@ -9,15 +9,12 @@ class EventService {
     });
   }
 
-  async findByUserId(userId, filters = {}) {
-    const where = { user_id: userId };
-    
-    if (filters.dateFrom) {
-      where.date = { [Op.gte]: filters.dateFrom };
-    }
-    if (filters.dateTo) {
-      where.date = { ...where.date, [Op.lte]: filters.dateTo };
-    }
+  async getAllEventsByUserId(userId, filters = {}) {
+    const where = {
+      user_id: userId,
+      ...(filters.dateFrom && { [Op.gte]: filters.dateFrom }),
+      ...(filters.dateTo && { [Op.gte]: filters.dateTo }),
+    };
 
     return await Event.findAll({
       where,
@@ -26,17 +23,17 @@ class EventService {
     });
   }
 
-  async create(userId, data) {
+  async createEvent(userId, { activityType, ...data }) {
     return await Event.create({ user_id: userId, ...data });
   }
 
-  async update(id, userId, data) {
-    const event = await this.findById(id, userId);
+  async updateEvent(eventId, userId, data) {
+    const event = await this.findById(eventId, userId);
     if (!event) {
       throw new Error('Event not found');
     }
     await event.update(data);
-    return await this.findById(id, userId);
+    return await this.findById(eventId, userId);
   }
 
   async delete(id, userId) {

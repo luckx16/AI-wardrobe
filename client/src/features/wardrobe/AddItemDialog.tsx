@@ -1,9 +1,11 @@
 'use client';
 
-import { type ChangeEvent,useRef, useState } from 'react';
+import { type ChangeEvent, useRef, useState } from 'react';
 
 import { ImagePlus, Plus, X } from 'lucide-react';
 
+import { axiosInstance } from '@/shared/lib/axiosInstance';
+import { resolveAssetUrl } from '@/shared/lib/uploadApi';
 import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
 import styles from './AddItemDialog.module.css';
 import {
@@ -35,6 +37,9 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
   const [season, setSeason] = useState<Season>('Все сезоны');
   const [color, setColor] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isRemovingBackground, setIsRemovingBackground] = useState(false);
+  const [removeBackgroundError, setRemoveBackgroundError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
@@ -42,14 +47,51 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
     setCategory('Футболки');
     setSeason('Все сезоны');
     setColor('');
+    setRemoveBackgroundError(null);
     setImagePreview(null);
+    setImageFile(null);
   };
 
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setRemoveBackgroundError(null);
+    setImageFile(file);
     const url = URL.createObjectURL(file);
     setImagePreview(url);
+  };
+
+  const handleRemoveBackground = async () => {
+    if (!imageFile || isRemovingBackground) return;
+
+    setIsRemovingBackground(true);
+    setRemoveBackgroundError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+
+      const { data } = await axiosInstance.post<{
+        status: number;
+        message: string;
+        data: { url: string } | null;
+        error: string | null;
+      }>('/cloth/remove-background', formData);
+
+      const processedUrl = data.data?.url ? resolveAssetUrl(data.data.url) : null;
+      if (!processedUrl) {
+        throw new Error('Пустой ответ сервера');
+      }
+
+      setImagePreview(processedUrl);
+      setImageFile(null);
+      if (fileRef.current) fileRef.current.value = '';
+    } catch (error) {
+      console.error(error);
+      setRemoveBackgroundError('Не удалось удалить фон. Попробуйте другое фото.');
+    } finally {
+      setIsRemovingBackground(false);
+    }
   };
 
   const handleSubmit = () => {
@@ -99,6 +141,8 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
                 <button
                   type="button"
                   onClick={() => {
+                    setRemoveBackgroundError(null);
+                    setImageFile(null);
                     setImagePreview(null);
                     if (fileRef.current) fileRef.current.value = '';
                   }}
@@ -124,6 +168,21 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
               className={styles.hiddenInput}
               onChange={handleFile}
             />
+            {imagePreview ? (
+              <div className={styles.photoActions}>
+                <button
+                  type="button"
+                  onClick={handleRemoveBackground}
+                  className={styles.removeBackgroundButton}
+                  disabled={!imageFile || isRemovingBackground}
+                >
+                  {isRemovingBackground ? 'Удаляем фон…' : 'Удалить фон'}
+                </button>
+                {removeBackgroundError ? (
+                  <p className={styles.removeBackgroundError}>{removeBackgroundError}</p>
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
           <div className={styles.field}>

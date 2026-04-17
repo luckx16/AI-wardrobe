@@ -15,7 +15,7 @@ export function Header() {
 
   useEffect(() => {
     // На старте приложения пробуем обновить токены (если есть refresh-cookie).
-    dispatch(refreshTokensThunk());
+    void dispatch(refreshTokensThunk()).unwrap().catch(() => undefined);
   }, [dispatch]);
 
   const isAuthenticated = !!user;
@@ -23,18 +23,17 @@ export function Header() {
   return (
     <nav className={styles.nav}>
       <div className={styles.inner}>
-        <Link href={CLIENT_ROUTES.HOME} className={styles.brand}>
+        <Link href={CLIENT_ROUTES.HOME} className={styles.brand} aria-label="На главную">
           <span className={styles.brandLogoWrap}>
             <Image
-              src="/logo/logo_type.png"
-              alt="WardrobeAI logo"
-              fill
-              sizes="80px"
+              src="/logo/New_Logo.png"
+              alt=""
+              width={160}
+              height={107}
               className={styles.brandLogo}
               priority
             />
           </span>
-          <span className={styles.brandText}>WardrobeAI</span>
         </Link>
         <ul className={styles.list}>
           {isAuthenticated ? (
