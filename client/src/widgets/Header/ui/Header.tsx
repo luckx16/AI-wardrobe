@@ -15,7 +15,9 @@ export function Header() {
 
   useEffect(() => {
     // На старте приложения пробуем обновить токены (если есть refresh-cookie).
-    void dispatch(refreshTokensThunk()).unwrap().catch(() => undefined);
+    void dispatch(refreshTokensThunk())
+      .unwrap()
+      .catch(() => undefined);
   }, [dispatch]);
 
   const isAuthenticated = !!user;
@@ -39,18 +41,38 @@ export function Header() {
           {isAuthenticated ? (
             <>
               <li>
-                <Link className={styles.link} href={CLIENT_ROUTES.PROFILE}>
-                  Профиль
+                <Link className={styles.link} href={CLIENT_ROUTES.DASHBOARD}>
+                  Дашборд
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.WARDROBE}>
-                  Wardrobe
+                  Мой гардероб
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.OUTFIT_BUILDER}>
-                  Outfit Builder
+                  Сборщик аутфитов
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.AI}>
+                  ИИ-чат
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.OUTFITS}>
+                  Аутфиты
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.EVENTS}>
+                  События
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.PROFILE}>
+                  Профиль
                 </Link>
               </li>
               <li>

@@ -8,4 +8,6 @@ export const CLIENT_ROUTES = {
   OUTFIT_BUILDER: '/outfit-builder',
   SIGN_OUT: '/sign-out',
   EVENTS: '/events',
+  OUTFITS: '/outfits',
+  AI: '/ai',
 } as const;
