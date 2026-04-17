@@ -11,13 +11,13 @@
 }
 
 :global(:root) {
-  --header-h: 3.75rem;
+  --header-h: 3.0rem;
 }
 
 .inner {
-  max-width: 52rem;
+  max-width: 64rem;
   margin: 0 auto;
-  padding: 0.85rem 1.25rem;
+  padding: 0.2rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -26,17 +26,22 @@
 }
 
 .brand {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  height: var(--header-h);
   color: var(--foreground, #111111);
   text-decoration: none;
 }
 
 .brandLogoWrap {
-  width: 3.5rem;
-  height: 3.5rem;
-  position: relative;
+  width: 9.25rem;
+  height: 9.25rem;
+  position: absolute;
+  top: 50%;
+  left: 0.25rem;
+  transform: translate(-50%, -50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -45,12 +50,6 @@
 .brandLogo {
   object-fit: contain;
   object-position: center;
-}
-
-.brandText {
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
 }
 
 .list {
