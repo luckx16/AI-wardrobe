@@ -61,7 +61,8 @@
   padding: 0;
 }
 
-.cityBadge {
+.cityBadgeButton {
+  font: inherit;
   font-size: 0.75rem;
   color: #6b4f37;
   background: #f1e9de;
@@ -69,6 +70,93 @@
   border-radius: 9999px;
   padding: 0.18rem 0.6rem;
   line-height: 1.2;
+  cursor: pointer;
+}
+
+.cityBadgeButton:hover {
+  border-color: #cba883;
+}
+
+.cityBadgeButton:focus-visible {
+  outline: 2px solid #cba883;
+  outline-offset: 1px;
+}
+
+.cityModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.35);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 5.5rem;
+  z-index: 120;
+}
+
+.cityModal {
+  width: min(22rem, calc(100vw - 2rem));
+  border-radius: 0.75rem;
+  border: 1px solid #e8dccb;
+  background: #fff;
+  box-shadow: 0 12px 40px rgba(41, 28, 14, 0.15);
+  padding: 1rem;
+}
+
+.cityModalTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #251b10;
+}
+
+.cityInput {
+  width: 100%;
+  border: 1px solid #d8c8b3;
+  border-radius: 0.5rem;
+  padding: 0.52rem 0.65rem;
+  font-size: 0.9rem;
+}
+
+.cityInput:focus-visible {
+  outline: 2px solid #cba883;
+  outline-offset: 1px;
+}
+
+.cityError {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  color: #d14343;
+}
+
+.cityModalActions {
+  margin-top: 0.9rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.cityModalButtonSecondary,
+.cityModalButtonPrimary {
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.cityModalButtonSecondary {
+  border-color: #d8c8b3;
+  background: #fff;
+  color: #4f3b28;
+}
+
+.cityModalButtonPrimary {
+  background: #6b4f37;
+  color: #fff;
+}
+
+.cityModalButtonPrimary:disabled {
+  cursor: default;
+  opacity: 0.7;
 }
 
 .link {

@@ -8,7 +8,7 @@ import { Eye, Palette, Shirt, TrendingUp } from 'lucide-react';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { USER_API_ROUTES } from '@/shared/constants/userApiRoutes';
 import { axiosInstance } from '@/shared/lib/axiosInstance';
-import { userLocationStorage } from '@/shared/lib/userLocation';
+import { USER_LOCATION_UPDATED_EVENT, userLocationStorage } from '@/shared/lib/userLocation';
 import type { ServerResponseType } from '@/shared/types';
 import { StatsCard } from '@/shared/ui';
 import { CalendarPlans, OutfitOfTheDay } from '@/widgets';
@@ -122,36 +122,72 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    const loadWeather = async () => {
-      const coords = userLocationStorage.getCoords();
-      if (!coords) {
-        setWeatherText('Разрешите геолокацию, чтобы увидеть погоду');
-        setWeatherTip('После разрешения геолокации погода появится автоматически');
-        return;
-      }
-
+    const fetchWeatherByCoords = async (lat: number, lon: number): Promise<WeatherByCoordsResponse | null> => {
       try {
         const { data } = await axiosInstance.get<ServerResponseType<WeatherByCoordsResponse>>(
           USER_API_ROUTES.WEATHER_BY_COORDS,
           {
-            params: { lat: coords.lat, lon: coords.lon },
+            params: { lat, lon },
           },
         );
+        return data.data ?? null;
+      } catch {
+        return null;
+      }
+    };
 
-        if (!data.data) {
-          setWeatherText('Не удалось загрузить погоду');
+    const fetchWeatherByCity = async (city: string): Promise<WeatherByCoordsResponse | null> => {
+      try {
+        const { data } = await axiosInstance.get<ServerResponseType<WeatherByCoordsResponse>>(USER_API_ROUTES.WEATHER, {
+          params: { city },
+        });
+        return data.data ?? null;
+      } catch {
+        return null;
+      }
+    };
+
+    const loadWeather = async () => {
+      const coords = userLocationStorage.getCoords();
+      const city = userLocationStorage.getCity();
+
+      const weatherData =
+        (coords ? await fetchWeatherByCoords(coords.lat, coords.lon) : null) ||
+        (city ? await fetchWeatherByCity(city) : null);
+
+      if (!weatherData) {
+        if (!coords && !city) {
+          setWeatherText('Введите город, чтобы увидеть погоду');
+          setWeatherTip('Укажите город в шапке, и данные обновятся автоматически');
           return;
         }
 
-        const weatherLine = `${data.data.temperature}°C, ${toRussianWeatherDescription(data.data.description)}`;
+        setWeatherText('Не удалось загрузить погоду');
+        setWeatherTip('Попробуйте снова или укажите другой город в шапке');
+        return;
+      }
+
+      try {
+        const weatherLine = `${weatherData.temperature}°C, ${toRussianWeatherDescription(weatherData.description)}`;
         setWeatherText(weatherLine);
-        setWeatherTip(`Ощущается как ${data.data.feels_like}°C в ${data.data.location}`);
+        setWeatherTip(`Ощущается как ${weatherData.feels_like}°C в ${weatherData.location}`);
       } catch {
         setWeatherText('Не удалось загрузить погоду');
+        setWeatherTip('Попробуйте снова или укажите другой город в шапке');
       }
     };
 
     void loadWeather();
+
+    const onUserLocationUpdated = () => {
+      void loadWeather();
+    };
+
+    window.addEventListener(USER_LOCATION_UPDATED_EVENT, onUserLocationUpdated);
+
+    return () => {
+      window.removeEventListener(USER_LOCATION_UPDATED_EVENT, onUserLocationUpdated);
+    };
   }, []);
 
   const outfitWithWeather = useMemo(

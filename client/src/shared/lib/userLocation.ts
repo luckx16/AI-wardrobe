@@ -1,5 +1,6 @@
 const USER_CITY_KEY = 'user_city';
 const USER_COORDS_KEY = 'user_coords';
+export const USER_LOCATION_UPDATED_EVENT = 'user-location-updated';
 
 export type UserCoords = {
   lat: number;
@@ -58,15 +59,28 @@ export const userLocationStorage = {
       localStorage.setItem(USER_COORDS_KEY, JSON.stringify(coords));
     }
   },
+  clearCoords(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(USER_COORDS_KEY);
+    }
+  },
   setLocation(location: UserLocation): void {
     if (location.city) {
       this.setCity(location.city);
     }
     if (location.coords) {
       this.setCoords(location.coords);
+    } else {
+      this.clearCoords();
     }
   },
 };
+
+function notifyUserLocationUpdated(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(USER_LOCATION_UPDATED_EVENT));
+  }
+}
 
 function getCurrentPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
@@ -96,6 +110,46 @@ async function getCityByCoords(lat: number, lon: number): Promise<string | null>
   }
 }
 
+async function getCoordsByCity(city: string): Promise<UserCoords | null> {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(city)}`,
+    );
+    const data = (await response.json()) as Array<{ lat?: string; lon?: string }>;
+    const firstResult = data[0];
+    if (!firstResult?.lat || !firstResult?.lon) {
+      return null;
+    }
+
+    const lat = Number.parseFloat(firstResult.lat);
+    const lon = Number.parseFloat(firstResult.lon);
+    if (Number.isNaN(lat) || Number.isNaN(lon)) {
+      return null;
+    }
+
+    return { lat, lon };
+  } catch {
+    return null;
+  }
+}
+
+export async function setAndStoreUserCity(city: string): Promise<UserLocation> {
+  const normalizedCity = city.trim();
+  if (!normalizedCity) {
+    throw new Error('City is required');
+  }
+
+  const coords = await getCoordsByCity(normalizedCity);
+  const location: UserLocation = {
+    city: normalizedCity,
+    coords,
+  };
+  userLocationStorage.setLocation(location);
+  notifyUserLocationUpdated();
+
+  return location;
+}
+
 export async function requestAndStoreUserLocation(): Promise<UserLocation> {
   const position = await getCurrentPosition();
   const coords = {
@@ -106,6 +160,7 @@ export async function requestAndStoreUserLocation(): Promise<UserLocation> {
 
   const location = { city, coords };
   userLocationStorage.setLocation(location);
+  notifyUserLocationUpdated();
 
   return location;
 }
