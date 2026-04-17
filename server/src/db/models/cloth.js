@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       Cloth.hasMany(models.LookCloth, {
         foreignKey: 'cloth_id',
         otherKey: 'look_id',
-        as: 'looks',
+        as: 'lookCloths',
       });
 
       Cloth.belongsToMany(models.ChatMessage, {
