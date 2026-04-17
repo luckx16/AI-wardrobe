@@ -35,8 +35,7 @@ class ClothController {
       // 5. Создаем запись в БД со статусом 'pending'
       const clothData = {
         title,
-        // user_id: user.id,
-        user_id: 1, // Временно жестко задаем user_id, пока нет аутентификации
+        user_id: user.id,        
         brand: brand || null,
         material: material || null,
         color: color || null,
