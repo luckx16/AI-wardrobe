@@ -1,13 +1,9 @@
 import { axiosInstance } from '@/shared/lib/axiosInstance';
+import type { ServerResponseType } from '@/shared/types';
 
 type UploadResult = {
   url: string;
   field: 'portrait_photo' | 'body_photo';
-};
-
-type UploadResponse = {
-  success: boolean;
-  data: UploadResult;
 };
 
 function apiOrigin(): string {
@@ -27,14 +23,16 @@ export function resolveAssetUrl(url: string): string {
 export async function uploadPortraitPhoto(file: File): Promise<UploadResult> {
   const formData = new FormData();
   formData.append('portrait_photo', file);
-  const { data } = await axiosInstance.post<UploadResponse>('/upload/portrait', formData);
-  return { ...data.data, url: resolveAssetUrl(data.data.url) };
+  const { data } = await axiosInstance.post<ServerResponseType<UploadResult>>('/upload/portrait', formData);
+  const payload = data.data;
+  return { ...payload, url: resolveAssetUrl(payload.url) };
 }
 
 export async function uploadBodyPhoto(file: File): Promise<UploadResult> {
   const formData = new FormData();
   formData.append('body_photo', file);
-  const { data } = await axiosInstance.post<UploadResponse>('/upload/body', formData);
-  return { ...data.data, url: resolveAssetUrl(data.data.url) };
+  const { data } = await axiosInstance.post<ServerResponseType<UploadResult>>('/upload/body', formData);
+  const payload = data.data;
+  return { ...payload, url: resolveAssetUrl(payload.url) };
 }
 

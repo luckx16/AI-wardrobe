@@ -64,6 +64,21 @@
   letter-spacing: -0.01em;
 }
 
+.messageStack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 100%;
+}
+
+.messageStackUser {
+  align-items: flex-end;
+}
+
+.messageStackAssistant {
+  align-items: flex-start;
+}
+
 .bubble {
   padding: 0.75rem 1rem;
   border-radius: 1rem;
@@ -85,6 +100,94 @@
   background: linear-gradient(135deg, var(--foreground) 0%, #1a1a1a 100%);
   color: var(--background);
   border-top-right-radius: 0.375rem;
+}
+
+.bubbleWithAttachment.bubbleAssistant {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: none;
+}
+
+.bubbleWithAttachment.bubbleUser {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.attachmentStrip {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.75rem 0.65rem;
+  border-radius: 0 0 1rem 1rem;
+  border: 1px solid var(--border);
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.attachmentStripAssistant {
+  background: color-mix(in srgb, var(--surface-elevated) 92%, var(--accent) 8%);
+  color: var(--foreground);
+}
+
+.attachmentStripUser {
+  background: color-mix(in srgb, #1a1a1a 88%, var(--accent) 12%);
+  color: var(--background);
+  border-color: color-mix(in srgb, var(--foreground) 35%, transparent);
+  border-top-color: color-mix(in srgb, var(--background) 22%, transparent);
+}
+
+.attachmentStripTitle {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+  opacity: 0.75;
+}
+
+.attachmentList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.messageStackUser .attachmentList {
+  align-items: flex-end;
+}
+
+.attachmentPlaque {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  max-width: 100%;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.messageStackUser .attachmentPlaque {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.attachmentStripUser .attachmentPlaque {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.attachmentPlaqueTitle {
+  font-weight: 600;
+}
+
+.attachmentPlaqueMeta {
+  font-size: 0.6875rem;
+  opacity: 0.85;
 }
 
 .loading {

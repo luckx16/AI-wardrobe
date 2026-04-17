@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const profileController = require('../controllers/profileController');
+const profileController = require('../controllers/Profile.controller');
 const verifyAccessToken = require('../middleware/verifyAccessToken')
 
 router.route('/')

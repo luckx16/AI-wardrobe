@@ -17,6 +17,11 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false,
       },
+      metadata: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+        defaultValue: {},
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

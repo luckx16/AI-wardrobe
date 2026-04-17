@@ -1,12 +1,23 @@
 import { CHAT_API_ROUTES } from '@/shared/constants/chatApiRoutes';
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import type { ServerResponseType } from '@/shared/types';
+import type { GeneratedLook } from '@/entities/look';
+
+export type ClientChatMessageCloth = {
+  id: string;
+  title: string;
+  category?: string | null;
+  color?: string | null;
+};
 
 export type ClientChatMessage = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   imagePrompt: string | null;
+  look?: GeneratedLook | null;
+  suggestedLookId?: string | null;
+  cloths?: ClientChatMessageCloth[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -63,10 +74,22 @@ export async function deleteChat(chatId: string): Promise<string> {
   return data.data.id;
 }
 
-export async function sendChatMessage(chatId: string, text: string): Promise<ClientChatMessage> {
+export async function sendChatMessage(
+  chatId: string,
+  text: string,
+  options?: { createLook?: boolean; useWardrobe?: boolean; clothIds?: number[] },
+): Promise<ClientChatMessage> {
+  const createLook = Boolean(options?.createLook);
+  const useWardrobe =
+    Boolean(options?.useWardrobe) || createLook || Boolean(options?.clothIds?.length);
   const { data } = await axiosInstance.post<ServerResponseType<SendMessageData>>(
     CHAT_API_ROUTES.CHAT_MESSAGES(chatId),
-    { text },
+    {
+      text,
+      createLook,
+      useWardrobe,
+      clothIds: useWardrobe && options?.clothIds?.length ? options.clothIds : undefined,
+    },
   );
 
   return data.data.assistantMessage;

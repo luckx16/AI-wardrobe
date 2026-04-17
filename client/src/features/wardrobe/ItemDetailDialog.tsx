@@ -44,7 +44,7 @@ const ItemDetailDialog = ({ item, open, onOpenChange }: ItemDetailDialogProps) =
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg p-0 bg-surface border-border overflow-hidden gap-0">
         <div className={styles.imageWrap}>
-          <img src={item.image.src} alt={item.name} />
+          <img src={item.image} alt={item.name} />
         </div>
         <div className={styles.body}>
           <h2 className={styles.name}>{item.name}</h2>
