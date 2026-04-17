@@ -5,8 +5,10 @@ export interface ISignInData {
 }
 
 // Типы данных для регистрации
-export interface ISignUpData extends ISignInData {
+export interface ISignUpData {
   name: string;
+  email: string;
+  password: string;
 }
 
 // Тип для пользователя

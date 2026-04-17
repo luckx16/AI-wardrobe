@@ -14,7 +14,7 @@ export default function Home() {
 
   const handleTryClick = () => {
     router.push(
-      isAuthenticated ? CLIENT_ROUTES.DASHBOARD : `${CLIENT_ROUTES.AUTH}?tab=sign-in`,
+      isAuthenticated ? CLIENT_ROUTES.OUTFIT_BUILDER : `${CLIENT_ROUTES.AUTH}?tab=sign-in`,
     );
   };
 
@@ -54,10 +54,10 @@ export default function Home() {
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
-              src="/previews/closet-1.png"
+              src="/home/Следите.png"
               alt="Мой гардероб"
             />
-            <h3>1. Следите за тем, что у вас есть</h3>
+            <h3>Следите за тем, что у вас есть</h3>
             <p>
               Добавляйте вещи, категории и фильтры, чтобы быстро находить нужную
               одежду и не терять вещи в шкафу.
@@ -66,10 +66,10 @@ export default function Home() {
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
-              src="/previews/closet-2.png"
+              src="/home/Находите.png"
               alt="Конструктор образов"
             />
-            <h3>2. Находите новые наряды</h3>
+            <h3>Находите новые наряды</h3>
             <p>
               Экспериментируйте с сочетаниями верха, низа и обуви - AI предложит
               гармоничный образ и объяснит, почему он работает.
@@ -78,10 +78,10 @@ export default function Home() {
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
-              src="/previews/closet-3.png"
+              src="/home/Упростите.png"
               alt="Список для поездки"
             />
-            <h3>3. Упростите упаковку для отпуска</h3>
+            <h3>Упростите упаковку для отпуска</h3>
             <p>
               Собирайте списки вещей на любые поездки: выберите стиль и
               длительность, а приложение предложит оптимальный набор.
@@ -101,10 +101,10 @@ export default function Home() {
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
-              src="/previews/ai-stylist-1.png"
+              src="/home/рекомендации.png"
               alt="Ежедневные рекомендации AI"
             />
-            <h3>1. Получайте рекомендации по одежде ежедневно</h3>
+            <h3>Получайте рекомендации по одежде ежедневно</h3>
             <p>
               На основе вашего гардероба AI-стилист каждый день создает для вас
               предложения по образу, учитывая стиль, погоду и планы.
@@ -113,10 +113,10 @@ export default function Home() {
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
-              src="/previews/ai-stylist-2.png"
+              src="/home/Образ.png"
               alt="Образ для особого случая"
             />
-            <h3>2. Образ для особого случая</h3>
+            <h3>Образ для особого случая</h3>
             <p>
               Обратитесь к личному стилисту за образом для свадьбы, делового
               ужина или вечеринки - и соберите цельный look из уже имеющихся
@@ -126,10 +126,10 @@ export default function Home() {
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
-              src="/previews/ai-stylist-3.png"
+              src="/home/Статистика.png"
               alt="Статистика категорий гардероба"
             />
-            <h3>3. Заполните пробелы в гардеробе</h3>
+            <h3>Заполните пробелы в гардеробе</h3>
             <p>
               WardrobeAI поможет определить, каких вещей не хватает, чтобы
               собрать больше образов и повысить вариативность гардероба.
@@ -154,7 +154,7 @@ export default function Home() {
             </article>
             <article className={styles.featureCard}>
               <span className={styles.featureIconBadge}>🤳</span>
-              <p>Виртуальная примерка с помощью селфи</p>
+              <p>Виртуальная примерка</p>
             </article>
             <article className={styles.featureCard}>
               <span className={styles.featureIconBadge}>💡</span>
