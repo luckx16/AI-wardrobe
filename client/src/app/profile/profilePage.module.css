@@ -1,6 +1,8 @@
 .page {
   display: grid;
   gap: 1rem;
+  width: min(100%, 78rem);
+  margin-inline: auto;
 }
 
 .content {
@@ -94,10 +96,6 @@
 
 .anchorSection {
   scroll-margin-top: calc(var(--header-h, 0px) + 1.25rem);
-}
-
-:global(.app-main) {
-  max-width: 78rem;
 }
 
 .footerActions {

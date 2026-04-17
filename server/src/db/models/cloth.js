@@ -16,11 +16,15 @@ module.exports = (sequelize, DataTypes) => {
       });
       Cloth.hasMany(models.LookCloth, {
         foreignKey: 'cloth_id',
-        as: 'lookCloth',
+        otherKey: 'look_id',
+        as: 'looks',
       });
-      Cloth.hasMany(models.MessageCloth, {
+
+      Cloth.belongsToMany(models.ChatMessage, {
+        through: models.MessageCloth,
         foreignKey: 'cloth_id',
-        as: 'messageCloth',
+        otherKey: 'message_id',
+        as: 'messages',
       });
     }
   }
