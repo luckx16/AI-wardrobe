@@ -1,5 +1,10 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+
 import { Eye, Palette, Shirt, TrendingUp } from 'lucide-react';
 
+import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { StatsCard } from '@/shared/ui';
 import { CalendarPlans, OutfitOfTheDay } from '@/widgets';
 import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
@@ -58,6 +63,12 @@ const MOCK_CATEGORIES = [
 ];
 
 export default function DashboardPage() {
+  const router = useRouter();
+
+  const navigateToEventsPageHandler = () => {
+    router.push(CLIENT_ROUTES.EVENTS);
+  };
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -77,7 +88,11 @@ export default function DashboardPage() {
             <OutfitOfTheDay outfit={MOCK_OUTFIT} />
           </div>
           <div className={styles.widgetItem}>
-            <CalendarPlans plans={MOCK_PLANS} />
+            <CalendarPlans
+              plans={MOCK_PLANS}
+              onAllPlans={navigateToEventsPageHandler}
+              onPlanClick={navigateToEventsPageHandler}
+            />
           </div>
           <div className={styles.widgetItem}>
             <CategoryBreakdown categories={MOCK_CATEGORIES} />

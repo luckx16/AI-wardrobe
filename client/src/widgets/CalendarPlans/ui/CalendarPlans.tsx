@@ -12,7 +12,8 @@ type Plan = {
 
 type CalendarPlansProps = {
   plans: Plan[];
-  onAllPlans?: () => void;
+  onAllPlans: () => void;
+  onCardClick?: () => void;
   onPlanClick?: (plan: Plan) => void;
   calendarIcon?: React.ReactNode;
   chevronIcon?: React.ReactNode;

@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Event.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
       Event.belongsTo(models.Look, { foreignKey: 'look_id', as: 'look' });
+      Event.hasMany(models.ChatMessage, { foreignKey: 'event_id', as: 'chatMessages' });
     }
   }
 
