@@ -9,6 +9,7 @@ export {
   ShirtIcon,
   SparklesIcon,
   SunIcon,
+  TrashIcon,
   UserIcon,
 } from './icons';
 export { StatsCard } from './StatsCard';

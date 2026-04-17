@@ -1,10 +1,14 @@
-"use client"
+'use client';
 
-import { ChevronDownIcon,HistoryIcon, SettingsIcon, SparklesIcon } from "@/shared/ui"
+import { ChevronDownIcon, HistoryIcon, SettingsIcon, SparklesIcon } from '@/shared/ui';
 
-import styles from './ChatHeader.module.css'
+import styles from './ChatHeader.module.css';
 
-export function ChatHeader() {
+interface ChatHeaderProps {
+  onToggleHistory?: () => void;
+}
+
+export function ChatHeader({ onToggleHistory }: ChatHeaderProps) {
   return (
     <header className={styles.header}>
       <div className={styles.container}>
@@ -18,21 +22,26 @@ export function ChatHeader() {
           </div>
         </div>
 
-        <button className={styles.modelSelector}>
+        <button className={styles.modelSelector} type="button">
           <span className={styles.statusDot} />
           <span>Style AI v2</span>
           <ChevronDownIcon className={styles.chevronIcon} />
         </button>
 
         <div className={styles.actions}>
-          <button className={styles.actionButton} aria-label="История чатов">
+          <button
+            className={styles.actionButton}
+            aria-label="История чатов"
+            type="button"
+            onClick={onToggleHistory}
+          >
             <HistoryIcon className={styles.actionIcon} />
           </button>
-          <button className={styles.actionButton} aria-label="Настройки">
+          <button className={styles.actionButton} aria-label="Настройки" type="button">
             <SettingsIcon className={styles.actionIcon} />
           </button>
         </div>
       </div>
     </header>
-  )
+  );
 }

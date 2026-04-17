@@ -5,12 +5,13 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       Look.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
       Look.hasMany(models.Event, { foreignKey: 'look_id', as: 'events' });
-      // Look.belongsToMany(models.Cloth, {
-      //   through: models.LookCloth,
-      //   foreignKey: 'look_id',
-      //   otherKey: 'cloth_id',
-      //   as: 'clothes',
-      // });
+      Look.belongsToMany(models.Cloth, {
+        through: models.LookCloth,
+        foreignKey: 'look_id',
+        otherKey: 'cloth_id',
+        as: 'clothes',
+      });
+      Look.hasMany(models.ChatMessage, { foreignKey: 'suggested_look_id', as: 'suggestedMessages' });
     }
   }
 

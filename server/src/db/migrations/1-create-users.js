@@ -13,6 +13,14 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false,
       },
+      surname: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      age: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+      },
       email: {
         type: Sequelize.TEXT,
         allowNull: false,
@@ -21,6 +29,15 @@ module.exports = {
       password: {
         type: Sequelize.TEXT,
         allowNull: false,
+      },
+      telephone: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      verified: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
       createdAt: {
         allowNull: false,

@@ -98,8 +98,13 @@ function setupChatWs(httpServer) {
       // AI mode: only one active user (this user)
       if (clients.size === 1) {
         try {
-          const aiText = await generateAiReply({ userId: from.id, userName: from.name, text });
-          const aiMsg = { from: 'ai', fromName: 'AI', text: aiText, ts: Date.now() };
+          const aiResult = await generateAiReply({ userId: from.id, userName: from.name, text });
+          const aiMsg = {
+            from: 'ai',
+            fromName: 'AI',
+            text: aiResult?.replyText ?? '...',
+            ts: Date.now(),
+          };
           safeSend(ws, { type: 'message', data: aiMsg });
         } catch (e) {
           const errText = e?.message ? String(e.message) : 'AI error';
@@ -133,4 +138,3 @@ function setupChatWs(httpServer) {
 module.exports = {
   setupChatWs,
 };
-

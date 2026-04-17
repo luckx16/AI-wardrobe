@@ -14,9 +14,13 @@ export type UserType = {
   id: number;
   email: string;
   name: string;
-  password: string;
-  createdAt: Date;
-  updatedAt: Date;
+  surname?: string | null;
+  age?: number | null;
+  telephone?: string | null;
+  verified?: boolean;
+  password?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 // Тип для пользователя с токеном
