@@ -1,20 +1,32 @@
-const { Look, LookCloth } = require('../db/models');
+const { Look, LookCloth, Cloth } = require('../db/models');
+
+function serializeLook(look, clothIds = []) {
+  const raw = typeof look.toJSON === 'function' ? look.toJSON() : look;
+  return {
+    ...raw,
+    id: raw.id?.toString?.() ?? String(raw.id),
+    user_id: raw.user_id?.toString?.() ?? String(raw.user_id),
+    cloth_ids: clothIds.map((id) => id?.toString?.() ?? String(id)),
+  };
+}
 
 class LookService {
   async findById(id, userId) {
-    return await Look.findOne({
+    const look = await Look.findOne({
       where: { id, user_id: userId },
-      // Cloth модели пока нет — включение временно отключено.
-      // include: [{ model: Cloth, as: 'clothes', through: { attributes: [] } }],
+      include: [{ model: Cloth, as: 'clothes', through: { attributes: [] }, attributes: ['id'] }],
     });
+    if (!look) return null;
+    return serializeLook(look, look.clothes?.map((cloth) => cloth.id) ?? []);
   }
 
   async findByUserId(userId) {
-    return await Look.findAll({
+    const looks = await Look.findAll({
       where: { user_id: userId },
-      // Cloth модели пока нет — включение временно отключено.
-      // include: [{ model: Cloth, as: 'clothes', through: { attributes: ['id'] } }],
+      include: [{ model: Cloth, as: 'clothes', through: { attributes: [] }, attributes: ['id'] }],
+      order: [['createdAt', 'DESC']],
     });
+    return looks.map((look) => serializeLook(look, look.clothes?.map((cloth) => cloth.id) ?? []));
   }
 
   async create(userId, data) {

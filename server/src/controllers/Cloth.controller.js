@@ -9,6 +9,17 @@ const formatResponse = (status, message, data = null, error = null) => {
 };
 
 class ClothController {
+  static async getCloths(req, res) {
+    try {
+      const { user } = res.locals;
+      const cloths = await ClothService.getAllByUserId(user.id);
+
+      return res.json(formatResponse(200, 'Cloths retrieved', cloths));
+    } catch (error) {
+      console.error('Get cloths error:', error);
+      return res.status(500).json(formatResponse(500, 'Internal server error', null, error.message));
+    }
+  }
   
   /**
    * POST /api/cloth
@@ -16,8 +27,7 @@ class ClothController {
    */
   static async createCloth(req, res) {
     try {
-      // 1. Получаем пользователя из res.locals (установлено verifyAccessToken)
-      // const { user } = res.locals;
+      const { user } = res.locals;
       
       // 2. Получаем текстовые поля из формы
       const { title, brand, material, color, category, season } = req.body;

@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 
-import type { ClothingCategory } from '@/entities/wardrobe-item/model/types';
 import { useOutfitBuilder } from '@/features/outfit-builder/model/useOutfitBuilder';
 
 import styles from './OutfitBuilder.module.css';
@@ -28,7 +27,7 @@ export function OutfitBuilder() {
         <p className={styles.eyebrow}>Outfit Builder:</p>
         <h1 className={styles.title}>Собери образ из вещей гардероба</h1>
         <p className={styles.subtitle}>
-          Слева выбираешь вещи, справа сразу видишь, как выглядит комплект в сборке.
+          Слева выбираешь вещи из гардероба, справа сразу видишь, как выглядит комплект в сборке.
         </p>
       </header>
 
@@ -36,66 +35,6 @@ export function OutfitBuilder() {
         <aside className={styles.panel}>
           <h2 className={styles.panelTitle}>Список вещей</h2>
           <p className={styles.panelHint}>Каждую вещь можно добавлять в разные сохранённые образы.</p>
-          <div className={styles.createItemCard}>
-            <p className={styles.createItemTitle}>
-              {vm.editingItemId ? 'Редактировать вещь' : 'Добавить новую вещь'}
-            </p>
-            <div className={styles.createFields}>
-              <input
-                className={styles.input}
-                value={vm.newItemName}
-                onChange={(event) => vm.setNewItemName(event.target.value)}
-                placeholder="Название вещи"
-              />
-              <select
-                className={styles.input}
-                value={vm.newItemCategory}
-                onChange={(event) => vm.setNewItemCategory(event.target.value as ClothingCategory)}
-              >
-                <option value="top">{vm.constants.categoryLabels.top}</option>
-                <option value="bottom">{vm.constants.categoryLabels.bottom}</option>
-                <option value="shoes">{vm.constants.categoryLabels.shoes}</option>
-              </select>
-              <input
-                className={styles.input}
-                value={vm.newItemDescription}
-                onChange={(event) => vm.setNewItemDescription(event.target.value)}
-                placeholder="Краткое описание"
-              />
-              <div className={styles.colorField}>
-                <label className={styles.label} htmlFor="new-item-color">
-                  Цвет вещи
-                </label>
-                <input
-                  id="new-item-color"
-                  className={styles.colorInput}
-                  type="color"
-                  value={vm.newItemColor}
-                  onChange={(event) => vm.setNewItemColor(event.target.value)}
-                />
-              </div>
-              <label className={styles.fileLabel} htmlFor="new-item-photo">
-                {vm.newItemPhoto ? 'Фото загружено (можно заменить)' : 'Загрузить фото вещи'}
-              </label>
-              <input
-                id="new-item-photo"
-                type="file"
-                accept="image/*"
-                className={styles.fileInput}
-                onChange={(event) => void vm.handlePhotoUpload(event.target.files?.[0] ?? null)}
-              />
-              <div className={styles.formActions}>
-                <button type="button" className={styles.saveButton} onClick={vm.addNewItem}>
-                  {vm.editingItemId ? 'Сохранить изменения' : 'Добавить вещь'}
-                </button>
-                {vm.editingItemId ? (
-                  <button type="button" className={styles.ghostButton} onClick={vm.resetItemForm}>
-                    Отмена
-                  </button>
-                ) : null}
-              </div>
-            </div>
-          </div>
           <div className={styles.filterRow}>
             {vm.constants.filterOrder.map((filterValue) => (
               <button
@@ -113,9 +52,6 @@ export function OutfitBuilder() {
             {vm.filteredItems.map((item) => {
               const isSelected = vm.selected[item.category] === item.id;
               const usedCount = vm.usedCountByItem.get(item.id) ?? 0;
-              const customIndex = vm.customItems.findIndex((entry) => entry.id === item.id);
-              const canMoveUp = customIndex > 0;
-              const canMoveDown = customIndex > -1 && customIndex < vm.customItems.length - 1;
 
               return (
                 <li
@@ -157,40 +93,6 @@ export function OutfitBuilder() {
                   >
                     {isSelected ? 'В образе' : 'Добавить'}
                   </button>
-                  {vm.constants.isCustomItem(item.id) ? (
-                    <div className={styles.itemControls}>
-                      <button
-                        type="button"
-                        className={styles.secondaryActionButton}
-                        onClick={() => vm.moveCustomItem(item.id, 'up')}
-                        disabled={!canMoveUp}
-                      >
-                        Выше
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.secondaryActionButton}
-                        onClick={() => vm.moveCustomItem(item.id, 'down')}
-                        disabled={!canMoveDown}
-                      >
-                        Ниже
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.secondaryActionButton}
-                        onClick={() => vm.startEditItem(item)}
-                      >
-                        Изменить
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.deleteActionButton}
-                        onClick={() => vm.deleteCustomItem(item.id)}
-                      >
-                        Удалить
-                      </button>
-                    </div>
-                  ) : null}
                 </li>
               );
             })}
