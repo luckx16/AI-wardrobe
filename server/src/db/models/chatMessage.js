@@ -6,7 +6,13 @@ module.exports = (sequelize, DataTypes) => {
       ChatMessage.belongsTo(models.Chat, { foreignKey: 'chat_id', as: 'chat' });
       ChatMessage.belongsTo(models.Look, { foreignKey: 'suggested_look_id', as: 'suggestedLook' });
       ChatMessage.belongsTo(models.Event, { foreignKey: 'event_id', as: 'linkedEvent' });
-      ChatMessage.hasMany(models.MessageCloth, { foreignKey: 'message_id', as: 'messageCloths' });
+
+      ChatMessage.belongsToMany(models.Cloth, {
+        through: models.MessageCloth,
+        foreignKey: 'message_id',
+        otherKey: 'cloth_id',
+        as: 'clothes',
+      });
     }
   }
 
