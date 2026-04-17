@@ -1,11 +1,61 @@
 'use client';
 
-import { EventModal, EventsCalendar, EventSidebar, useEventsCalendar } from '@/features/events';
+import { useEffect, useMemo, useState } from 'react';
+
+import { EventModal, EventsCalendar, EventSidebar } from '@/entities/events';
+import { deleteEventThunk, getAllEventsThunk } from '@/entities/events/api/eventsThunk';
+import { toDateStr } from '@/entities/events/lib/calendar';
+import { IEvent } from '@/entities/events/model/types';
+import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 
 import styles from './events.module.css';
 
 export default function EventsPage() {
-  const calendar = useEventsCalendar();
+  const today = new Date();
+  const todayStr = toDateStr(today);
+
+  const { events, isLoading } = useAppSelector((state) => state.events);
+  const dispatch = useAppDispatch();
+
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [editedEvent, setEditedEvent] = useState<IEvent | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    dispatch(getAllEventsThunk());
+  }, [dispatch]);
+
+  const eventsByDateObj = useMemo(() => {
+    const map: Record<string, typeof events> = {};
+    events.forEach((e) => {
+      const key = e.date.slice(0, 10);
+
+      if (!map[key]) {
+        map[key] = [];
+      }
+
+      map[key].push(e);
+    });
+    console.log('map', map);
+
+    return map;
+  }, [events]);
+
+  const eventsOfSelectedDateArr = eventsByDateObj[selectedDate] ?? [];
+
+  const deleteEventHandler = (eventId: number) => {
+    dispatch(deleteEventThunk(eventId));
+  };
+
+  const openUpdateModalHandler = (event: IEvent) => {
+    setModalOpen(true);
+    setEditedEvent(event);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditedEvent(null);
+  };
 
   return (
     <div className={styles.page}>
@@ -14,37 +64,28 @@ export default function EventsPage() {
           <h1 className={styles.title}>Мои события</h1>
           <p className={styles.subtitle}>Планируй образы для каждого события</p>
         </div>
-        <button className={styles.addButton} onClick={calendar.openModal}>
+        <button className={styles.addButton} onClick={() => setModalOpen(true)}>
           + Новое событие
         </button>
       </div>
 
       <div className={styles.content}>
         <EventsCalendar
-          viewYear={calendar.viewYear}
-          viewMonth={calendar.viewMonth}
-          days={calendar.days}
-          selectedDate={calendar.selectedDate}
-          todayStr={calendar.todayStr}
-          eventsByDate={calendar.eventsByDate}
-          onSelectDate={calendar.setSelectedDate}
-          onPrevMonth={calendar.prevMonth}
-          onNextMonth={calendar.nextMonth}
+          selectedDate={selectedDate}
+          eventsByDate={eventsByDateObj}
+          onSelectDate={setSelectedDate}
         />
         <EventSidebar
-          selectedDate={calendar.selectedDate}
-          selectedEvents={calendar.selectedEvents}
-          onDelete={calendar.deleteEvent}
+          isLoading={isLoading}
+          selectedDate={selectedDate}
+          eventsOfSelectedDateArr={eventsOfSelectedDateArr}
+          deleteEventHandler={deleteEventHandler}
+          openUpdateModalHandler={openUpdateModalHandler}
         />
       </div>
 
-      {calendar.modalOpen && (
-        <EventModal
-          form={calendar.form}
-          onChange={calendar.handleFormChange}
-          onSave={calendar.saveEvent}
-          onClose={calendar.closeModal}
-        />
+      {modalOpen && (
+        <EventModal editedEvent={editedEvent} initialDate={selectedDate} onClose={closeModal} />
       )}
     </div>
   );
