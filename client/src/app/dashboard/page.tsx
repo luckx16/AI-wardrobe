@@ -1,10 +1,15 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { Eye, Palette, Shirt, TrendingUp } from 'lucide-react';
 
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
+import { USER_API_ROUTES } from '@/shared/constants/userApiRoutes';
+import { axiosInstance } from '@/shared/lib/axiosInstance';
+import { userLocationStorage } from '@/shared/lib/userLocation';
+import type { ServerResponseType } from '@/shared/types';
 import { StatsCard } from '@/shared/ui';
 import { CalendarPlans, OutfitOfTheDay } from '@/widgets';
 import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
@@ -37,14 +42,59 @@ const MOCK_STATS_DATA = [
 ];
 
 const MOCK_OUTFIT = {
-  weather: '+15°C, облачно, дождь',
+  weather: 'Погода не определена',
   items: [
     { id: 12, name: 'Синие джинсы', category: 'Низ', emoji: '👖' },
     { id: 45, name: 'Белая худи', category: 'Верх', emoji: '🧥' },
     { id: 7, name: 'Бежевый тренч', category: 'Верхняя одежда', emoji: '🧥' },
     { id: 23, name: 'Белые кроссовки', category: 'Обувь', emoji: '👟' },
   ],
-  tip: 'Возьмите зонт — после обеда возможен дождь ☂️',
+  tip: 'Подберите образ с учетом температуры и осадков',
+};
+
+type WeatherByCoordsResponse = {
+  temperature: string;
+  description: string;
+  feels_like: string;
+  location: string;
+};
+
+const WEATHER_DESCRIPTION_RU_MAP: Record<string, string> = {
+  'Sunny': 'Солнечно',
+  'Clear': 'Ясно',
+  'Partly cloudy': 'Переменная облачность',
+  'Cloudy': 'Облачно',
+  'Overcast': 'Пасмурно',
+  'Mist': 'Легкий туман',
+  'Fog': 'Туман',
+  'Freezing fog': 'Ледяной туман',
+  'Patchy rain possible': 'Местами возможен дождь',
+  'Patchy light drizzle': 'Местами слабая морось',
+  'Light drizzle': 'Слабая морось',
+  'Light rain': 'Небольшой дождь',
+  'Moderate rain': 'Умеренный дождь',
+  'Heavy rain': 'Сильный дождь',
+  'Patchy light rain': 'Местами небольшой дождь',
+  'Patchy moderate rain': 'Местами умеренный дождь',
+  'Patchy heavy rain': 'Местами сильный дождь',
+  'Rain shower': 'Ливень',
+  'Patchy snow possible': 'Местами возможен снег',
+  'Light snow': 'Небольшой снег',
+  'Moderate snow': 'Умеренный снег',
+  'Heavy snow': 'Сильный снег',
+  'Patchy sleet possible': 'Местами возможен мокрый снег',
+  'Light sleet': 'Небольшой мокрый снег',
+  'Moderate or heavy sleet': 'Умеренный или сильный мокрый снег',
+  'Patchy freezing drizzle possible': 'Местами возможна ледяная морось',
+  'Freezing drizzle': 'Ледяная морось',
+  'Thundery outbreaks possible': 'Возможна гроза',
+  'Patchy light rain with thunder': 'Местами небольшой дождь с грозой',
+  'Moderate or heavy rain with thunder': 'Умеренный или сильный дождь с грозой',
+};
+
+const toRussianWeatherDescription = (description: string): string => {
+  const normalized = description.trim();
+  return WEATHER_DESCRIPTION_RU_MAP[normalized] ?? normalized;
 };
 
 const MOCK_PLANS = [
@@ -64,10 +114,54 @@ const MOCK_CATEGORIES = [
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [weatherText, setWeatherText] = useState<string>(MOCK_OUTFIT.weather);
+  const [weatherTip, setWeatherTip] = useState<string>(MOCK_OUTFIT.tip);
 
   const navigateToEventsPageHandler = () => {
     router.push(CLIENT_ROUTES.EVENTS);
   };
+
+  useEffect(() => {
+    const loadWeather = async () => {
+      const coords = userLocationStorage.getCoords();
+      if (!coords) {
+        setWeatherText('Разрешите геолокацию, чтобы увидеть погоду');
+        setWeatherTip('После разрешения геолокации погода появится автоматически');
+        return;
+      }
+
+      try {
+        const { data } = await axiosInstance.get<ServerResponseType<WeatherByCoordsResponse>>(
+          USER_API_ROUTES.WEATHER_BY_COORDS,
+          {
+            params: { lat: coords.lat, lon: coords.lon },
+          },
+        );
+
+        if (!data.data) {
+          setWeatherText('Не удалось загрузить погоду');
+          return;
+        }
+
+        const weatherLine = `${data.data.temperature}°C, ${toRussianWeatherDescription(data.data.description)}`;
+        setWeatherText(weatherLine);
+        setWeatherTip(`Ощущается как ${data.data.feels_like}°C в ${data.data.location}`);
+      } catch {
+        setWeatherText('Не удалось загрузить погоду');
+      }
+    };
+
+    void loadWeather();
+  }, []);
+
+  const outfitWithWeather = useMemo(
+    () => ({
+      ...MOCK_OUTFIT,
+      weather: weatherText,
+      tip: weatherTip,
+    }),
+    [weatherText, weatherTip],
+  );
 
   return (
     <div className={styles.page}>
@@ -85,7 +179,7 @@ export default function DashboardPage() {
 
         <div className={styles.widgetsGrid}>
           <div className={styles.widgetItem}>
-            <OutfitOfTheDay outfit={MOCK_OUTFIT} />
+            <OutfitOfTheDay outfit={outfitWithWeather} />
           </div>
           <div className={styles.widgetItem}>
             <CalendarPlans

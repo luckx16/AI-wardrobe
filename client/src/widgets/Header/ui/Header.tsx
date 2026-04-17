@@ -1,22 +1,44 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { refreshTokensThunk } from '@/entities/user/api/apiUserThunk';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+import { requestAndStoreUserLocation, userLocationStorage } from '@/shared/lib/userLocation';
 
 import styles from './Header.module.css';
 
 export function Header() {
   const { user } = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
+  const [city, setCity] = useState<string | null>(null);
 
   useEffect(() => {
     // На старте приложения пробуем обновить токены (если есть refresh-cookie).
     void dispatch(refreshTokensThunk()).unwrap().catch(() => undefined);
   }, [dispatch]);
+
+  useEffect(() => {
+    const savedCity = userLocationStorage.getCity();
+    if (savedCity) {
+      setCity(savedCity);
+      return;
+    }
+
+    if (!user) {
+      return;
+    }
+
+    void requestAndStoreUserLocation()
+      .then((location) => {
+        if (location.city) {
+          setCity(location.city);
+        }
+      })
+      .catch(() => undefined);
+  }, [user]);
 
   const isAuthenticated = !!user;
 
@@ -36,6 +58,11 @@ export function Header() {
           </span>
         </Link>
         <ul className={styles.list}>
+          {isAuthenticated && city ? (
+            <li className={styles.cityBadge} aria-label="Текущий город">
+              {city}
+            </li>
+          ) : null}
           {isAuthenticated ? (
             <>
               <li>

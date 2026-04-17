@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { signInThunk, signUpThunk } from '@/entities/user/api/apiUserThunk';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch';
+import { requestAndStoreUserLocation } from '@/shared/lib/userLocation';
 
 import styles from './AuthForm.module.css';
 
@@ -78,6 +79,7 @@ export function AuthForm(): React.JSX.Element {
   const onSubmitSignIn = handleSignInSubmit(async (values) => {
     try {
       await dispatch(signInThunk(values)).unwrap();
+      await requestAndStoreUserLocation().catch(() => null);
       router.push(CLIENT_ROUTES.DASHBOARD);
     } catch (_error) {}
   });
@@ -85,6 +87,7 @@ export function AuthForm(): React.JSX.Element {
   const onSubmitSignUp = handleSignUpSubmit(async ({ name, email, password }) => {
     try {
       await dispatch(signUpThunk({ name, email, password })).unwrap();
+      await requestAndStoreUserLocation().catch(() => null);
       router.push(CLIENT_ROUTES.DASHBOARD);
     } catch (_error) {}
   });

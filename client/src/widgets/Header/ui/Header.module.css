@@ -61,6 +61,16 @@
   padding: 0;
 }
 
+.cityBadge {
+  font-size: 0.75rem;
+  color: #6b4f37;
+  background: #f1e9de;
+  border: 1px solid #dcc5a8;
+  border-radius: 9999px;
+  padding: 0.18rem 0.6rem;
+  line-height: 1.2;
+}
+
 .link {
   font-size: 0.78rem;
   letter-spacing: 0.04em;
