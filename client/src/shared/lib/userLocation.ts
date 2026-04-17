@@ -21,6 +21,65 @@ type NominatimResponse = {
   };
 };
 
+type NominatimSearchResult = {
+  lat?: string;
+  lon?: string;
+  name?: string;
+  display_name?: string;
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    state?: string;
+  };
+};
+
+type GeocodedCityResult = {
+  city: string;
+  coords: UserCoords;
+};
+
+function toTitleCase(input: string): string {
+  return input
+    .split('-')
+    .map((part) => {
+      if (!part) {
+        return part;
+      }
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    })
+    .join('-');
+}
+
+function normalizeCityName(rawCity: string): string {
+  const trimmed = rawCity.trim();
+  if (!trimmed) {
+    return trimmed;
+  }
+  return trimmed
+    .split(/\s+/)
+    .map((word) => toTitleCase(word))
+    .join(' ');
+}
+
+function resolveCityFromSearchResult(searchResult: NominatimSearchResult): string | null {
+  const address = searchResult.address;
+  const directCity =
+    address?.city || address?.town || address?.village || address?.municipality || searchResult.name;
+
+  if (directCity?.trim()) {
+    return normalizeCityName(directCity);
+  }
+
+  const [firstChunk] = searchResult.display_name?.split(',') ?? [];
+  if (firstChunk?.trim()) {
+    return normalizeCityName(firstChunk);
+  }
+
+  return null;
+}
+
 export const userLocationStorage = {
   getCity(): string | null {
     if (typeof window === 'undefined') {
@@ -110,12 +169,12 @@ async function getCityByCoords(lat: number, lon: number): Promise<string | null>
   }
 }
 
-async function getCoordsByCity(city: string): Promise<UserCoords | null> {
+async function geocodeCity(city: string): Promise<GeocodedCityResult | null> {
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(city)}`,
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&addressdetails=1&q=${encodeURIComponent(city)}`,
     );
-    const data = (await response.json()) as Array<{ lat?: string; lon?: string }>;
+    const data = (await response.json()) as NominatimSearchResult[];
     const firstResult = data[0];
     if (!firstResult?.lat || !firstResult?.lon) {
       return null;
@@ -127,7 +186,11 @@ async function getCoordsByCity(city: string): Promise<UserCoords | null> {
       return null;
     }
 
-    return { lat, lon };
+    const correctedCity = resolveCityFromSearchResult(firstResult) || normalizeCityName(city);
+    return {
+      city: correctedCity,
+      coords: { lat, lon },
+    };
   } catch {
     return null;
   }
@@ -139,10 +202,10 @@ export async function setAndStoreUserCity(city: string): Promise<UserLocation> {
     throw new Error('City is required');
   }
 
-  const coords = await getCoordsByCity(normalizedCity);
+  const geocodedCity = await geocodeCity(normalizedCity);
   const location: UserLocation = {
-    city: normalizedCity,
-    coords,
+    city: geocodedCity?.city ?? normalizeCityName(normalizedCity),
+    coords: geocodedCity?.coords ?? null,
   };
   userLocationStorage.setLocation(location);
   notifyUserLocationUpdated();

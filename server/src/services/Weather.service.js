@@ -1,36 +1,91 @@
 const axios = require('axios');
 
+const WEATHER_CODE_DESCRIPTIONS = {
+  0: 'Clear',
+  1: 'Mainly clear',
+  2: 'Partly cloudy',
+  3: 'Overcast',
+  45: 'Fog',
+  48: 'Depositing rime fog',
+  51: 'Light drizzle',
+  53: 'Moderate drizzle',
+  55: 'Dense drizzle',
+  56: 'Light freezing drizzle',
+  57: 'Dense freezing drizzle',
+  61: 'Light rain',
+  63: 'Moderate rain',
+  65: 'Heavy rain',
+  66: 'Light freezing rain',
+  67: 'Heavy freezing rain',
+  71: 'Light snow',
+  73: 'Moderate snow',
+  75: 'Heavy snow',
+  77: 'Snow grains',
+  80: 'Light rain showers',
+  81: 'Moderate rain showers',
+  82: 'Violent rain showers',
+  85: 'Light snow showers',
+  86: 'Heavy snow showers',
+  95: 'Thunderstorm',
+  96: 'Thunderstorm with light hail',
+  99: 'Thunderstorm with heavy hail',
+};
+
+function resolveWeatherDescription(code) {
+  return WEATHER_CODE_DESCRIPTIONS[code] || 'Unknown';
+}
+
+function mapCurrentWeatherResponse(current, location) {
+  return {
+    temperature: String(current.temperature_2m),
+    feels_like: String(current.apparent_temperature),
+    description: resolveWeatherDescription(current.weather_code),
+    humidity: String(current.relative_humidity_2m),
+    wind_speed: String(current.wind_speed_10m),
+    location,
+  };
+}
+
+async function getOpenMeteoCurrentWeather(lat, lon, location) {
+  const weatherResponse = await axios.get('https://api.open-meteo.com/v1/forecast', {
+    timeout: 7000,
+    params: {
+      latitude: lat,
+      longitude: lon,
+      current:
+        'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code',
+      wind_speed_unit: 'kmh',
+    },
+  });
+
+  const current = weatherResponse.data?.current;
+  if (!current) {
+    throw new Error('Invalid response from weather provider');
+  }
+
+  return mapCurrentWeatherResponse(current, location);
+}
+
 class WeatherService {
   static async getCurrentWeather(city) {
     try {
-      const url = `https://wttr.in/${encodeURIComponent(city)}?format=j1`;
-      const response = await axios.get(url, {
-        timeout: 5000,
-        headers: {
-          'User-Agent': 'YourApp/1.0',
+      const geocodeResponse = await axios.get('https://geocoding-api.open-meteo.com/v1/search', {
+        timeout: 7000,
+        params: {
+          name: city,
+          count: 1,
+          language: 'ru',
+          format: 'json',
         },
       });
+      const firstResult = geocodeResponse.data?.results?.[0];
 
-      if (!response.data?.current_condition?.[0]) {
-        throw new Error('Invalid response from weather service');
+      if (!firstResult) {
+        throw new Error(`City not found: ${city}`);
       }
 
-      const current = response.data.current_condition[0];
-
-      return {
-        temperature: current.temp_C,
-        feels_like: current.FeelsLikeC,
-        description: current.weatherDesc[0].value,
-        humidity: current.humidity,
-        wind_speed: current.windspeedKmph,
-        wind_dir: current.winddir16Point,
-        pressure: current.pressure,
-        uv_index: current.uvIndex,
-        cloudcover: current.cloudcover,
-        visibility: current.visibility,
-        precip_mm: current.precipMM,
-        location: response.data.nearest_area?.[0]?.areaName?.[0]?.value || city,
-      };
+      const locationName = [firstResult.name, firstResult.country].filter(Boolean).join(', ') || city;
+      return getOpenMeteoCurrentWeather(firstResult.latitude, firstResult.longitude, locationName);
     } catch (error) {
       console.error('Weather service error:', error.message);
       throw new Error(`Failed to fetch weather for ${city}`);
@@ -39,21 +94,7 @@ class WeatherService {
 
   static async getWeatherByCoords(lat, lon) {
     try {
-      const url = `https://wttr.in/${lat},${lon}?format=j1`;
-      const response = await axios.get(url, {
-        timeout: 5000,
-      });
-
-      const current = response.data.current_condition[0];
-
-      return {
-        temperature: current.temp_C,
-        feels_like: current.FeelsLikeC,
-        description: current.weatherDesc[0].value,
-        humidity: current.humidity,
-        wind_speed: current.windspeedKmph,
-        location: response.data.nearest_area?.[0]?.areaName?.[0]?.value || `${lat}, ${lon}`,
-      };
+      return getOpenMeteoCurrentWeather(lat, lon, `${lat}, ${lon}`);
     } catch (error) {
       console.error('Weather service error:', error.message);
       throw new Error(`Failed to fetch weather for coordinates ${lat}, ${lon}`);

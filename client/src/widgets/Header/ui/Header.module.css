@@ -61,6 +61,12 @@
   padding: 0;
 }
 
+.cityControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .cityBadgeButton {
   font: inherit;
   font-size: 0.75rem;
@@ -80,6 +86,41 @@
 .cityBadgeButton:focus-visible {
   outline: 2px solid #cba883;
   outline-offset: 1px;
+}
+
+.locationRefreshButton {
+  width: 1.65rem;
+  height: 1.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b4f37;
+  background: #f1e9de;
+  border: 1px solid #dcc5a8;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.locationRefreshButton:hover {
+  border-color: #cba883;
+}
+
+.locationRefreshButton:focus-visible {
+  outline: 2px solid #cba883;
+  outline-offset: 1px;
+}
+
+.locationRefreshButton:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.inlineCityError {
+  max-width: 64rem;
+  margin: 0.3rem auto 0;
+  padding: 0 1.25rem;
+  font-size: 0.75rem;
+  color: #d14343;
 }
 
 .cityModalOverlay {
