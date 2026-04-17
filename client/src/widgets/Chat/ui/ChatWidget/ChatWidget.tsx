@@ -96,7 +96,7 @@ export function ChatWidget() {
             id: message.id,
             role: message.role,
             content: message.content,
-            createdAt: message.createdAt,
+            createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
           }))
         : INITIAL_MESSAGES,
     );

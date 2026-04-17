@@ -6,6 +6,7 @@ const upload = require('../middleware/upload');
 // POST /api/cloth - создание вещи с изображением
 // upload.single('image') обрабатывает файл из поля 'image' и сохраняет в temp/
 router.route('/')
+  .get(verifyAccessToken, ClothController.getCloths)
   .post(verifyAccessToken, upload.single('image'), ClothController.createCloth);
 
 // POST /api/cloth/remove-background - удалить фон для превью

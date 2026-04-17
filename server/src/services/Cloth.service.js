@@ -1,6 +1,19 @@
 const { Cloth } = require('../db/models'); // Ваша модель Sequelize
 
 class ClothService {
+  static async getAllByUserId(userId) {
+    try {
+      const cloths = await Cloth.findAll({
+        where: { user_id: userId },
+        order: [['createdAt', 'DESC']],
+      });
+      return cloths.map((cloth) => cloth.toJSON());
+    } catch (err) {
+      console.error('Get cloths error:', err.message);
+      throw err;
+    }
+  }
+
   
   /**
    * Создает новую запись в БД
