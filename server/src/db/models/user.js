@@ -97,17 +97,22 @@ module.exports = (sequelize, DataTypes) => {
 
   User.init(
     {
-      name: DataTypes.TEXT,
+      name: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
       surname: DataTypes.TEXT,
       age: DataTypes.INTEGER,
-      email: DataTypes.TEXT,
-      password: DataTypes.TEXT,
-      telephone: DataTypes.TEXT,
-      verified: {
-        type: DataTypes.BOOLEAN,
+      email: {
+        type: DataTypes.TEXT,
         allowNull: false,
-        defaultValue: false,
+        unique: true,
       },
+      password: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
+      telephone: DataTypes.TEXT,
     },
     {
       sequelize,

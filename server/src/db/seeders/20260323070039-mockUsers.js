@@ -11,7 +11,6 @@ module.exports = {
         email: 'max@mail.ru',
         password: hashPassword('12345678Qq!'),
         telephone: null,
-        verified: true,
       },
       {
         name: 'Anna',
@@ -20,7 +19,6 @@ module.exports = {
         email: 'anna@mail.ru',
         password: hashPassword('12345678Qq!'),
         telephone: null,
-        verified: false,
       },
       {
         name: 'Bob',
@@ -29,7 +27,6 @@ module.exports = {
         email: 'bob@gmail.com',
         password: hashPassword('12345678Qq!'),
         telephone: null,
-        verified: false,
       },
     ], {});
 
