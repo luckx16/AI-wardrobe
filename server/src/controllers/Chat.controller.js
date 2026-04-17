@@ -2,8 +2,8 @@ const { Chat, ChatMessage, Cloth, MessageCloth } = require('../db/models');
 const formatResponse = require('../utils/formatResponse');
 const { compactItem } = require('../utils/stylistPrompt');
 const { generateAiReply } = require('../services/AiChat.service');
-const { generateLook } = require('../services/lookGenerateService');
-const lookService = require('../services/lookService');
+const { generateLook } = require('../services/LookGenerate.service');
+const lookService = require('../services/Look.service');
 
 const HISTORY_LIMIT = 20;
 const WARDROBE_CHAT_LIMIT = 40;

@@ -2,7 +2,7 @@ const crypto = require('node:crypto');
 
 const { buildStylistPrompt } = require('../utils/stylistPrompt');
 const { generatedLookSchema, geminiGeneratedLookJsonSchema } = require('../schemas/lookSchema');
-const { geminiClient, openaiClient } = require('../config/ai');
+const { geminiClient, openaiClient } = require('../config/aiConfig');
 
 const db = require('../db/models');
 

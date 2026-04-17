@@ -1,6 +1,6 @@
 const router = require('express').Router();
-const { upload, handleMulterError } = require('../config/multer.config');
-const { uploadController } = require('../controllers/uploadController');
+const { upload, handleMulterError } = require('../config/multerConfig');
+const { uploadController } = require('../controllers/Upload.controller');
 const verifyAccessToken = require('../middleware/verifyAccessToken')
 
 

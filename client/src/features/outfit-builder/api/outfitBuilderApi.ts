@@ -1,5 +1,6 @@
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import { resolveAssetUrl } from '@/shared/lib/uploadApi';
+import type { ServerResponseType } from '@/shared/types';
 import type { ClothingItem } from '@/entities/wardrobe-item/model/types';
 
 export type ServerCloth = {
@@ -34,23 +35,19 @@ const CATEGORY_MAP: Record<string, 'top' | 'bottom' | 'shoes'> = {
   обувь: 'shoes',
 };
 
-type ApiEnvelope<T> = {
-  data: T;
-};
-
 export async function getCloths() {
-  const response = await axiosInstance.get<ApiEnvelope<ServerCloth[]>>('/cloth');
-  return response.data.data;
+  const { data } = await axiosInstance.get<ServerResponseType<ServerCloth[]>>('/cloth');
+  return data.data;
 }
 
 export async function getLooks() {
-  const response = await axiosInstance.get<ServerLook[]>('/looks');
-  return response.data;
+  const { data } = await axiosInstance.get<ServerResponseType<ServerLook[]>>('/looks');
+  return data.data;
 }
 
 export async function createLook(payload: { title: string; cloth_ids: number[] }) {
-  const response = await axiosInstance.post<ServerLook>('/looks', payload);
-  return response.data;
+  const { data } = await axiosInstance.post<ServerResponseType<ServerLook>>('/looks', payload);
+  return data.data;
 }
 
 export function mapServerClothToItem(cloth: ServerCloth): ClothingItem | null {
