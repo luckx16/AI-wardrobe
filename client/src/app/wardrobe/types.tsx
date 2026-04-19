@@ -20,5 +20,5 @@ export interface WardrobeItem {
   season: Season;
   color: string;
   image: string;
-  dateAdded: string;
+  createdAt: string;
 }

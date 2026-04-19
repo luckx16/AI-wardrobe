@@ -1,4 +1,5 @@
 'use client';
+import { DialogTitle } from '@radix-ui/react-dialog';
 import { CalendarDays, Palette, Sun, Tag } from 'lucide-react';
 
 import type { WardrobeItem } from '../../app/wardrobe/types';
@@ -34,7 +35,7 @@ const InfoRow = ({
 const ItemDetailDialog = ({ item, open, onOpenChange }: ItemDetailDialogProps) => {
   if (!item) return null;
 
-  const dateFormatted = new Date(item.dateAdded).toLocaleDateString('ru-RU', {
+  const dateFormatted = new Date(item.createdAt).toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -43,11 +44,11 @@ const ItemDetailDialog = ({ item, open, onOpenChange }: ItemDetailDialogProps) =
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg p-0 bg-surface border-border overflow-hidden gap-0">
+        <DialogTitle>{item.title}</DialogTitle>
         <div className={styles.imageWrap}>
           <img src={item.image} alt={item.title} />
         </div>
         <div className={styles.body}>
-          <h2 className={styles.name}>{item.title}</h2>
           <div className={styles.infoGrid}>
             <InfoRow icon={Tag} label="Категория" value={item.category} />
             <InfoRow icon={Sun} label="Сезон" value={item.season} />
