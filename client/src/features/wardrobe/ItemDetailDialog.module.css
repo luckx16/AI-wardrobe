@@ -2,7 +2,7 @@
   aspect-ratio: 4 / 5;
   max-height: 50vh;
   overflow: hidden;
-  background: hsl(var(--surface-elevated));
+  background: var(--surface-elevated);
 }
 
 .imageWrap img {
@@ -21,7 +21,7 @@
 .name {
   font-size: 1.125rem;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: var(--foreground);
   margin: 0;
 }
 
@@ -44,8 +44,8 @@
   width: 2rem;
   height: 2rem;
   border-radius: 0.5rem;
-  background: hsl(var(--surface-elevated));
-  color: hsl(var(--muted));
+  background: var(--surface-elevated);
+  color: var(--muted);
   flex-shrink: 0;
 }
 
@@ -53,14 +53,14 @@
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: hsl(var(--muted));
+  color: var(--muted);
   font-weight: 500;
   margin: 0;
 }
 
 .infoValue {
   font-size: 0.875rem;
-  color: hsl(var(--foreground));
+  color: var(--foreground);
   font-weight: 500;
   margin: 0;
 }

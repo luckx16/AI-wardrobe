@@ -28,7 +28,7 @@ const WardrobeCard = ({ item, index, onDelete, onClick }: WardrobeCardProps) => 
       <div className={styles.imageWrap}>
         <img
           src={item.image}
-          alt={item.name}
+          alt={item.title}
           loading="lazy"
           width={512}
           height={640}
@@ -36,7 +36,7 @@ const WardrobeCard = ({ item, index, onDelete, onClick }: WardrobeCardProps) => 
         />
       </div>
       <div className={styles.body}>
-        <h3 className={styles.title}>{item.name}</h3>
+        <h3 className={styles.title}>{item.title}</h3>
         <div className={styles.metaRow}>
           <span className={styles.text}>{item.category}</span>
           <span className={styles.badge}>{item.season}</span>

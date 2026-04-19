@@ -15,5 +15,15 @@ router.route('/remove-background').post(upload.single('image'), ClothController.
 
 // GET /api/cloth/:id/status - проверка статуса обработки
 router.route('/:id/status').get(verifyAccessToken, ClothController.getProcessingStatus);
+// 📦 CRUD
+router.get('/', verifyAccessToken, ClothController.getAllClothes);
+router.get('/:id', verifyAccessToken, ClothController.getClothById);
+router.post('/', verifyAccessToken, upload.single('image'), ClothController.createCloth);
+router.put('/:id', verifyAccessToken, ClothController.updateCloth);
+router.delete('/:id', verifyAccessToken, ClothController.deleteCloth);
+
+// 🧠 Обработка изображений
+router.post('/remove-background', upload.single('image'), ClothController.removeBackground);
+router.get('/:id/status', verifyAccessToken, ClothController.getProcessingStatus);
 
 module.exports = router;
