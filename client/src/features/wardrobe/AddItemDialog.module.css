@@ -180,7 +180,7 @@
 }
 
 .textInput::placeholder {
-  color: var(--muted) / 0.5;
+  color: hsl(from var(--muted) h s l / 0.5);
 }
 
 .textInput:focus,
@@ -211,7 +211,7 @@
 }
 
 .submitButton:hover:not(:disabled) {
-  background: var(--foreground) / 0.9;
+  background: hsl(from var(--foreground) h s l / 0.9);
 }
 
 .submitButton:disabled {

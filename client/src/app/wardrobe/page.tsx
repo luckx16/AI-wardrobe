@@ -10,7 +10,7 @@ import WardrobeToolbar from '../../features/wardrobe/WardrobeToolbar';
 import { type Category, type Season, type WardrobeItem } from './types';
 import styles from './WardrobePage.module.css';
 
-type SortField = 'title' | 'season' | 'dateAdded' | 'category';
+type SortField = 'title' | 'season' | 'createdAt' | 'category';
 
 const WardrobePage = () => {
   const [items, setItems] = useState<WardrobeItem[]>([]);
@@ -60,11 +60,12 @@ const WardrobePage = () => {
       result = result.filter((i) => i.category === filterCategory);
     }
 
-    result.sort((a, b) => {
+    result.sort((a: WardrobeItem, b: WardrobeItem) => {
       if (sortBy === 'title') return a.title.localeCompare(b.title, 'ru');
       if (sortBy === 'season') return a.season.localeCompare(b.season, 'ru');
       if (sortBy === 'category') return a.category.localeCompare(b.category, 'ru');
-      return b.dateAdded.localeCompare(a.dateAdded);
+      if (sortBy === 'createdAt') return a.createdAt.localeCompare(b.createdAt, 'ru');
+      return 0;
     });
 
     return result;

@@ -1,7 +1,7 @@
 import type { Category, Season } from '../../app/wardrobe/types';
 import styles from './WardrobeToolbar.module.css';
 
-type SortField = 'title' | 'season' | 'dateAdded' | 'category';
+type SortField = 'title' | 'season' | 'createdAt' | 'category';
 
 interface WardrobeToolbarProps {
   sortBy: SortField;
@@ -35,7 +35,7 @@ const sortOptions: { value: SortField; label: string }[] = [
   { value: 'title', label: 'По названию' },
   { value: 'season', label: 'По сезону' },
   { value: 'category', label: 'По категории' },
-  { value: 'dateAdded', label: 'По дате' },
+  { value: 'createdAt', label: 'По дате' },
 ];
 
 const cx = (...classNames: Array<string | false | null | undefined>) =>
