@@ -24,7 +24,6 @@ class ClothController {
   static async createCloth(req, res) {
     try {
       const { user } = res.locals;
-      const { user } = res.locals;
 
       // 2. Получаем текстовые поля из формы
       const { title, brand, material, color, category, season } = JSON.parse(req.body.data);
