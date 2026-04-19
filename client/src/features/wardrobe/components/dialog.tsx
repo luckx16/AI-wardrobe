@@ -29,6 +29,7 @@ const DialogContent = React.forwardRef<
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content ref={ref} className={cn(styles.content, className)} {...props}>
+    
       {children}
       <DialogPrimitive.Close className={styles.closeButton}>
         <X className={styles.icon} />

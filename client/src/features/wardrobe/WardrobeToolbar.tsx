@@ -1,7 +1,7 @@
-import type { Category,Season } from '../../app/wardrobe/types';
+import type { Category, Season } from '../../app/wardrobe/types';
 import styles from './WardrobeToolbar.module.css';
 
-type SortField = 'name' | 'season' | 'dateAdded' | 'category';
+type SortField = 'title' | 'season' | 'dateAdded' | 'category';
 
 interface WardrobeToolbarProps {
   sortBy: SortField;
@@ -14,19 +14,25 @@ interface WardrobeToolbarProps {
   addButton?: React.ReactNode;
 }
 
-const seasons: (Season | 'all')[] = ['all', 'Зима', 'Весна', 'Лето', 'Осень', 'Все сезоны'];
+const seasons: (Season | 'all')[] = ['all', 'зима', 'весна', 'лето', 'осень', 'всесезон'];
 const categories: (Category | 'all')[] = [
   'all',
-  'Верхняя одежда',
-  'Футболки',
-  'Брюки',
-  'Свитеры',
-  'Обувь',
-  'Рубашки',
+  'футболка',
+  'рубашка',
+  'платье',
+  'брюки',
+  'юбка',
+  'куртка',
+  'свитер',
+  'худи',
+  'шорты',
+  'обувь',
+  'аксессуары',
+  'другое',
 ];
 
 const sortOptions: { value: SortField; label: string }[] = [
-  { value: 'name', label: 'По названию' },
+  { value: 'title', label: 'По названию' },
   { value: 'season', label: 'По сезону' },
   { value: 'category', label: 'По категории' },
   { value: 'dateAdded', label: 'По дате' },

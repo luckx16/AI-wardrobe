@@ -6,8 +6,10 @@ import { ImagePlus, Plus, X } from 'lucide-react';
 
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import { resolveAssetUrl } from '@/shared/lib/uploadApi';
+
 import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
 import styles from './AddItemDialog.module.css';
+import { createClothesItem } from './api/wardrobeApi';
 import {
   Dialog,
   DialogContent,
@@ -16,14 +18,20 @@ import {
   DialogTrigger,
 } from './components/dialog';
 
-const seasons: Season[] = ['Зима', 'Весна', 'Лето', 'Осень', 'Все сезоны'];
+const seasons: Season[] = ['зима', 'весна', 'лето', 'осень', 'всесезон'];
 const categories: Category[] = [
-  'Верхняя одежда',
-  'Футболки',
-  'Брюки',
-  'Свитеры',
-  'Обувь',
-  'Рубашки',
+  'футболка',
+  'рубашка',
+  'платье',
+  'брюки',
+  'юбка',
+  'куртка',
+  'свитер',
+  'худи',
+  'шорты',
+  'обувь',
+  'аксессуары',
+  'другое',
 ];
 
 interface AddItemDialogProps {
@@ -33,8 +41,11 @@ interface AddItemDialogProps {
 const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<Category>('Футболки');
-  const [season, setSeason] = useState<Season>('Все сезоны');
+  const [category, setCategory] = useState<Category>('футболка');
+  const [season, setSeason] = useState<Season>('всесезон');
+  const [brand, setBrand] = useState('H&M');
+  const [material, setMaterial] = useState('хлопок');
+
   const [color, setColor] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -44,9 +55,10 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
 
   const reset = () => {
     setName('');
-    setCategory('Футболки');
-    setSeason('Все сезоны');
+    setCategory('футболка');
+    setSeason('всесезон');
     setColor('');
+
     setRemoveBackgroundError(null);
     setImagePreview(null);
     setImageFile(null);
@@ -94,18 +106,26 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
     }
   };
 
-  const handleSubmit = () => {
-    if (!name.trim() || !imagePreview) return;
-    const item: WardrobeItem = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      category,
-      season,
-      color: color.trim() || '—',
-      image: imagePreview,
-      dateAdded: new Date().toISOString().slice(0, 10),
-    };
-    onAdd(item);
+  const handleSubmit = async () => {
+    if (!name.trim() || !imageFile) return;
+
+    try {
+      const item = await createClothesItem(
+        {
+          title: name,
+          brand: brand,
+          category: category,
+          material: material,
+          color: color,
+          season: season,
+        },
+        imageFile,
+      );      
+
+      onAdd(item);
+    } catch (error) {
+      console.error(error);
+    }
     reset();
     setOpen(false);
   };
@@ -226,6 +246,29 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <div className={styles.row}>
+            <div className={styles.field}>
+              <label className={styles.label}>Бренд</label>
+              <input
+                id="item-brand"
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="Например: H&M"
+                className={styles.textInput}
+              />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Материал</label>
+              <input
+                id="item-material"
+                value={material}
+                onChange={(e) => setMaterial(e.target.value)}
+                placeholder="Например: Хлопок"
+                className={styles.textInput}
+              />
             </div>
           </div>
 
