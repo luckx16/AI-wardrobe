@@ -2,13 +2,20 @@ const ClothService = require('../services/Cloth.service');
 const ImageProcessingService = require('../services/ImageProcessing.service');
 const fs = require('fs').promises;
 const path = require('path');
-
-// Хелпер для форматирования ответов (ваш существующий)
-const formatResponse = (status, message, data = null, error = null) => {
-  return { status, message, data, error };
-};
+const formatResponse = require('../utils/formatResponse');
 
 class ClothController {
+  static async getCloths(req, res) {
+    try {
+      const { user } = res.locals;
+      const cloths = await ClothService.getAllByUserId(user.id);
+
+      return res.json(formatResponse(200, 'Cloths retrieved', cloths));
+    } catch (error) {
+      console.error('Get cloths error:', error);
+      return res.status(500).json(formatResponse(500, 'Internal server error', null, error.message));
+    }
+  }
   
   /**
    * POST /api/cloth
@@ -16,15 +23,14 @@ class ClothController {
    */
   static async createCloth(req, res) {
     try {
-      // 1. Получаем пользователя из res.locals (установлено verifyAccessToken)
-      // const { user } = res.locals;
+      const { user } = res.locals;
       
       // 2. Получаем текстовые поля из формы
       const { title, brand, material, color, category, season } = req.body;
       
       // 3. Проверяем, что файл был загружен
       if (!req.file) {
-        return res.status(400).json(formatResponse(400, 'Image is required'));
+        return res.status(400).json(formatResponse(400, 'Image is required', null, null));
       }
       
       // 4. Пути к файлам
@@ -125,7 +131,7 @@ class ClothController {
       const cloth = await ClothService.getClothById(id);
       
       if (!cloth) {
-        return res.status(404).json(formatResponse(404, 'Cloth not found'));
+        return res.status(404).json(formatResponse(404, 'Cloth not found', null, null));
       }
       
       // Формируем URL для доступа к обработанному изображению
@@ -141,7 +147,9 @@ class ClothController {
       }));
       
     } catch (error) {
-      return res.status(500).json(formatResponse(500, 'Internal server error'));
+      return res
+        .status(500)
+        .json(formatResponse(500, 'Internal server error', null, error?.message ?? error));
     }
   }
 
@@ -153,7 +161,7 @@ class ClothController {
   static async removeBackground(req, res) {
     try {
       if (!req.file) {
-        return res.status(400).json(formatResponse(400, 'Image is required'));
+        return res.status(400).json(formatResponse(400, 'Image is required', null, null));
       }
 
       const tempImagePath = req.file.path;

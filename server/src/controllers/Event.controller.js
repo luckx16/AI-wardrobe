@@ -1,4 +1,4 @@
-const eventService = require('../services/eventService');
+const eventService = require('../services/Event.service');
 const formatResponse = require('../utils/formatResponse');
 
 class EventController {

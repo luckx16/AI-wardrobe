@@ -77,7 +77,7 @@ module.exports = {
         type: Sequelize.JSONB,
         allowNull: true,
         defaultValue: {},
-        comment: 'Данные от ИИ: цвет, материал, уверенность и т.д.',
+        comment: 'Данные от ИИ: повод и "роль" одежды',
       },
       processing_status: {
         type: Sequelize.ENUM,

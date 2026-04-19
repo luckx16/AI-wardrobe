@@ -1,5 +1,6 @@
 import { PROFILE_API_ROUTES } from '@/shared/constants/profileApiRoutes';
 import { axiosInstance } from '@/shared/lib/axiosInstance';
+import type { ServerResponseType } from '@/shared/types';
 
 type Contrast = 'low' | 'medium' | 'high';
 type SkinTone = 'cool' | 'warm' | 'neutral';
@@ -46,12 +47,15 @@ export type ProfileUpsertPayload = Partial<{
 }>;
 
 export async function getProfile(): Promise<ProfileDto> {
-  const { data } = await axiosInstance.get<ProfileDto>(PROFILE_API_ROUTES.PROFILE);
-  return data;
+  const { data } = await axiosInstance.get<ServerResponseType<ProfileDto>>(PROFILE_API_ROUTES.PROFILE);
+  return data.data;
 }
 
 export async function upsertProfile(payload: ProfileUpsertPayload): Promise<ProfileDto> {
-  const { data } = await axiosInstance.patch<ProfileDto>(PROFILE_API_ROUTES.PROFILE, payload);
-  return data;
+  const { data } = await axiosInstance.patch<ServerResponseType<ProfileDto>>(
+    PROFILE_API_ROUTES.PROFILE,
+    payload,
+  );
+  return data.data;
 }
 

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AxiosError } from 'axios';
 
 import { type Message, MessageBubble } from '@/entities/message';
+import { LookCard } from '@/entities/look';
 import {
   type ClientChat,
   createChat,
@@ -14,7 +15,7 @@ import {
   sendChatMessage,
   updateChatTitle,
 } from '@/features/chat/api/chatApi';
-import { ChatInput, SuggestionChips } from '@/features/send-message';
+import { type ChatSendOptions, ChatInput, SuggestionChips } from '@/features/send-message';
 import { useAppSelector } from '@/shared/hooks';
 import { TrashIcon } from '@/shared/ui';
 import { ChatHeader } from '@/widgets';
@@ -95,8 +96,9 @@ export function ChatWidget() {
         ? history.map((message) => ({
             id: message.id,
             role: message.role,
-            content: message.content,
-            createdAt: message.createdAt,
+            content: message.look ? <LookCard generated={message.look} /> : message.content,
+            createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
+            cloths: message.cloths,
           }))
         : INITIAL_MESSAGES,
     );
@@ -226,6 +228,10 @@ export function ChatWidget() {
   };
 
   const handleSend = async (content: string) => {
+    return handleSendWithOptions(content, { createLook: false });
+  };
+
+  const handleSendWithOptions = async (content: string, options?: ChatSendOptions) => {
     const trimmed = content.trim();
     if (!trimmed || isLoading || isBootstrapping) return;
 
@@ -245,6 +251,7 @@ export function ChatWidget() {
       id: Date.now().toString(),
       role: 'user',
       content: trimmed,
+      cloths: options?.clothPreview,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -279,7 +286,26 @@ export function ChatWidget() {
         ]);
       }
 
-      const assistantMessage = await sendChatMessage(currentChatId, trimmed);
+      const assistantMessage = await sendChatMessage(currentChatId, trimmed, {
+        createLook: Boolean(options?.createLook),
+        useWardrobe: Boolean(options?.useWardrobe),
+        clothIds: options?.clothIds,
+      });
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: assistantMessage.id,
+          role: 'assistant',
+          content: assistantMessage.look ? (
+            <LookCard generated={assistantMessage.look} />
+          ) : (
+            assistantMessage.content
+          ),
+          createdAt: assistantMessage.createdAt ? new Date(assistantMessage.createdAt) : undefined,
+          cloths: assistantMessage.cloths,
+        },
+      ]);
 
       setChats((prev) => {
         const currentChat = prev.find((chat) => chat.id === currentChatId);
@@ -293,15 +319,6 @@ export function ChatWidget() {
 
         return [updatedChat, ...prev.filter((chat) => chat.id !== currentChatId)];
       });
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: assistantMessage.id,
-          role: 'assistant',
-          content: assistantMessage.content,
-        },
-      ]);
     } catch (e) {
       let errText = e instanceof Error ? e.message : 'Не удалось отправить сообщение';
       if (e instanceof AxiosError && [401, 403].includes(e.response?.status ?? 0)) {
@@ -395,7 +412,12 @@ export function ChatWidget() {
           <div ref={scrollRef} className={styles.messages}>
             <div className={styles.messagesInner}>
               {messages.map((message) => (
-                <MessageBubble key={message.id} role={message.role} content={message.content} />
+                <MessageBubble
+                  key={message.id}
+                  role={message.role}
+                  content={message.content}
+                  cloths={message.cloths}
+                />
               ))}
               {isLoading && <MessageBubble role="assistant" content="" isLoading />}
             </div>
@@ -409,7 +431,11 @@ export function ChatWidget() {
 
           <div className={styles.inputArea}>
             <div className={styles.inputInner}>
-              <ChatInput onSend={handleSend} isLoading={isLoading || isBootstrapping} />
+              <ChatInput
+                onSend={handleSendWithOptions}
+                isLoading={isLoading || isBootstrapping}
+                wardrobeEnabled={Boolean(user)}
+              />
             </div>
           </div>
         </div>

@@ -8,12 +8,16 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'user_id',
         as: 'user',
       });
-
       Cloth.belongsToMany(models.Look, {
         through: models.LookCloth,
         foreignKey: 'cloth_id',
         otherKey: 'look_id',
         as: 'looks',
+      });
+      Cloth.hasMany(models.LookCloth, {
+        foreignKey: 'cloth_id',
+        otherKey: 'look_id',
+        as: 'lookCloths',
       });
 
       Cloth.belongsToMany(models.ChatMessage, {

@@ -25,7 +25,7 @@ export default function Home() {
   };
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-no-header-offset="true">
       <section className={styles.hero}>
         <p className={`${styles.badge} ${styles.animatedBadge}`}>
           Умный гардероб нового поколения
