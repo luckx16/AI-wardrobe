@@ -63,12 +63,16 @@ function serializeLook(look, clothIds = []) {
 }
 
 class LookService {
-  async findById(id, userId) {
+  async findById(id, userId, hasSerializing = true) {
     const look = await Look.findOne({
       where: { id, user_id: userId },
-      include: [{ model: Cloth, as: 'clothes', through: { attributes: [] }, attributes: ['id'] }],
+      include: [{ model: Cloth, as: 'clothes', through: { attributes: [] } }],
     });
     if (!look) return null;
+
+    if (!hasSerializing) {
+      return look;
+    }
     return serializeLook(look, look.clothes?.map((cloth) => cloth.id) ?? []);
   }
 
@@ -123,7 +127,9 @@ class LookService {
   async findByUserId(userId) {
     const looks = await Look.findAll({
       where: { user_id: userId },
-      include: [{ model: Cloth, as: 'clothes', through: { attributes: [] }, attributes: ['id'] }],
+      include: [
+        { model: Cloth, as: 'clothes', through: { attributes: [] } /* , attributes: ['id'] */ },
+      ],
       order: [['createdAt', 'DESC']],
     });
     return looks.map((look) => serializeLook(look, look.clothes?.map((cloth) => cloth.id) ?? []));
@@ -131,20 +137,20 @@ class LookService {
 
   async create(userId, data) {
     const look = await Look.create({ user_id: userId, ...data });
-    
+
     if (data.cloth_ids && Array.isArray(data.cloth_ids)) {
-      const lookCloths = data.cloth_ids.map(cloth_id => ({
+      const lookCloths = data.cloth_ids.map((cloth_id) => ({
         look_id: look.id,
         cloth_id,
       }));
       await LookCloth.bulkCreate(lookCloths);
     }
-    
+
     return this.findById(look.id, userId);
   }
 
   async update(id, userId, data) {
-    const look = await this.findById(id, userId);
+    const look = await this.findById(id, userId, false);
     if (!look) {
       throw new Error('Look not found');
     }
@@ -153,9 +159,9 @@ class LookService {
 
     if (data.cloth_ids !== undefined) {
       await LookCloth.destroy({ where: { look_id: id } });
-      
+
       if (Array.isArray(data.cloth_ids) && data.cloth_ids.length > 0) {
-        const lookCloths = data.cloth_ids.map(cloth_id => ({
+        const lookCloths = data.cloth_ids.map((cloth_id) => ({
           look_id: id,
           cloth_id,
         }));
@@ -166,8 +172,19 @@ class LookService {
     return this.findById(id, userId);
   }
 
+  async toggleLike(id, userId) {
+    const look = await this.findById(id, userId, false);
+    if (!look) {
+      throw new Error('Look not found');
+    }
+
+    await look.update({ is_in_favorites: !look.is_in_favorites });
+
+    return this.findById(id, userId);
+  }
+
   async delete(id, userId) {
-    const look = await this.findById(id, userId);
+    const look = await this.findById(id, userId, false);
     if (!look) {
       throw new Error('Look not found');
     }

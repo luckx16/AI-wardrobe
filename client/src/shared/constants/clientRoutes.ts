@@ -5,9 +5,9 @@ export const CLIENT_ROUTES = {
   DASHBOARD: '/dashboard',
   PROFILE: '/profile',
   WARDROBE: '/wardrobe',
-  OUTFIT_BUILDER: '/outfit-builder',
+  LOOK_BUILDER: (id?: string) => `/look-builder/${id ?? 'generate-new'}`,
   SIGN_OUT: '/sign-out',
   EVENTS: '/events',
-  OUTFITS: '/outfits',
+  LOOKS: '/looks',
   AI: '/ai',
 } as const;

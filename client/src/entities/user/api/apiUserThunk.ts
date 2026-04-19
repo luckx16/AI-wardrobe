@@ -26,6 +26,7 @@ export const signInThunk = createAsyncThunk<
       if (data.data?.accessToken) {
         setAccessToken(data.data.accessToken);
       }
+      console.log('token:', data.data.accessToken);
       return data.data;
     } catch (error) {
       const axiosError = error as AxiosError<ServerResponseType>;

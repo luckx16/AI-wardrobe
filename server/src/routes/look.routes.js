@@ -7,8 +7,10 @@ router.post('/generate', verifyAccessToken, lookController.generateLook.bind(loo
 
 router
   .route('/')
-  .get(verifyAccessToken, lookController.getAllLooks)
+  .get(verifyAccessToken, lookController.getLooks)
   .post(verifyAccessToken, lookController.createLook);
+
+router.route('/like/:id').put(verifyAccessToken, lookController.toggleLike);
 
 router
   .route('/:id')

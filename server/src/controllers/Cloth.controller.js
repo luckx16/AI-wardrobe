@@ -3,20 +3,21 @@ const ImageProcessingService = require('../services/ImageProcessing.service');
 const fs = require('fs').promises;
 const path = require('path');
 const formatResponse = require('../utils/formatResponse');
-
+const { getSectionFromCategory } = require('../utils/getSectionFromCategory');
 class ClothController {
-  static async getCloths(req, res) {
+  static async getClothes(req, res) {
     try {
-      const { user } = res.locals;
-      const cloths = await ClothService.getAllByUserId(user.id);
+      const clothes = await ClothService.getAllByUserId(req.user.id);
 
-      return res.json(formatResponse(200, 'Cloths retrieved', cloths));
+      return res.json(formatResponse(200, 'Cloths retrieved', clothes));
     } catch (error) {
       console.error('Get cloths error:', error);
-      return res.status(500).json(formatResponse(500, 'Internal server error', null, error.message));
+      return res
+        .status(500)
+        .json(formatResponse(500, 'Internal server error', null, error.message));
     }
   }
-  
+
   /**
    * POST /api/cloth
    * Создает новую вещь и запускает фоновую обработку изображения
@@ -24,60 +25,71 @@ class ClothController {
   static async createCloth(req, res) {
     try {
       const { user } = res.locals;
-      
+
       // 2. Получаем текстовые поля из формы
       const { title, brand, material, color, category, season } = req.body;
-      
+      const section = getSectionFromCategory(category);
       // 3. Проверяем, что файл был загружен
       if (!req.file) {
         return res.status(400).json(formatResponse(400, 'Image is required', null, null));
       }
-      
+
       // 4. Пути к файлам
       const tempImagePath = req.file.path; // uploads/temp/имя_файла
       const processedImageName = `processed-${Date.now()}-${req.file.filename}`;
-      const processedImagePath = path.join(__dirname, '..', 'uploads', 'processed', processedImageName);
-      
+      const processedImagePath = path.join(
+        __dirname,
+        '..',
+        'uploads',
+        'processed',
+        processedImageName,
+      );
+
       // 5. Создаем запись в БД со статусом 'pending'
       const clothData = {
         title,
-        user_id: user.id,        
+        user_id: user.id,
         brand: brand || null,
         material: material || null,
         color: color || null,
         category: category || null,
+        section: section,
         season: season || null,
         image: processedImageName, // Временно сохраняем имя (файла еще нет)
         processing_status: 'pending', // Статус: ожидает обработки
-        ai_metadata: {} // Пустой объект, заполнится позже
+        ai_metadata: {}, // Пустой объект, заполнится позже
       };
-      
+
       const newCloth = await ClothService.createNewCloth(clothData);
-      
+
       // 6. ЗАПУСКАЕМ ФОНОВУЮ ОБРАБОТКУ (не ждем результата)
       // Это ключевой момент - ответ пользователю вернется сразу,
       // а обработка будет продолжаться в фоне
       ClothController.processImageAsync(newCloth.id, tempImagePath, processedImagePath);
-      
+
       // 7. Возвращаем ответ пользователю (не дожидаясь обработки)
-      return res.status(201).json(formatResponse(201, 'Cloth created, image processing started', {
-        cloth: newCloth,
-        processingStatus: 'pending',
-        message: 'The image is being processed in the background. Check status endpoint for updates.'
-      }));
-      
+      return res.status(201).json(
+        formatResponse(201, 'Cloth created, image processing started', {
+          cloth: newCloth,
+          processingStatus: 'pending',
+          message:
+            'The image is being processed in the background. Check status endpoint for updates.',
+        }),
+      );
     } catch (error) {
       console.error('Create cloth error:', error);
-      
+
       // Если произошла ошибка - удаляем временный файл, если он был создан
       if (req.file) {
         await fs.unlink(req.file.path).catch(console.error);
       }
-      
-      return res.status(500).json(formatResponse(500, 'Internal server error', null, error.message));
+
+      return res
+        .status(500)
+        .json(formatResponse(500, 'Internal server error', null, error.message));
     }
   }
-  
+
   /**
    * АСИНХРОННАЯ обработка изображения (вызывается в фоне)
    * Этот метод не возвращает ответ пользователю, а молча обрабатывает
@@ -87,40 +99,42 @@ class ClothController {
       // 1. Обновляем статус на 'processing'
       await ClothService.updateClothStatus(clothId, 'processing');
       console.log(`🔄 Processing cloth ${clothId}...`);
-      
+
       // 2. Удаляем фон и оптимизируем изображение
-      const resultPath = await ImageProcessingService.removeBackgroundAndOptimize(tempPath, processedPath);
-      
+      const resultPath = await ImageProcessingService.removeBackgroundAndOptimize(
+        tempPath,
+        processedPath,
+      );
+
       // 3. (Опционально) Извлекаем метаданные из обработанного изображения
       const metadata = await ImageProcessingService.extractImageMetadata(resultPath);
-      
+
       // 4. Обновляем запись в БД
       await ClothService.updateClothAfterProcessing(clothId, {
         image: path.basename(resultPath), // Обновляем путь к обработанному файлу
-        processing_status: 'completed',   // Статус: готово
+        processing_status: 'completed', // Статус: готово
         ai_metadata: {
           processedAt: new Date().toISOString(),
           originalSize: metadata?.size || null,
-          dimensions: metadata ? `${metadata.width}x${metadata.height}` : null
-        }
+          dimensions: metadata ? `${metadata.width}x${metadata.height}` : null,
+        },
       });
-      
+
       // 5. Удаляем временный файл (он больше не нужен)
       await fs.unlink(tempPath).catch(console.error);
-      
+
       console.log(`✅ Cloth ${clothId} processed successfully!`);
-      
     } catch (error) {
       console.error(`❌ Processing failed for cloth ${clothId}:`, error);
-      
+
       // Обновляем статус на 'failed'
       await ClothService.updateClothStatus(clothId, 'failed', error.message);
-      
+
       // Удаляем временный файл, если он существует
       await fs.unlink(tempPath).catch(console.error);
     }
   }
-  
+
   /**
    * GET /api/cloth/:id/status
    * Возвращает статус обработки для фронта
@@ -129,23 +143,25 @@ class ClothController {
     try {
       const { id } = req.params;
       const cloth = await ClothService.getClothById(id);
-      
+
       if (!cloth) {
         return res.status(404).json(formatResponse(404, 'Cloth not found', null, null));
       }
-      
+
       // Формируем URL для доступа к обработанному изображению
-      const imageUrl = cloth.processing_status === 'completed' && cloth.image
-        ? `/uploads/processed/${cloth.image}`
-        : null;
-      
-      return res.json(formatResponse(200, 'Status retrieved', {
-        id: cloth.id,
-        processingStatus: cloth.processing_status,
-        imageUrl: imageUrl,
-        metadata: cloth.ai_metadata
-      }));
-      
+      const imageUrl =
+        cloth.processing_status === 'completed' && cloth.image
+          ? `/uploads/processed/${cloth.image}`
+          : null;
+
+      return res.json(
+        formatResponse(200, 'Status retrieved', {
+          id: cloth.id,
+          processingStatus: cloth.processing_status,
+          imageUrl: imageUrl,
+          metadata: cloth.ai_metadata,
+        }),
+      );
     } catch (error) {
       return res
         .status(500)
@@ -191,7 +207,9 @@ class ClothController {
       if (req.file) {
         await fs.unlink(req.file.path).catch(console.error);
       }
-      return res.status(500).json(formatResponse(500, 'Internal server error', null, error.message));
+      return res
+        .status(500)
+        .json(formatResponse(500, 'Internal server error', null, error.message));
     }
   }
 }

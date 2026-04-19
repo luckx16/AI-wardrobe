@@ -2,12 +2,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+
 import { LocateFixed } from 'lucide-react';
 
 import { refreshTokensThunk } from '@/entities/user/api/apiUserThunk';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
-import { requestAndStoreUserLocation, setAndStoreUserCity, userLocationStorage } from '@/shared/lib/userLocation';
+import {
+  requestAndStoreUserLocation,
+  setAndStoreUserCity,
+  userLocationStorage,
+} from '@/shared/lib/userLocation';
 
 import styles from './Header.module.css';
 
@@ -154,7 +159,7 @@ export function Header() {
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href={CLIENT_ROUTES.OUTFIT_BUILDER}>
+                <Link className={styles.link} href={CLIENT_ROUTES.LOOK_BUILDER()}>
                   Сборщик образов
                 </Link>
               </li>
@@ -164,7 +169,7 @@ export function Header() {
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href={CLIENT_ROUTES.OUTFITS}>
+                <Link className={styles.link} href={CLIENT_ROUTES.LOOKS}>
                   Образы
                 </Link>
               </li>
@@ -224,7 +229,11 @@ export function Header() {
             />
             {cityError ? <p className={styles.cityError}>{cityError}</p> : null}
             <div className={styles.cityModalActions}>
-              <button type="button" className={styles.cityModalButtonSecondary} onClick={closeCityModal}>
+              <button
+                type="button"
+                className={styles.cityModalButtonSecondary}
+                onClick={closeCityModal}
+              >
                 Отмена
               </button>
               <button
