@@ -4,7 +4,7 @@ const { Jimp } = require('jimp');
 const { removeBackground } = require('@imgly/background-removal-node');
 
 class ImageProcessingService {
-  static async removeBackgroundAndOptimize(inputPath, outputPath) {
+  static async removeBackgroundAndOptimize(inputPath, outputDir) {
     try {
       console.log(`🖼️ Processing image: ${path.basename(inputPath)}`);
 
@@ -35,13 +35,15 @@ class ImageProcessingService {
       const image = await Jimp.read(resultBuffer);
       console.log('Image width:', image.width, 'height:', image.height);
       image.resize({ w: 800 });
+      const outputPath = path.join(outputDir, path.basename(inputPath))
       await image.write(outputPath);
 
-      console.log(`✅ Image processed: ${path.basename(outputPath)}`);
+      console.log(`✅ Image processed: ${path.basename(outputDir)}`);
       return outputPath;
     } catch (error) {
       console.error('Background removal failed:', error.message);
       console.log('Falling back to original image...');
+      const outputPath = path.join(outputDir, path.basename(inputPath))
       await fs.copyFile(inputPath, outputPath);
       return outputPath;
     }
