@@ -44,10 +44,10 @@ const ItemDetailDialog = ({ item, open, onOpenChange }: ItemDetailDialogProps) =
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg p-0 bg-surface border-border overflow-hidden gap-0">
         <div className={styles.imageWrap}>
-          <img src={item.image} alt={item.name} />
+          <img src={item.image} alt={item.title} />
         </div>
         <div className={styles.body}>
-          <h2 className={styles.name}>{item.name}</h2>
+          <h2 className={styles.name}>{item.title}</h2>
           <div className={styles.infoGrid}>
             <InfoRow icon={Tag} label="Категория" value={item.category} />
             <InfoRow icon={Sun} label="Сезон" value={item.season} />
