@@ -64,63 +64,6 @@
   font-size: 0.85rem;
 }
 
-.createItemCard {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface-elevated);
-  padding: 0.75rem;
-  margin-bottom: 0.85rem;
-}
-
-.createItemTitle {
-  margin: 0 0 0.55rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-.createFields {
-  display: grid;
-  gap: 0.45rem;
-}
-
-.formActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.colorField {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.colorInput {
-  width: 42px;
-  height: 30px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent;
-  padding: 2px;
-  cursor: pointer;
-}
-
-.fileLabel {
-  border: 1px dashed var(--border);
-  border-radius: 10px;
-  padding: 0.45rem 0.55rem;
-  font-size: 0.78rem;
-  color: var(--muted);
-  cursor: pointer;
-  background: var(--surface);
-}
-
-.fileInput {
-  display: none;
-}
-
 .filterRow {
   display: flex;
   flex-wrap: wrap;
@@ -244,34 +187,6 @@
 .actionButton:hover {
   border-color: var(--accent);
   background: color-mix(in srgb, var(--surface-elevated) 70%, var(--accent) 30%);
-}
-
-.itemControls {
-  display: flex;
-  gap: 0.35rem;
-}
-
-.secondaryActionButton,
-.deleteActionButton {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  padding: 0.3rem 0.5rem;
-  font-size: 0.72rem;
-  cursor: pointer;
-}
-
-.secondaryActionButton:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.secondaryActionButton {
-  color: var(--foreground);
-}
-
-.deleteActionButton {
-  color: var(--danger);
 }
 
 .canvasHeader {

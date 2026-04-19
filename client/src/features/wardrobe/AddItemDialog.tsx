@@ -84,7 +84,7 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
       formData.append('image', imageFile);
 
       const { data } = await axiosInstance.post<{
-        status: number;
+        statusCode: number;
         message: string;
         data: { url: string } | null;
         error: string | null;

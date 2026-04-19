@@ -30,6 +30,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
+      metadata: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+        defaultValue: {},
+      },
     },
     {
       sequelize,

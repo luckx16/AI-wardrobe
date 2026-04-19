@@ -113,6 +113,14 @@ a:focus-visible {
   padding: 0;
 }
 
+.app-main > * {
+  padding-top: 1.5rem;
+}
+
+.app-main > [data-no-header-offset='true'] {
+  padding-top: 0;
+}
+
 /* Auth pages (sign-in / sign-up headings) */
 .auth-page-title {
   margin: 0 0 1.25rem;

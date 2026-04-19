@@ -8,6 +8,8 @@ const chatsRoutes = require('./chats.routes');
 const lookRoutes = require('./look.routes');
 const eventRoutes = require('./event.routes');
 const clothRoutes = require('./cloth.routes');
+const weatherRoutes = require('./weather.routes');
+
 
 router.use('/users', usersRoutes);
 router.use('/auth', authRoutes);
@@ -18,5 +20,6 @@ router.use('/chats', chatsRoutes);
 router.use('/looks', lookRoutes);
 router.use('/events', eventRoutes);
 router.use('/cloth', clothRoutes);
+router.use('/weather', weatherRoutes);
 
 module.exports = router;
