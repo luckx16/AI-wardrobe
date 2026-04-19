@@ -1,33 +1,31 @@
-const { Look, LookCloth } = require('../db/models');
+const { Look, LookCloth, Cloth } = require('../db/models');
 
 class LookService {
   async findById(id, userId) {
     return await Look.findOne({
       where: { id, user_id: userId },
-      // Cloth модели пока нет — включение временно отключено.
-      // include: [{ model: Cloth, as: 'clothes', through: { attributes: [] } }],
+      include: [{ model: Cloth, as: 'clothes', through: { attributes: [] } }],
     });
   }
 
-  async findByUserId(userId) {
+  async getAllLooksByUserId(userId) {
     return await Look.findAll({
       where: { user_id: userId },
-      // Cloth модели пока нет — включение временно отключено.
-      // include: [{ model: Cloth, as: 'clothes', through: { attributes: ['id'] } }],
+      include: [{ model: Cloth, as: 'clothes', through: { attributes: [] } }],
     });
   }
 
   async create(userId, data) {
     const look = await Look.create({ user_id: userId, ...data });
-    
+
     if (data.cloth_ids && Array.isArray(data.cloth_ids)) {
-      const lookCloths = data.cloth_ids.map(cloth_id => ({
+      const lookCloths = data.cloth_ids.map((cloth_id) => ({
         look_id: look.id,
         cloth_id,
       }));
       await LookCloth.bulkCreate(lookCloths);
     }
-    
+
     return this.findById(look.id, userId);
   }
 
@@ -41,9 +39,9 @@ class LookService {
 
     if (data.cloth_ids !== undefined) {
       await LookCloth.destroy({ where: { look_id: id } });
-      
+
       if (Array.isArray(data.cloth_ids) && data.cloth_ids.length > 0) {
-        const lookCloths = data.cloth_ids.map(cloth_id => ({
+        const lookCloths = data.cloth_ids.map((cloth_id) => ({
           look_id: id,
           cloth_id,
         }));

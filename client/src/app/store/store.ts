@@ -2,6 +2,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import { eventsReducer } from '@/entities/events/model/eventsSlice';
+import { looksReducer } from '@/entities/looks/model/looksSlice';
 import { userReducer } from '@/entities/user/slice/userSlice';
 
 // Создание store
@@ -10,6 +11,7 @@ export const store = configureStore({
     // Сущности внутри store
     user: userReducer,
     events: eventsReducer,
+    looks: looksReducer,
   },
 });
 

@@ -7,8 +7,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
-        // port: '', // можно оставить пустым
-        // pathname: '/**', // разрешить все пути на этом домене
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4000',
+        pathname: '/uploads/**',
       },
     ],
   },

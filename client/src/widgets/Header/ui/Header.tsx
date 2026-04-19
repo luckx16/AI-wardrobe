@@ -46,13 +46,18 @@ export function Header() {
                 </Link>
               </li>
               <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.EVENTS}>
+                  События
+                </Link>
+              </li>
+              <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.WARDROBE}>
                   Мой гардероб
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.OUTFIT_BUILDER}>
-                  Сборщик аутфитов
+                  Сборщик образов
                 </Link>
               </li>
               <li>
@@ -62,14 +67,10 @@ export function Header() {
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.OUTFITS}>
-                  Аутфиты
+                  Образы
                 </Link>
               </li>
-              <li>
-                <Link className={styles.link} href={CLIENT_ROUTES.EVENTS}>
-                  События
-                </Link>
-              </li>
+
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.PROFILE}>
                   Профиль
