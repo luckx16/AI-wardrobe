@@ -1,5 +1,6 @@
 'use strict';
 const { Model } = require('sequelize');
+const { CATEGORIES, SECTIONS } = require('../utlis/category');
 
 module.exports = (sequelize, DataTypes) => {
   class Cloth extends Model {
@@ -53,21 +54,12 @@ module.exports = (sequelize, DataTypes) => {
       material: DataTypes.TEXT,
       color: DataTypes.TEXT,
       category: {
-        type: DataTypes.ENUM(
-          'футболка',
-          'рубашка',
-          'платье',
-          'брюки',
-          'юбка',
-          'куртка',
-          'свитер',
-          'худи',
-          'шорты',
-          'обувь',
-          'аксессуары',
-          'другое',
-        ),
+        type: DataTypes.ENUM(...CATEGORIES),
         allowNull: true,
+      },
+      section: {
+        type: DataTypes.ENUM(...SECTIONS),
+        allowNull: false,
       },
       season: {
         type: DataTypes.ENUM('лето', 'зима', 'весна', 'осень', 'всесезон'),

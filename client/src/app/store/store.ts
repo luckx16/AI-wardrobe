@@ -1,7 +1,9 @@
 // Импорт сущностей для формирования store
 import { configureStore } from '@reduxjs/toolkit';
 
+import { clothReducer } from '@/entities/cloth/model/clothSlice';
 import { eventsReducer } from '@/entities/events/model/eventsSlice';
+import { looksReducer } from '@/entities/look/model/looksSlice';
 import { userReducer } from '@/entities/user/slice/userSlice';
 
 // Создание store
@@ -10,6 +12,8 @@ export const store = configureStore({
     // Сущности внутри store
     user: userReducer,
     events: eventsReducer,
+    looks: looksReducer,
+    cloth: clothReducer,
   },
 });
 

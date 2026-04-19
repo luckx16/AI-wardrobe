@@ -1,4 +1,7 @@
 'use strict';
+
+const { CATEGORIES, SECTIONS } = require('../utlis/category');
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -41,22 +44,15 @@ module.exports = {
       },
       category: {
         type: Sequelize.ENUM,
-        values: [
-          'футболка',
-          'рубашка',
-          'платье',
-          'брюки',
-          'юбка',
-          'куртка',
-          'свитер',
-          'худи',
-          'шорты',
-          'обувь',
-          'аксессуары',
-          'другое',
-        ],
+        values: CATEGORIES,
         allowNull: true,
         comment: 'Категория одежды',
+      },
+      section: {
+        type: Sequelize.ENUM,
+        values: SECTIONS,
+        allowNull: false,
+        comment: 'Секция одежды',
       },
       season: {
         type: Sequelize.ENUM,
