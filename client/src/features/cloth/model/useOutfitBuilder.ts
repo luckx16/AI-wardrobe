@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ClothingSection, getAllClothesThunk, IClothFromDb } from '@/entities/cloth';
@@ -8,6 +8,7 @@ import { getAllLooksThunk } from '@/entities/look';
 import { createLookThunk, updateLookThunk } from '@/entities/look';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 
 const INITIAL_FILLEDSECTIONS_STATE: Record<ClothingSection, Set<string>> = {
   headwear: new Set(),
@@ -21,8 +22,7 @@ const INITIAL_FILLEDSECTIONS_STATE: Record<ClothingSection, Set<string>> = {
 const REQUIRED_SECTIONS = ['top', 'shoes'] satisfies ClothingSection[];
 
 export const useOutfitBuilder = (editedLookId: string | undefined) => {
-  const router = useRouter();
-  const pathname = usePathname();
+  const { router, addQueryParams, deleteQueryParams } = useCustomRouter();
   const [filledSectionsState, setFilledSectionsState] = useState<
     Record<ClothingSection, Set<string>>
   >(INITIAL_FILLEDSECTIONS_STATE);
@@ -36,6 +36,7 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
   const [message, setMessage] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | ClothingSection>('all');
   const [activeDropSlot, setActiveDropSlot] = useState<ClothingSection | null>(null);
+  const searchParams = useSearchParams();
 
   const { looks } = useAppSelector((state) => state.looks);
   const { clothes } = useAppSelector((state) => state.cloth);
@@ -115,7 +116,7 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
     console.log('clothIdsArr', clothIdsArr);
 
     try {
-      await dispatch(
+      const savedLook = await dispatch(
         editedLook
           ? updateLookThunk({
               id: editedLook.id,
@@ -132,7 +133,16 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
       setMessage('Образ сохранён в базе данных.');
       setFilledSectionsState(INITIAL_FILLEDSECTIONS_STATE);
 
-      // переход в режим создания нового лука
+      // передаем в query-params id созданного лука и перенаправляем обратно на events
+      if (searchParams.has('date') && searchParams.has('look_id')) {
+        addQueryParams({ look_id: savedLook.id }, CLIENT_ROUTES.EVENTS);
+        return;
+      }
+      if (searchParams.has('from_looks_page')) {
+        deleteQueryParams(['from_looks_page'], CLIENT_ROUTES.LOOKS);
+        return;
+      }
+
       router.push(CLIENT_ROUTES.LOOK_BUILDER());
     } catch (error) {
       console.error('Failed to save look', error);

@@ -58,7 +58,7 @@ export function EventsCalendar({ selectedDate, eventsByDate, onSelectDate }: Pro
       </div>
 
       <div className={styles.days}>
-        {days.map(({ date, current }, i) => {
+        {days.map(({ date, current }) => {
           const ds = toDateStr(date);
           const isToday = ds === todayStr;
           const isSelected = ds === selectedDate;
@@ -66,7 +66,7 @@ export function EventsCalendar({ selectedDate, eventsByDate, onSelectDate }: Pro
 
           return (
             <button
-              key={i}
+              key={ds}
               className={[
                 styles.day,
                 !current && styles.dayOther,

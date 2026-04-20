@@ -40,24 +40,23 @@ export function EventSidebar({
 
       {!isEmptyArr &&
         eventsOfSelectedDateArr.map((ev) => (
-          <div className={styles.eventCard} key={ev.id}>
+          <div className={styles.eventCard} key={ev.id} onClick={() => openUpdateModalHandler(ev)}>
             <div className={styles.eventHeader}>
               <div>
                 <div className={styles.eventName}>{ev.title}</div>
                 {ev.activity_type && <span className={styles.eventLook}>{ev.activity_type}</span>}
               </div>
               <div className={styles.activeBtns}>
-                <button
-                  className={clsx(styles.btn, styles.editBtn)}
-                  onClick={() => openUpdateModalHandler(ev)}
-                  title="Редактировать"
-                >
+                <button className={clsx(styles.btn, styles.editBtn)} title="Редактировать">
                   <Pencil size={16} />
                 </button>
 
                 <button
                   className={clsx(styles.btn, styles.deleteBtn)}
-                  onClick={() => deleteEventHandler(ev.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteEventHandler(ev.id);
+                  }}
                   title="Удалить"
                 >
                   <X size={16} />
