@@ -9,9 +9,7 @@ class LookController {
   async generateLook(req, res) {
     const { userId, userPrompt } = req.body ?? {};
     const user_id =
-      Number.isFinite(Number(userId)) && Number(userId) > 0
-        ? Number(userId)
-        : Number(req.user?.id);
+      Number.isFinite(Number(userId)) && Number(userId) > 0 ? Number(userId) : Number(req.user?.id);
     if (!Number.isFinite(user_id) || user_id <= 0) {
       return res.status(400).json(
         formatResponse(400, 'Invalid userId', null, {
@@ -46,15 +44,25 @@ class LookController {
         );
       }
       console.error(err);
-      return res.status(500).json(
-        formatResponse(500, 'Failed to generate look', null, isDev ? err?.message ?? String(err) : null),
-      );
+      return res
+        .status(500)
+        .json(
+          formatResponse(
+            500,
+            'Failed to generate look',
+            null,
+            isDev ? (err?.message ?? String(err)) : null,
+          ),
+        );
     }
   }
 
   async getLooks(req, res) {
     try {
-      const looks = await lookService.findByUserId(req.user.id);
+      const { user } = res.locals;
+      const looks = await lookService.findByUserId(user.id);
+      console.log('getLooks:');
+
       return res.json(formatResponse(200, 'Looks loaded', looks));
     } catch (error) {
       return res
@@ -82,7 +90,9 @@ class LookController {
       const look = await lookService.create(req.user.id, req.body);
       return res.status(201).json(formatResponse(201, 'Look created', look));
     } catch (error) {
-      return res.status(400).json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
+      return res
+        .status(400)
+        .json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
     }
   }
 
@@ -91,16 +101,33 @@ class LookController {
       const look = await lookService.update(req.params.id, req.user.id, req.body);
       return res.json(formatResponse(200, 'Look updated', look));
     } catch (error) {
-      return res.status(400).json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
+      return res
+        .status(400)
+        .json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
+    }
+  }
+
+  async toggleLike(req, res) {
+    try {
+      const { user } = res.locals;
+      const look = await lookService.toggleLike(req.params.id, user.id);
+      return res.json(formatResponse(200, 'Look like updated', look));
+    } catch (error) {
+      return res
+        .status(400)
+        .json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
     }
   }
 
   async deleteLook(req, res) {
     try {
-      await lookService.delete(req.params.id, req.user.id);
+      const { user } = res.locals;
+      await lookService.delete(req.params.id, user.id);
       return res.json(formatResponse(200, 'Look deleted', { deleted: true }));
     } catch (error) {
-      return res.status(400).json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
+      return res
+        .status(400)
+        .json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
     }
   }
 
@@ -110,7 +137,9 @@ class LookController {
       const look = await lookService.addCloth(req.params.id, req.user.id, cloth_id);
       return res.json(formatResponse(200, 'Cloth added to look', look));
     } catch (error) {
-      return res.status(400).json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
+      return res
+        .status(400)
+        .json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
     }
   }
 
@@ -119,7 +148,9 @@ class LookController {
       const look = await lookService.removeCloth(req.params.id, req.user.id, req.params.clothId);
       return res.json(formatResponse(200, 'Cloth removed from look', look));
     } catch (error) {
-      return res.status(400).json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
+      return res
+        .status(400)
+        .json(formatResponse(400, error?.message ?? 'Bad request', null, error?.message ?? error));
     }
   }
 }

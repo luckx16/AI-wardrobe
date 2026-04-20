@@ -2,6 +2,15 @@ const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
   class Look extends Model {
+    toJSON() {
+      const raw = super.toJSON();
+      return {
+        ...raw,
+        id: raw.id?.toString(),
+        user_id: raw.user_id?.toString(),
+      };
+    }
+
     static associate(models) {
       Look.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
       Look.hasMany(models.Event, { foreignKey: 'look_id', as: 'events' });
@@ -11,7 +20,10 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'cloth_id',
         as: 'clothes',
       });
-      Look.hasMany(models.ChatMessage, { foreignKey: 'suggested_look_id', as: 'suggestedMessages' });
+      Look.hasMany(models.ChatMessage, {
+        foreignKey: 'suggested_look_id',
+        as: 'suggestedMessages',
+      });
     }
   }
 
@@ -34,6 +46,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSONB,
         allowNull: true,
         defaultValue: {},
+      },
+      is_in_favorites: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
     },
     {

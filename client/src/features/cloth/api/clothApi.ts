@@ -1,7 +1,8 @@
+import { IClothFromDb } from '@/entities/cloth';
+import { CLOTH_API_ROUTES } from '@/shared/constants/clothApiRoutes';
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import { resolveAssetUrl } from '@/shared/lib/uploadApi';
 import type { ServerResponseType } from '@/shared/types';
-import type { ClothingItem } from '@/entities/wardrobe-item/model/types';
 
 export type ServerCloth = {
   id: string;
@@ -35,22 +36,14 @@ const CATEGORY_MAP: Record<string, 'top' | 'bottom' | 'shoes'> = {
   обувь: 'shoes',
 };
 
-export async function getCloths() {
-  const { data } = await axiosInstance.get<ServerResponseType<ServerCloth[]>>('/cloth');
+export async function getClothes() {
+  const { data } = await axiosInstance.get<ServerResponseType<IClothFromDb[]>>(
+    CLOTH_API_ROUTES.CLOTH,
+  );
   return data.data;
 }
 
-export async function getLooks() {
-  const { data } = await axiosInstance.get<ServerResponseType<ServerLook[]>>('/looks');
-  return data.data;
-}
-
-export async function createLook(payload: { title: string; cloth_ids: number[] }) {
-  const { data } = await axiosInstance.post<ServerResponseType<ServerLook>>('/looks', payload);
-  return data.data;
-}
-
-export function mapServerClothToItem(cloth: ServerCloth): ClothingItem | null {
+export function mapServerClothToItem(cloth: IClothFromDb) {
   const category = CATEGORY_MAP[(cloth.category ?? '').toLowerCase()];
   if (!category) {
     return null;

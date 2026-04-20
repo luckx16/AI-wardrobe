@@ -4,8 +4,8 @@ const formatResponse = require('../utils/formatResponse');
 class EventController {
   async getAllEvents(req, res) {
     try {
-      // const {user} = res.locals
-      const userId = 1;
+      const { user } = res.locals;
+      const userId = user.id;
       const events = await eventService.getAllEventsByUserId(userId, req.query);
       res.status(200).json(formatResponse(200, 'События успешно получены', events));
     } catch (error) {
@@ -27,8 +27,8 @@ class EventController {
 
   async createEvent(req, res) {
     try {
-      // const {user} = res.locals
-      const userId = 1;
+      const { user } = res.locals;
+      const userId = user.id;
       const event = await eventService.createEvent(userId, req.body);
       res.status(201).json(formatResponse(201, 'Событие успешно создано', event));
     } catch (error) {
@@ -38,8 +38,8 @@ class EventController {
 
   async updateEvent(req, res) {
     try {
-      // const {user} = res.locals
-      const userId = 1;
+      const { user } = res.locals;
+      const userId = user.id;
       const event = await eventService.updateEvent(req.params.id, userId, req.body);
       res.status(200).json(formatResponse(200, 'Событие успешно обновлено', event));
     } catch (error) {
@@ -51,8 +51,8 @@ class EventController {
 
   async deleteEvent(req, res) {
     try {
-      // const {user} = res.locals
-      const userId = 1;
+      const { user } = res.locals;
+      const userId = user.id;
       const isDeleted = await eventService.delete(req.params.id, userId);
       res.status(200).json(formatResponse(200, 'Событие успешно удалено', { isDeleted }, null));
     } catch (error) {

@@ -2,12 +2,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+
 import { LocateFixed } from 'lucide-react';
 
 import { refreshTokensThunk } from '@/entities/user/api/apiUserThunk';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
-import { requestAndStoreUserLocation, setAndStoreUserCity, userLocationStorage } from '@/shared/lib/userLocation';
+import {
+  requestAndStoreUserLocation,
+  setAndStoreUserCity,
+  userLocationStorage,
+} from '@/shared/lib/userLocation';
 
 import styles from './Header.module.css';
 
@@ -23,7 +28,9 @@ export function Header() {
 
   useEffect(() => {
     // На старте приложения пробуем обновить токены (если есть refresh-cookie).
-    void dispatch(refreshTokensThunk()).unwrap().catch(() => undefined);
+    void dispatch(refreshTokensThunk())
+      .unwrap()
+      .catch(() => undefined);
   }, [dispatch]);
 
   useEffect(() => {
@@ -137,18 +144,39 @@ export function Header() {
           {isAuthenticated ? (
             <>
               <li>
-                <Link className={styles.link} href={CLIENT_ROUTES.PROFILE}>
-                  Профиль
+                <Link className={styles.link} href={CLIENT_ROUTES.DASHBOARD}>
+                  Дашборд
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.EVENTS}>
+                  События
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.WARDROBE}>
-                  Wardrobe
+                  Мой гардероб
                 </Link>
               </li>
               <li>
-                <Link className={styles.link} href={CLIENT_ROUTES.OUTFIT_BUILDER}>
-                  Outfit Builder
+                <Link className={styles.link} href={CLIENT_ROUTES.LOOK_BUILDER()}>
+                  Сборщик образов
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.AI}>
+                  ИИ-чат
+                </Link>
+              </li>
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.LOOKS}>
+                  Образы
+                </Link>
+              </li>
+
+              <li>
+                <Link className={styles.link} href={CLIENT_ROUTES.PROFILE}>
+                  Профиль
                 </Link>
               </li>
               <li>
@@ -201,7 +229,11 @@ export function Header() {
             />
             {cityError ? <p className={styles.cityError}>{cityError}</p> : null}
             <div className={styles.cityModalActions}>
-              <button type="button" className={styles.cityModalButtonSecondary} onClick={closeCityModal}>
+              <button
+                type="button"
+                className={styles.cityModalButtonSecondary}
+                onClick={closeCityModal}
+              >
                 Отмена
               </button>
               <button

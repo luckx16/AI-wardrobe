@@ -22,6 +22,11 @@ module.exports = {
         allowNull: true,
         defaultValue: {},
       },
+      is_in_favorites: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

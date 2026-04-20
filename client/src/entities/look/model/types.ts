@@ -1,3 +1,5 @@
+import { IClothFromDb } from '@/entities/cloth';
+
 export type GeneratedLookCloth = {
   id: number | string;
   title: string;
@@ -26,3 +28,15 @@ export type GeneratedLook = {
   cloths: GeneratedLookCloth[];
 };
 
+export interface ILook {
+  id: string;
+  user_id: string;
+  title: string;
+  metadata: Record<string, unknown>;
+  is_in_favorites: false;
+  createdAt: string;
+  updatedAt: string;
+  clothes: IClothFromDb[];
+}
+
+export type ArrayLooksType = Array<ILook>;

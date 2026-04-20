@@ -58,7 +58,7 @@ const eventsSlice = createSlice({
       })
       .addCase(updateEventThunk.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload?.message ?? 'Ошибка при создании события';
+        state.error = action.payload?.message ?? 'Ошибка при обновлении события';
       })
       /* --------------------- get all events --------------------- */
       .addCase(getAllEventsThunk.pending, (state) => {
@@ -90,7 +90,7 @@ const eventsSlice = createSlice({
       })
       .addCase(deleteEventThunk.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload?.message ?? 'Ошибка при удаления события';
+        state.error = action.payload?.message ?? 'Ошибка при удалении события';
       });
   },
 });

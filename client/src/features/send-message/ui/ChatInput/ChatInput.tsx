@@ -1,61 +1,53 @@
-"use client"
+'use client';
 
-import {
-  type FormEvent,
-  type KeyboardEvent,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react"
+import { type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
 
-import type { MessageClothChip } from "@/entities/message"
-import { getCloths } from "@/features/outfit-builder/api/outfitBuilderApi"
+import type { MessageClothChip } from '@/entities/message';
+import { getClothes } from '@/features/cloth/api/clothApi';
+import { ArrowUpIcon, ImageIcon, PaperclipIcon } from '@/shared/ui';
 
-import { ArrowUpIcon, ImageIcon, PaperclipIcon } from "@/shared/ui"
-
-import styles from './ChatInput.module.css'
+import styles from './ChatInput.module.css';
 
 export type ChatSendOptions = {
-  useWardrobe?: boolean
-  createLook?: boolean
-  clothIds?: number[]
-  clothPreview?: MessageClothChip[]
-}
+  useWardrobe?: boolean;
+  createLook?: boolean;
+  clothIds?: number[];
+  clothPreview?: MessageClothChip[];
+};
 
 interface ChatInputProps {
-  onSend: (message: string, options?: ChatSendOptions) => void
-  isLoading?: boolean
-  wardrobeEnabled?: boolean
-  placeholder?: string
+  onSend: (message: string, options?: ChatSendOptions) => void;
+  isLoading?: boolean;
+  wardrobeEnabled?: boolean;
+  placeholder?: string;
 }
 
 export function ChatInput({
   onSend,
   isLoading,
   wardrobeEnabled = false,
-  placeholder = "Спросите о стиле, гардеробе или модных трендах...",
+  placeholder = 'Спросите о стиле, гардеробе или модных трендах...',
 }: ChatInputProps) {
-  const [input, setInput] = useState("")
-  const [createLook, setCreateLook] = useState(false)
+  const [input, setInput] = useState('');
+  const [createLook, setCreateLook] = useState(false);
   const [clothOptions, setClothOptions] = useState<
     { id: string; title: string; category: string | null; color: string | null }[]
-  >([])
-  const [attachOpen, setAttachOpen] = useState(false)
-  const [pickerDraftIds, setPickerDraftIds] = useState<string[]>([])
-  const [confirmedCloths, setConfirmedCloths] = useState<MessageClothChip[]>([])
+  >([]);
+  const [attachOpen, setAttachOpen] = useState(false);
+  const [pickerDraftIds, setPickerDraftIds] = useState<string[]>([]);
+  const [confirmedCloths, setConfirmedCloths] = useState<MessageClothChip[]>([]);
 
-  const lookId = useId()
-  const attachMenuId = useId()
-  const attachRootRef = useRef<HTMLDivElement>(null)
+  const lookId = useId();
+  const attachMenuId = useId();
+  const attachRootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!wardrobeEnabled) {
-      setClothOptions([])
-      return
+      setClothOptions([]);
+      return;
     }
-    let cancelled = false
-    void getCloths()
+    let cancelled = false;
+    void getClothes()
       .then((rows) => {
         if (!cancelled) {
           setClothOptions(
@@ -65,40 +57,38 @@ export function ChatInput({
               category: c.category,
               color: c.color,
             })),
-          )
+          );
         }
       })
       .catch(() => {
-        if (!cancelled) setClothOptions([])
-      })
+        if (!cancelled) setClothOptions([]);
+      });
     return () => {
-      cancelled = true
-    }
-  }, [wardrobeEnabled])
+      cancelled = true;
+    };
+  }, [wardrobeEnabled]);
 
   useEffect(() => {
-    if (!attachOpen) return
+    if (!attachOpen) return;
     const onDocMouseDown = (e: MouseEvent) => {
-      const el = attachRootRef.current
+      const el = attachRootRef.current;
       if (el && !el.contains(e.target as Node)) {
-        setAttachOpen(false)
+        setAttachOpen(false);
       }
-    }
-    document.addEventListener("mousedown", onDocMouseDown)
-    return () => document.removeEventListener("mousedown", onDocMouseDown)
-  }, [attachOpen])
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [attachOpen]);
 
   const openAttachPicker = () => {
-    if (!clothOptions.length || isLoading) return
-    setPickerDraftIds(confirmedCloths.map((c) => c.id))
-    setAttachOpen(true)
-  }
+    if (!clothOptions.length || isLoading) return;
+    setPickerDraftIds(confirmedCloths.map((c) => c.id));
+    setAttachOpen(true);
+  };
 
   const toggleDraft = (id: string) => {
-    setPickerDraftIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    )
-  }
+    setPickerDraftIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
 
   const confirmAttach = () => {
     const next: MessageClothChip[] = clothOptions
@@ -108,60 +98,50 @@ export function ChatInput({
         title: c.title,
         category: c.category,
         color: c.color,
-      }))
-    setConfirmedCloths(next)
-    setAttachOpen(false)
-  }
+      }));
+    setConfirmedCloths(next);
+    setAttachOpen(false);
+  };
 
   const clearAttachments = () => {
-    setConfirmedCloths([])
-    setPickerDraftIds([])
-  }
+    setConfirmedCloths([]);
+    setPickerDraftIds([]);
+  };
 
   const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (input.trim() && !isLoading) {
-      const useWardrobe = createLook || confirmedCloths.length > 0
-      const clothIds = confirmedCloths
-        .map((c) => Number(c.id))
-        .filter((n) => Number.isFinite(n))
+      const useWardrobe = createLook || confirmedCloths.length > 0;
+      const clothIds = confirmedCloths.map((c) => Number(c.id)).filter((n) => Number.isFinite(n));
 
       onSend(input.trim(), {
         useWardrobe,
         createLook,
         clothIds: clothIds.length ? clothIds : undefined,
         clothPreview: confirmedCloths.length ? confirmedCloths : undefined,
-      })
-      setInput("")
-      setConfirmedCloths([])
-      setPickerDraftIds([])
-      setAttachOpen(false)
+      });
+      setInput('');
+      setConfirmedCloths([]);
+      setPickerDraftIds([]);
+      setAttachOpen(false);
     }
-  }
+  };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit(e)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.inputWrapper}>
         <div className={styles.attachButtons}>
-          <button
-            type="button"
-            className={styles.attachButton}
-            aria-label="Прикрепить файл"
-          >
+          <button type="button" className={styles.attachButton} aria-label="Прикрепить файл">
             <PaperclipIcon />
           </button>
-          <button
-            type="button"
-            className={styles.attachButton}
-            aria-label="Добавить изображение"
-          >
+          <button type="button" className={styles.attachButton} aria-label="Добавить изображение">
             <ImageIcon />
           </button>
         </div>
@@ -181,9 +161,7 @@ export function ChatInput({
             type="submit"
             disabled={!input.trim() || isLoading}
             className={`${styles.submitButton} ${
-              input.trim() && !isLoading
-                ? styles.submitButtonActive
-                : styles.submitButtonDisabled
+              input.trim() && !isLoading ? styles.submitButtonActive : styles.submitButtonDisabled
             }`}
             aria-label="Отправить сообщение"
           >
@@ -210,7 +188,7 @@ export function ChatInput({
             <div className={styles.attachWrap} ref={attachRootRef}>
               <button
                 type="button"
-                className={`${styles.attachClothesBtn} ${attachOpen ? styles.attachClothesBtnOpen : ""}`}
+                className={`${styles.attachClothesBtn} ${attachOpen ? styles.attachClothesBtnOpen : ''}`}
                 onClick={() => (attachOpen ? setAttachOpen(false) : openAttachPicker())}
                 disabled={isLoading || !clothOptions.length}
                 aria-expanded={attachOpen}
@@ -241,7 +219,7 @@ export function ChatInput({
                             <span className={styles.clothRowTitle}>{c.title}</span>
                             {[c.category, c.color].filter(Boolean).length > 0 ? (
                               <span className={styles.clothRowMeta}>
-                                {[c.category, c.color].filter(Boolean).join(" · ")}
+                                {[c.category, c.color].filter(Boolean).join(' · ')}
                               </span>
                             ) : null}
                           </span>
@@ -292,5 +270,5 @@ export function ChatInput({
 
       <p className={styles.hint}>AI Wardrobe помогает подобрать идеальный образ</p>
     </form>
-  )
+  );
 }

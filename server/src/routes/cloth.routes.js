@@ -3,15 +3,21 @@ const ClothController = require('../controllers/Cloth.controller');
 const verifyAccessToken = require('../middleware/verifyAccessToken');
 const upload = require('../middleware/upload');
 
-// 📦 CRUD
-router.get('/', verifyAccessToken, ClothController.getAllClothes);
-router.get('/:id', verifyAccessToken, ClothController.getClothById);
-router.post('/', verifyAccessToken, upload.single('image'), ClothController.createCloth);
-router.put('/:id', verifyAccessToken, ClothController.updateCloth);
-router.delete('/:id', verifyAccessToken, ClothController.deleteCloth);
+router
+  .route('/')
+  .get(verifyAccessToken, ClothController.getAllClothes)
+  .post(verifyAccessToken, upload.single('image'), ClothController.createCloth);
+
+router
+  .route('/:id')
+  .get(verifyAccessToken, ClothController.getClothById)
+  .put(verifyAccessToken, ClothController.updateCloth)
+  .delete(verifyAccessToken, ClothController.deleteCloth);
 
 // 🧠 Обработка изображений
-router.post('/remove-background', upload.single('image'), ClothController.removeBackground);
+// удалить фон для превью
+router.route('/remove-background').post(upload.single('image'), ClothController.removeBackground);
+// проверка статуса обработки
 router.get('/:id/status', verifyAccessToken, ClothController.getProcessingStatus);
 
 module.exports = router;
