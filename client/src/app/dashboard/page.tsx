@@ -56,17 +56,17 @@ type WeatherByCoordsResponse = {
   temperature: string;
   description: string;
   feels_like: string;
-  location: string;
+  location?: string;
 };
 
 const WEATHER_DESCRIPTION_RU_MAP: Record<string, string> = {
-  'Sunny': 'Солнечно',
-  'Clear': 'Ясно',
+  Sunny: 'Солнечно',
+  Clear: 'Ясно',
   'Partly cloudy': 'Переменная облачность',
-  'Cloudy': 'Облачно',
-  'Overcast': 'Пасмурно',
-  'Mist': 'Легкий туман',
-  'Fog': 'Туман',
+  Cloudy: 'Облачно',
+  Overcast: 'Пасмурно',
+  Mist: 'Легкий туман',
+  Fog: 'Туман',
   'Freezing fog': 'Ледяной туман',
   'Patchy rain possible': 'Местами возможен дождь',
   'Patchy light drizzle': 'Местами слабая морось',
@@ -122,7 +122,10 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    const fetchWeatherByCoords = async (lat: number, lon: number): Promise<WeatherByCoordsResponse | null> => {
+    const fetchWeatherByCoords = async (
+      lat: number,
+      lon: number,
+    ): Promise<WeatherByCoordsResponse | null> => {
       try {
         const { data } = await axiosInstance.get<ServerResponseType<WeatherByCoordsResponse>>(
           USER_API_ROUTES.WEATHER_BY_COORDS,
@@ -138,9 +141,12 @@ export default function DashboardPage() {
 
     const fetchWeatherByCity = async (city: string): Promise<WeatherByCoordsResponse | null> => {
       try {
-        const { data } = await axiosInstance.get<ServerResponseType<WeatherByCoordsResponse>>(USER_API_ROUTES.WEATHER, {
-          params: { city },
-        });
+        const { data } = await axiosInstance.get<ServerResponseType<WeatherByCoordsResponse>>(
+          USER_API_ROUTES.WEATHER,
+          {
+            params: { city },
+          },
+        );
         return data.data ?? null;
       } catch {
         return null;
@@ -170,13 +176,13 @@ export default function DashboardPage() {
       try {
         const weatherLine = `${weatherData.temperature}°C, ${toRussianWeatherDescription(weatherData.description)}`;
         setWeatherText(weatherLine);
-        setWeatherTip(`Ощущается как ${weatherData.feels_like}°C в ${weatherData.location}`);
+        setWeatherTip(`Ощущается как ${weatherData.feels_like}°C`);
       } catch {
         setWeatherText('Не удалось загрузить погоду');
         setWeatherTip('Попробуйте снова или укажите другой город в шапке');
       }
     };
-
+    //в ${weatherData.location}
     void loadWeather();
 
     const onUserLocationUpdated = () => {

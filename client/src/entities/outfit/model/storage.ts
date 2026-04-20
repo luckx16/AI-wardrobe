@@ -1,6 +1,13 @@
-import { readStorageArray } from '@/entities/wardrobe-item/model/storage';
-
 import type { SavedOutfit } from './types';
+
+const readStorageArray = <T>(key: string): T[] => {
+  try {
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
 
 export const OUTFIT_STORAGE_KEY = 'ai-wardrobe.saved-outfits';
 

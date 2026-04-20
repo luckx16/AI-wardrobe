@@ -12,6 +12,17 @@ import { getImgSrc } from '@/shared/lib/getImgSrc';
 
 import styles from './LookBuilder.module.css';
 
+const SECTION_LABELS: Record<'all' | ClothingSection, string> = {
+  all: 'Все',
+  headwear: 'Головные уборы',
+  top: 'Верх',
+  accessory: 'Аксессуары',
+  bags: 'Сумки',
+  bottom: 'Низ',
+  shoes: 'Обувь',
+  other: 'Другое',
+};
+
 export function LookBuilder({ lookId }: { lookId?: string }) {
   const {
     filledSectionsState,
@@ -41,7 +52,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
   return (
     <section className={styles.page}>
       <header className={styles.header}>
-        <p className={styles.eyebrow}>Outfit Builder:</p>
+        <p className={styles.eyebrow}>Конструктор образа:</p>
         <h1 className={styles.title}>
           {editedLook ? 'Измени' : 'Собери'} образ из вещей гардероба
         </h1>
@@ -66,7 +77,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                 data-active={activeFilter === sectionId}
                 onClick={() => setActiveFilter(sectionId)}
               >
-                {sectionId}
+                {SECTION_LABELS[sectionId] ?? sectionId}
               </button>
             ))}
           </div>
@@ -161,7 +172,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                     onDragLeave={() => setActiveDropSlot(null)}
                     onDrop={(event) => handleDropOnSlot(event, sectionId)}
                   >
-                    <span className={styles.slotTag}>{sectionId}</span>
+                    <span className={styles.slotTag}>{SECTION_LABELS[sectionId] ?? sectionId}</span>
                     {clothesInSectionArr.map((clothOfSection) => {
                       const src = getImgSrc(clothOfSection.image);
                       if (!src) return;
@@ -209,7 +220,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
               className={styles.input}
               value={lookName}
               onChange={(event) => setLookName(event.target.value)}
-              placeholder="Например: Smart Casual Friday"
+              placeholder="Например: Деловой кэжуал"
             />
             <button type="button" className={styles.saveButton} onClick={saveLook}>
               {editedLook ? 'Изменить' : 'Сохранить'} образ
@@ -230,7 +241,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                 <p className={styles.savedName}>{look.title}</p>
                 <p className={styles.savedMeta}>
                   {new Date(look.createdAt).toLocaleDateString('ru-RU')} · {look.clothes.length}{' '}
-                  items
+                  вещей
                 </p>
               </li>
             ))}
