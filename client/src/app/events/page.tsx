@@ -43,7 +43,7 @@ export default function EventsPage() {
 
   const eventsOfSelectedDateArr = eventsByDateObj[selectedDate] ?? [];
 
-  const deleteEventHandler = (eventId: number) => {
+  const deleteEventHandler = (eventId: string) => {
     dispatch(deleteEventThunk(eventId));
   };
 

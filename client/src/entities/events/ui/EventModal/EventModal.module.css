@@ -53,6 +53,39 @@
   border-color: var(--accent);
 }
 
+.selectWrapper {
+  position: relative;
+}
+
+.selectWrapper::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--foreground);
+  border-bottom: 2px solid var(--foreground);
+  transform: translateY(-75%) rotate(45deg);
+  pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.selectWrapper:focus-within::after {
+  transform: translateY(-25%) rotate(225deg);
+}
+
+.select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 36px;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
 .modalActions {
   display: flex;
   gap: 8px;
