@@ -14,7 +14,8 @@ class ClothController {
       const { user } = res.locals;
 
       // 2. Получаем текстовые поля из формы
-      const { title, brand, material, color, category, season } = req.body;
+      const { title, brand, material, color, category, season } = JSON.parse(req.body.data);
+
       const section = getSectionFromCategory(category);
       // 3. Проверяем, что файл был загружен
       if (!req.file) {
@@ -25,6 +26,7 @@ class ClothController {
       const tempImagePath = req.file.path; // uploads/temp/имя_файла
       const processedImageName = `processed-${Date.now()}-${req.file.filename}`;
       const processedImagePath = path.join(__dirname, '..', 'uploads', 'processed');
+      await fs.copyFile(tempImagePath, path.join(processedImagePath, processedImageName));
 
       // 5. Создаем запись в БД со статусом 'pending'
       const clothData = {
@@ -282,7 +284,7 @@ class ClothController {
       if (cloth.image) {
         const filePath = path.join(__dirname, '..', 'uploads', 'processed', cloth.image);
 
-        await fs.unlink(filePath).catch(() => {});
+        await fs.unlink(filePath).catch(() => { });
       }
 
       await ClothService.deleteCloth(id);
