@@ -1,0 +1,125 @@
+.wrap {
+  display: grid;
+  gap: 1rem;
+}
+
+.note {
+  border: 1px solid var(--border, #e8e5e0);
+  border-radius: 10px;
+  padding: 0.85rem 0.95rem;
+  background: rgba(245, 244, 242, 0.35);
+}
+
+.noteTitle {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted, #737373);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+@media (max-width: 880px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.group {
+  border: 1px solid var(--border, #e8e5e0);
+  border-radius: 10px;
+  padding: 0.85rem 0.95rem;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.bad {
+  border-color: rgba(200, 50, 70, 0.25);
+  background: rgba(200, 50, 70, 0.04);
+}
+
+.groupTitle {
+  margin: 0 0 0.65rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted, #737373);
+}
+
+.addRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.addInput {
+  min-width: 0;
+}
+
+.chips {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid rgba(232, 229, 224, 0.9);
+  border-radius: 999px;
+  background: rgba(245, 244, 242, 0.5);
+  font-size: 0.82rem;
+  color: var(--foreground, #111111);
+  max-width: 100%;
+}
+
+.chipText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 26rem;
+}
+
+.chipRemove {
+  border: 0;
+  background: transparent;
+  color: var(--muted, #737373);
+  cursor: pointer;
+  line-height: 1;
+  font-size: 1rem;
+  padding: 0 0.15rem;
+}
+
+.chipRemove:hover {
+  color: var(--foreground, #111111);
+}
+
+.constraints {
+  border: 1px solid var(--border, #e8e5e0);
+  border-radius: 10px;
+  padding: 0.85rem 0.95rem;
+  background: rgba(245, 244, 242, 0.22);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.constraintsTitle {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted, #737373);
+}
+
+.textarea {
+  min-height: 4.5rem;
+}
+

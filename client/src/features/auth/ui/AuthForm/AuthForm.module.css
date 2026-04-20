@@ -1,0 +1,238 @@
+.authPage {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(320px, 420px);
+  align-items: center;
+  gap: clamp(24px, 4vw, 64px);
+  padding: clamp(20px, 3vw, 32px);
+  background:
+    linear-gradient(95deg, rgba(228, 212, 194, 0.74) 0%, rgba(236, 226, 214, 0.9) 50%, rgba(241, 235, 228, 0.93) 100%),
+    url('/auth/auth-background.png') left center / cover no-repeat;
+}
+
+.bgOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1000px 500px at -8% 78%, rgba(207, 165, 126, 0.52), transparent 60%),
+    radial-gradient(900px 460px at 108% 35%, rgba(217, 189, 154, 0.48), transparent 64%);
+}
+
+.heroText {
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  max-width: 420px;
+  color: #6b5b4b;
+  margin-left: 4px;
+  padding-bottom: clamp(20px, 6vh, 76px);
+}
+
+.heroText h1 {
+  margin: 0;
+  font-size: clamp(36px, 3.4vw, 48px);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.heroText p {
+  margin: 16px 0 0;
+  font-size: 18px;
+  line-height: 1.45;
+  color: #827364;
+}
+
+.card {
+  position: relative;
+  z-index: 2;
+  justify-self: center;
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid rgba(221, 214, 205, 0.95);
+  border-radius: 18px;
+  background: rgba(250, 250, 250, 0.92);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 18px 40px rgba(71, 58, 45, 0.11);
+  padding: 14px;
+  transform: translateX(-88px);
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  background: #efeeec;
+  padding: 4px;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border-radius: 8px;
+  color: #8c8379;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tabActive {
+  background: #fff;
+  color: #3c332c;
+  box-shadow: 0 1px 4px rgba(73, 60, 46, 0.12);
+}
+
+.form {
+  padding: 0 8px 8px;
+}
+
+.formTitle {
+  margin: 0;
+  color: #1e1e1e;
+  font-size: 40px;
+  line-height: 1.15;
+}
+
+.formLead {
+  margin: 8px 0 16px;
+  color: #7a746e;
+  font-size: 16px;
+}
+
+.label {
+  display: block;
+  margin: 14px 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #403b35;
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #e2ddd7;
+  border-radius: 10px;
+  background: #f8f8f8;
+  color: #2c2c2c;
+  font-family: inherit;
+  font-size: 15px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input::placeholder {
+  color: #9f9a94;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #b7946f;
+  box-shadow: 0 0 0 3px rgba(183, 148, 111, 0.15);
+}
+
+.passwordField {
+  position: relative;
+}
+
+.passwordInput {
+  padding-right: 46px;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #8c8379;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.passwordToggle:hover {
+  color: #5f564e;
+  background: rgba(183, 148, 111, 0.08);
+}
+
+.inputError {
+  border-color: #ce5265;
+}
+
+.errorText {
+  margin: 6px 0 0;
+  color: #ce5265;
+  font-size: 12px;
+}
+
+.submitButton {
+  width: 100%;
+  height: 46px;
+  margin-top: 18px;
+  border: none;
+  border-radius: 10px;
+  background: #b7946f;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.submitButton:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.terms {
+  margin: 14px 0 0;
+  text-align: center;
+  color: #8b8580;
+  font-size: 13px;
+}
+
+.backHome {
+  display: block;
+  margin: 12px 0 4px;
+  text-align: center;
+  color: #6e6862;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.backHome:hover {
+  color: #403b35;
+}
+
+@media (max-width: 1000px) {
+  .authPage {
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding-top: 74px;
+  }
+
+  .heroText {
+    display: none;
+  }
+
+  .card {
+    justify-self: center;
+    max-width: 430px;
+    transform: none;
+  }
+}
