@@ -30,7 +30,7 @@ export const createEventThunk = createAsyncThunk<
 });
 export const updateEventThunk = createAsyncThunk<
   IEvent,
-  EventDataFromClient & { editedEventId: number },
+  EventDataFromClient & { editedEventId: string },
   { rejectValue: ServerResponseType }
 >('events/update', async ({ editedEventId, ...eventDataFromClient }, { rejectWithValue }) => {
   try {
@@ -69,8 +69,8 @@ export const getAllEventsThunk = createAsyncThunk<
 });
 
 export const deleteEventThunk = createAsyncThunk<
-  { isDeleted: boolean; deletedEventId: number },
-  number,
+  { isDeleted: boolean; deletedEventId: string },
+  string,
   { rejectValue: ServerResponseType }
 >('events/delete', async (deletedEventId, { rejectWithValue }) => {
   try {

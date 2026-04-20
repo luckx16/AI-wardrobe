@@ -24,8 +24,6 @@ export async function saveLook(payload: { title: string; cloth_ids: number[] }) 
   return data.data;
 }
 export async function getLook(lookId: string) {
-  const { data } = await axiosInstance.get<ServerResponseType<ILook>>(
-    LOOK_API_ROUTES.LOOK(+lookId),
-  );
+  const { data } = await axiosInstance.get<ServerResponseType<ILook>>(LOOK_API_ROUTES.LOOK(lookId));
   return data.data;
 }

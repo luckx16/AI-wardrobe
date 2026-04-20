@@ -35,7 +35,8 @@ class ImageProcessingService {
       const image = await Jimp.read(resultBuffer);
       console.log('Image width:', image.width, 'height:', image.height);
       image.resize({ w: 800 });
-      const outputPath = path.join(outputDir, path.basename(inputPath))
+      const baseName = path.basename(inputPath, path.extname(inputPath)) + '.png';
+      const outputPath = path.join(outputDir, baseName);
       await image.write(outputPath);
 
       console.log(`✅ Image processed: ${path.basename(outputDir)}`);
@@ -43,7 +44,7 @@ class ImageProcessingService {
     } catch (error) {
       console.error('Background removal failed:', error.message);
       console.log('Falling back to original image...');
-      const outputPath = path.join(outputDir, path.basename(inputPath))
+      const outputPath = path.join(outputDir, path.basename(inputPath));
       await fs.copyFile(inputPath, outputPath);
       return outputPath;
     }
@@ -65,4 +66,19 @@ class ImageProcessingService {
   }
 }
 
+
+// async function getProcessedFiles() {
+//   const processedDir = path.join(__dirname, '../public/uploads/processed');
+//   const files = await fs.readdir(processedDir);
+//   console.log('files', files);
+//   files.slice(0, 1).forEach((fileName) => {
+//     ImageProcessingService.removeBackgroundAndOptimize(
+//       `/Users/4tune/Desktop/Elbrus/phase3/FinalProject/server/src/public/uploads/processed/${fileName}`,
+//       `/Users/4tune/Desktop/Elbrus/phase3/FinalProject/server/src/public/uploads/processed/t1`,
+//     );
+//   });
+//   // return files.filter((f) => !f.startsWith('.'));
+// }
+
+// getProcessedFiles();
 module.exports = ImageProcessingService;
