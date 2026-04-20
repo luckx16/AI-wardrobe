@@ -57,6 +57,36 @@ class LookController {
     }
   }
 
+  /**
+   * POST /api/looks/generate-title — AI-генерация НАЗВАНИЯ по выбранным вещам.
+   * Body: { clothIds: number[] }
+   */
+  async generateLookTitle(req, res) {
+    const clothIds = Array.isArray(req.body?.clothIds) ? req.body.clothIds : [];
+    const attachedClothIds = clothIds.map(Number).filter((n) => Number.isFinite(n) && n > 0);
+
+    if (!attachedClothIds.length) {
+      return res.status(400).json(
+        formatResponse(400, 'clothIds is required', null, {
+          hint: 'Send JSON body { "clothIds": [1,2,3] }',
+        }),
+      );
+    }
+
+    try {
+      const result = await lookGenerateService.generateLookTitle({
+        user_id: Number(req.user?.id),
+        attachedClothIds,
+      });
+      return res.json(formatResponse(200, 'Look title generated', result));
+    } catch (err) {
+      console.error(err);
+      return res
+        .status(500)
+        .json(formatResponse(500, 'Failed to generate look title', null, err?.message ?? err));
+    }
+  }
+
   async getLooks(req, res) {
     try {
       const { user } = res.locals;

@@ -67,8 +67,22 @@ function buildWardrobeSystemExtension(wardrobeOptions) {
   const allowed = wardrobeOptions.allowedClothIds ?? [];
   const lines = [
     'Ты AI Wardrobe, дружелюбный персональный стилист. Всегда отвечай на русском языке.',
+    ...(wardrobeOptions.weather
+      ? [
+          '',
+          '## Погода сейчас (контекст)',
+          `location=${wardrobeOptions.weather.location ?? ''}`,
+          `temperature=${wardrobeOptions.weather.temperature ?? ''}`,
+          `feels_like=${wardrobeOptions.weather.feels_like ?? ''}`,
+          `description=${wardrobeOptions.weather.description ?? ''}`,
+          `wind_speed_kmh=${wardrobeOptions.weather.wind_speed ?? ''}`,
+          `humidity_percent=${wardrobeOptions.weather.humidity ?? ''}`,
+          'Учитывай погоду при выборе материалов/слоёв/верхней одежды и обуви.',
+        ]
+      : []),
     'Ниже передан каталог вещей из гардероба пользователя (каждая строка — одна вещь, у каждой есть числовой id=...).',
-    'Пользователь может спрашивать, что из гардероба сочетается с чем-то — отвечай конкретно, ссылаясь на вещи по id из каталога.',
+    'Пользователь может спрашивать, что из гардероба сочетается с чем-то — отвечай конкретно, но НЕ вставляй id и числа в текст ответа.',
+    'ВАЖНО: в replyText никогда не используй шаблоны вида "id=123" и вообще не упоминай числовые id. Ссылайся по названию/категории/цвету/бренду.',
     'Если прикреплены вещи к сообщению — учитывай их в первую очередь.',
     'Не выдумывай id: используй только id из каталога или из списка разрешённых id.',
     '',
@@ -88,7 +102,7 @@ function buildWardrobeSystemExtension(wardrobeOptions) {
   return lines.join('\n');
 }
 
-async function generateAiReply({ userId, userName, text, historyMessages, wardrobeOptions }) {
+async function generateAiReply({ userId, userName, text, historyMessages, wardrobeOptions, weather }) {
   const client = getGigaChatClient();
   if (!client) {
     return {
@@ -106,13 +120,23 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
   const system = useWardrobe
     ? {
         role: 'system',
-        content: buildWardrobeSystemExtension({ ...wardrobeOptions, allowedClothIds: wardrobeOptions.allowedClothIds }),
+        content: buildWardrobeSystemExtension({
+          ...wardrobeOptions,
+          allowedClothIds: wardrobeOptions.allowedClothIds,
+          weather: weather && typeof weather === 'object' ? weather : null,
+        }),
       }
     : {
         role: 'system',
         content:
           'Ты AI Wardrobe, дружелюбный персональный стилист. Всегда отвечай на русском языке.\n' +
           'Помогай пользователю собирать образы, сочетать вещи, подбирать стили под событие, погоду, сезон, настроение и особенности фигуры.\n' +
+          (weather && typeof weather === 'object'
+            ? '\n' +
+              'Погода сейчас (контекст):\n' +
+              `location=${weather.location ?? ''}; temperature=${weather.temperature ?? ''}; feels_like=${weather.feels_like ?? ''}; description=${weather.description ?? ''}; wind_speed_kmh=${weather.wind_speed ?? ''}; humidity_percent=${weather.humidity ?? ''}\n` +
+              'Учитывай погоду при рекомендациях (слои, материалы, верхняя одежда, обувь).\n'
+            : '') +
           'Если данных мало, сначала задай 1-2 коротких уточняющих вопроса. Если данных достаточно, предложи конкретный образ.\n' +
           'Ответ должен быть практичным: можно перечислять верх, низ, обувь, верхнюю одежду, аксессуары, цвета и объяснение, почему это сочетается.\n' +
           'Не выдумывай, что ты видишь фото или гардероб пользователя, если он этого не присылал. Сейчас работаем только с текстом, поэтому imagePrompt всегда возвращай null.\n\n' +

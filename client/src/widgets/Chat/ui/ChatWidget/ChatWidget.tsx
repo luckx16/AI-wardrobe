@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import { AxiosError } from 'axios';
 
+import { LookCard } from '@/app/looks/ui/LookCard/LookCard';
 import { type Message, MessageBubble } from '@/entities/message';
-import { LookCard } from '@/entities/look';
 import {
   type ClientChat,
   createChat,
@@ -15,8 +15,9 @@ import {
   sendChatMessage,
   updateChatTitle,
 } from '@/features/chat/api/chatApi';
-import { type ChatSendOptions, ChatInput, SuggestionChips } from '@/features/send-message';
+import { ChatInput, type ChatSendOptions, SuggestionChips } from '@/features/send-message';
 import { useAppSelector } from '@/shared/hooks';
+import { makeUniqueTitle } from '@/shared/lib/makeUniqueTitle';
 import { TrashIcon } from '@/shared/ui';
 import { ChatHeader } from '@/widgets';
 
@@ -93,13 +94,38 @@ export function ChatWidget() {
     setChatId(nextChatId);
     setMessages(
       history.length > 0
-        ? history.map((message) => ({
-            id: message.id,
-            role: message.role,
-            content: message.look ? <LookCard generated={message.look} /> : message.content,
-            createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
-            cloths: message.cloths,
-          }))
+        ? (() => {
+            const usedTitles = new Set<string>();
+            return history.map((message) => {
+              if (!message.look) {
+                return {
+                  id: message.id,
+                  role: message.role,
+                  content: message.content,
+                  createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
+                  cloths: message.cloths,
+                } satisfies Message;
+              }
+
+              const base = message.look.look.title;
+              const unique = makeUniqueTitle(base, usedTitles);
+              usedTitles.add(unique);
+
+              const generated = {
+                ...message.look,
+                look: { ...message.look.look, title: unique },
+              };
+
+              return {
+                id: message.id,
+                role: message.role,
+                content: <LookCard generated={generated} />,
+                createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
+                cloths: undefined,
+                lookTitle: unique,
+              } satisfies Message;
+            });
+          })()
         : INITIAL_MESSAGES,
     );
   };
@@ -290,21 +316,38 @@ export function ChatWidget() {
         createLook: Boolean(options?.createLook),
         useWardrobe: Boolean(options?.useWardrobe),
         clothIds: options?.clothIds,
+        weather: options?.weather ?? null,
       });
 
       setMessages((prev) => [
         ...prev,
-        {
-          id: assistantMessage.id,
-          role: 'assistant',
-          content: assistantMessage.look ? (
-            <LookCard generated={assistantMessage.look} />
-          ) : (
-            assistantMessage.content
-          ),
-          createdAt: assistantMessage.createdAt ? new Date(assistantMessage.createdAt) : undefined,
-          cloths: assistantMessage.cloths,
-        },
+        (() => {
+          if (!assistantMessage.look) {
+            return {
+              id: assistantMessage.id,
+              role: 'assistant',
+              content: assistantMessage.content,
+              createdAt: assistantMessage.createdAt ? new Date(assistantMessage.createdAt) : undefined,
+              cloths: assistantMessage.cloths,
+            } satisfies Message;
+          }
+
+          const used = prev.map((m) => m.lookTitle).filter(Boolean) as string[];
+          const unique = makeUniqueTitle(assistantMessage.look.look.title, used);
+          const generated = {
+            ...assistantMessage.look,
+            look: { ...assistantMessage.look.look, title: unique },
+          };
+
+          return {
+            id: assistantMessage.id,
+            role: 'assistant',
+            content: <LookCard generated={generated} />,
+            createdAt: assistantMessage.createdAt ? new Date(assistantMessage.createdAt) : undefined,
+            cloths: undefined,
+            lookTitle: unique,
+          } satisfies Message;
+        })(),
       ]);
 
       setChats((prev) => {
@@ -423,7 +466,7 @@ export function ChatWidget() {
             </div>
           </div>
 
-          {messages.length <= 1 && !isBootstrapping && (
+          {!isBootstrapping && (
             <div className={styles.suggestionsWrapper}>
               <SuggestionChips onSelect={handleSend} />
             </div>

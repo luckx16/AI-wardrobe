@@ -83,7 +83,7 @@ async function loadClothsForMessages(messageIds, userId) {
         as: 'cloth',
         required: true,
         where: { user_id: userId },
-        attributes: ['id', 'title', 'category', 'color'],
+        attributes: ['id', 'title', 'category', 'color', 'image'],
       },
     ],
   });
@@ -102,6 +102,7 @@ async function loadClothsForMessages(messageIds, userId) {
       title: c.title,
       category: c.category,
       color: c.color,
+      image: c.image ?? null,
     });
     map.set(key, arr);
   }
@@ -339,6 +340,7 @@ class ChatController {
       const text = String(req.body?.text ?? '').trim();
       const createLook = Boolean(req.body?.createLook);
       const useWardrobe = Boolean(req.body?.useWardrobe) || createLook;
+      const weather = req.body?.weather && typeof req.body.weather === 'object' ? req.body.weather : null;
 
       if (!text) {
         return res.status(400).json(formatResponse(400, 'Text is required', null));
@@ -400,6 +402,7 @@ class ChatController {
           user_id: user.id,
           userPrompt: text,
           attachedClothIds: validatedClothIds,
+          weather,
         });
         assistantMessage = await ChatMessage.create({
           chat_id: chatId,
@@ -458,6 +461,7 @@ class ChatController {
           userName: user.name ?? 'User',
           text,
           historyMessages,
+          weather,
           wardrobeOptions: {
             wardrobeSnippet,
             allowedClothIds,
@@ -490,6 +494,7 @@ class ChatController {
           userName: user.name ?? 'User',
           text,
           historyMessages,
+          weather,
         });
 
         assistantMessage = await ChatMessage.create({

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ClothingSection, getAllClothesThunk, IClothFromDb } from '@/entities/cloth';
 import { getAllLooksThunk } from '@/entities/look';
 import { createLookThunk, updateLookThunk } from '@/entities/look';
+import { generateLookTitle } from '@/entities/look/api/lookApi';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
@@ -19,6 +20,7 @@ const INITIAL_FILLEDSECTIONS_STATE: Record<ClothingSection, Set<string>> = {
   shoes: new Set(),
   other: new Set(),
 };
+
 const REQUIRED_SECTIONS = ['top', 'shoes'] satisfies ClothingSection[];
 
 export const useOutfitBuilder = (editedLookId: string | undefined) => {
@@ -33,6 +35,8 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
   );
 
   const [lookName, setLookName] = useState('');
+  const setLookNameRaw = setLookName;
+  const [isLookNameDirty, setIsLookNameDirty] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<'all' | ClothingSection>('all');
   const [activeDropSlot, setActiveDropSlot] = useState<ClothingSection | null>(null);
@@ -49,6 +53,16 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
     dispatch(getAllClothesThunk()).unwrap();
   }, [dispatch]);
 
+  useEffect(() => {
+    // при выходе из режима редактирования возвращаемся в create-mode,
+    // иначе isLookNameDirty остаётся true и авто-генерация названия не запускается
+    if (!editedLookId) {
+      setInitializedForLookId(undefined);
+      setIsLookNameDirty(false);
+      setLookName('');
+    }
+  }, [editedLookId]);
+
   const editedLook = editedLookId ? looks.find((l) => l.id === editedLookId) : undefined;
   if (editedLook && initializedForLookId !== editedLookId) {
     setInitializedForLookId(editedLookId);
@@ -57,8 +71,63 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
       sections[cloth.section] = new Set([...sections[cloth.section], cloth.id]);
     });
     setFilledSectionsState(sections);
-    setLookName(editedLook.title);
+    setLookNameRaw(editedLook.title);
+    setIsLookNameDirty(true);
   }
+
+  const isCreateMode = !editedLook;
+
+  const buildClothIdsFromState = (state: Record<ClothingSection, Set<string>>) => {
+    const ids = Object.values(state)
+      .map((s) => Array.from(s))
+      .flat();
+
+    return ids.map((id) => Number(id)).filter((n) => Number.isFinite(n) && n > 0);
+  };
+
+  const existingLookTitles = (() => {
+    const titles = looks.map((l) => l.title).filter(Boolean);
+    return editedLook ? titles.filter((t) => t !== editedLook.title) : titles;
+  })();
+
+  const lastTitleReqIdRef = useRef(0);
+  const titleDebounceRef = useRef<number | null>(null);
+
+  const requestAiTitle = (state: Record<ClothingSection, Set<string>>) => {
+    if (!isCreateMode || isLookNameDirty) return;
+
+    const clothIds = buildClothIdsFromState(state);
+    if (clothIds.length === 0) {
+      return;
+    }
+    if (clothIds.length < 2) {
+      setLookNameRaw(makeUniqueTitle('Образ', existingLookTitles));
+      return;
+    }
+
+    if (titleDebounceRef.current) {
+      window.clearTimeout(titleDebounceRef.current);
+    }
+
+    const reqId = (lastTitleReqIdRef.current += 1);
+    titleDebounceRef.current = window.setTimeout(async () => {
+      try {
+        const res = await generateLookTitle({ clothIds });
+        if (reqId !== lastTitleReqIdRef.current) return;
+        const unique = makeUniqueTitle(res.title || 'Образ', existingLookTitles);
+        setLookNameRaw(unique);
+      } catch {
+        if (reqId !== lastTitleReqIdRef.current) return;
+        // если AI недоступен/упал — всё равно подставим осмысленный дефолт
+        setLookNameRaw(makeUniqueTitle('Образ', existingLookTitles));
+      }
+    }, 700);
+  };
+
+  useEffect(() => {
+    requestAiTitle(filledSectionsState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filledSectionsState, isCreateMode, isLookNameDirty]);
 
   const clothCountUsedInLooksMap = useMemo(() => {
     const counterMap = new Map<string, number>();
@@ -110,26 +179,31 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
       return;
     }
 
+    const uniqueLookName = makeUniqueTitle(trimmedLookName, existingLookTitles);
+    if (uniqueLookName !== trimmedLookName) {
+      setLookName(uniqueLookName);
+    }
+
     const clothIdsArr = Object.values(filledSectionsState)
       .map((clothSet) => Array.from(clothSet))
       .flat();
-    console.log('clothIdsArr', clothIdsArr);
 
     try {
       const savedLook = await dispatch(
         editedLook
           ? updateLookThunk({
               id: editedLook.id,
-              title: trimmedLookName,
+              title: uniqueLookName,
               cloth_ids: clothIdsArr,
             })
           : createLookThunk({
-              title: trimmedLookName,
+              title: uniqueLookName,
               cloth_ids: clothIdsArr,
             }),
       ).unwrap();
 
       setLookName('');
+      setIsLookNameDirty(false);
       setMessage('Образ сохранён в базе данных.');
       setFilledSectionsState(INITIAL_FILLEDSECTIONS_STATE);
 
@@ -194,7 +268,10 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
   return {
     filledSectionsState,
     lookName,
-    setLookName,
+    setLookName: (v: string) => {
+      setIsLookNameDirty(true);
+      setLookName(v);
+    },
     message,
     activeFilter,
     setActiveFilter,

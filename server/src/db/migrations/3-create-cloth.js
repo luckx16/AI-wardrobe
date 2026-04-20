@@ -45,7 +45,7 @@ module.exports = {
       category: {
         type: Sequelize.ENUM,
         values: CATEGORIES,
-        allowNull: true,
+        allowNull: false,
         comment: 'Категория одежды',
       },
       section: {

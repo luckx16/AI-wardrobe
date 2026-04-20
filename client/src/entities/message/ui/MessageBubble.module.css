@@ -157,11 +157,11 @@
   align-items: flex-end;
 }
 
-.attachmentPlaque {
+.attachmentCard {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-start;
-  gap: 0.1rem;
+  gap: 0.6rem;
   padding: 0.4rem 0.65rem;
   border-radius: 0.5rem;
   font-size: 0.8125rem;
@@ -171,21 +171,56 @@
   border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
-.messageStackUser .attachmentPlaque {
+.messageStackUser .attachmentCard {
   align-items: flex-end;
   text-align: right;
 }
 
-.attachmentStripUser .attachmentPlaque {
+.attachmentStripUser .attachmentCard {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-.attachmentPlaqueTitle {
+.attachmentImage {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.45rem;
+  object-fit: cover;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.attachmentStripUser .attachmentImage {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.attachmentFallback {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--surface) 70%, var(--accent) 30%);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  flex-shrink: 0;
+}
+
+.attachmentStripUser .attachmentFallback {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.attachmentText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.attachmentTitle {
   font-weight: 600;
 }
 
-.attachmentPlaqueMeta {
+.attachmentMeta {
   font-size: 0.6875rem;
   opacity: 0.85;
 }

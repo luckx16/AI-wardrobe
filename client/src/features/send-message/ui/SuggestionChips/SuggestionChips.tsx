@@ -1,62 +1,58 @@
-"use client"
+"use client";
 
-import { type FC, type SVGProps } from "react"
+import { type CSSProperties, type FC, type SVGProps } from 'react';
 
-import { BriefcaseIcon, ShirtIcon, SparklesIcon,SunIcon } from "@/shared/ui"
+import { BriefcaseIcon, ShirtIcon, SparklesIcon, SunIcon, UserIcon } from '@/shared/ui';
 
-import styles from './SuggestionChips.module.css'
+import styles from './SuggestionChips.module.css';
 
 interface SuggestionChipsProps {
-  onSelect: (suggestion: string) => void
+  onSelect: (suggestion: string) => void;
 }
 
-type IconComponent = FC<SVGProps<SVGSVGElement>>
+type IconComponent = FC<SVGProps<SVGSVGElement>>;
 
 interface Suggestion {
-  icon: IconComponent
-  label: string
-  prompt: string
+  icon: IconComponent;
+  label: string;
+  prompt: string;
 }
 
 const SUGGESTIONS: Suggestion[] = [
   {
     icon: BriefcaseIcon,
-    label: "Деловой образ",
-    prompt: "Помоги собрать деловой образ для важной встречи",
-  },
-  {
-    icon: SunIcon,
-    label: "Летний look",
-    prompt: "Подбери стильный летний образ на каждый день",
-  },
-  {
-    icon: ShirtIcon,
-    label: "Капсульный гардероб",
-    prompt: "Расскажи как собрать базовый капсульный гардероб",
+    label: 'Деловой образ',
+    prompt: 'Помоги собрать деловой образ для важной встречи',
   },
   {
     icon: SparklesIcon,
-    label: "Тренды 2026",
-    prompt: "Какие модные тренды актуальны сейчас?",
+    label: 'Свидание',
+    prompt: 'Подбери образ на свидание: варианты более нежный и более дерзкий (с обувью и аксессуарами)',
   },
-]
+  {
+    icon: SunIcon,
+    label: 'На выходные',
+    prompt: 'Собери комфортный образ на выходные (прогулка/кафе) с 2 вариантами обуви',
+  },
+];
 
 export function SuggestionChips({ onSelect }: SuggestionChipsProps) {
   return (
     <div className={styles.container}>
-      {SUGGESTIONS.map((suggestion) => {
-        const Icon = suggestion.icon
+      {SUGGESTIONS.map((suggestion, index) => {
+        const Icon = suggestion.icon;
         return (
           <button
             key={suggestion.label}
             onClick={() => onSelect(suggestion.prompt)}
             className={styles.chip}
+            style={{ '--index': index } as CSSProperties}
           >
             <Icon />
             {suggestion.label}
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }
