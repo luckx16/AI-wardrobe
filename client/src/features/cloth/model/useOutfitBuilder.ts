@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ClothingSection, getAllClothesThunk, IClothFromDb } from '@/entities/cloth';
 import { getAllLooksThunk } from '@/entities/look';
@@ -10,6 +10,7 @@ import { generateLookTitle } from '@/entities/look/api/lookApi';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
+import { makeUniqueTitle } from '@/shared/lib/makeUniqueTitle';
 
 const INITIAL_FILLEDSECTIONS_STATE: Record<ClothingSection, Set<string>> = {
   headwear: new Set(),
