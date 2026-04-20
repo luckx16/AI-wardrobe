@@ -8,6 +8,7 @@ export type ClientChatMessageCloth = {
   title: string;
   category?: string | null;
   color?: string | null;
+  image?: string | null;
 };
 
 export type ClientChatMessage = {
@@ -20,6 +21,15 @@ export type ClientChatMessage = {
   cloths?: ClientChatMessageCloth[];
   createdAt?: string;
   updatedAt?: string;
+};
+
+export type ClientWeather = {
+  temperature: string;
+  feels_like: string;
+  description: string;
+  humidity: string;
+  wind_speed: string;
+  location: string;
 };
 
 type CreateChatData = {
@@ -77,7 +87,12 @@ export async function deleteChat(chatId: string): Promise<string> {
 export async function sendChatMessage(
   chatId: string,
   text: string,
-  options?: { createLook?: boolean; useWardrobe?: boolean; clothIds?: number[] },
+  options?: {
+    createLook?: boolean;
+    useWardrobe?: boolean;
+    clothIds?: number[];
+    weather?: ClientWeather | null;
+  },
 ): Promise<ClientChatMessage> {
   const createLook = Boolean(options?.createLook);
   const useWardrobe =
@@ -89,6 +104,7 @@ export async function sendChatMessage(
       createLook,
       useWardrobe,
       clothIds: useWardrobe && options?.clothIds?.length ? options.clothIds : undefined,
+      weather: options?.weather ?? undefined,
     },
   );
 
