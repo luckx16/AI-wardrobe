@@ -14,7 +14,7 @@ export type Category =
   | 'другое';
 
 export interface WardrobeItem {
-  id: number;
+  id: string;
   title: string;
   category: Category;
   season: Season;
