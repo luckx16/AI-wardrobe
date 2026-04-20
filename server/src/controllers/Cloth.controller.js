@@ -24,9 +24,10 @@ class ClothController {
 
       // 4. Пути к файлам
       const tempImagePath = req.file.path; // uploads/temp/имя_файла
+      console.log(tempImagePath, '<========================');
       const processedImageName = `processed-${Date.now()}-${req.file.filename}`;
       const processedImagePath = path.join(__dirname, '..',  'public', 'uploads', 'processed');
-      await fs.copyFile(tempImagePath, path.join(processedImagePath, processedImageName));
+      // await fs.copyFile(tempImagePath, path.join(processedImagePath, processedImageName));
 
       // 5. Создаем запись в БД со статусом 'pending'
       const clothData = {
