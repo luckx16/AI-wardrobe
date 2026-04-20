@@ -1,6 +1,6 @@
 'use client';
 import { DialogTitle } from '@radix-ui/react-dialog';
-import { CalendarDays, Palette, Sun, Tag } from 'lucide-react';
+import { CalendarDays, Package, Palette, Sun, Tag } from 'lucide-react';
 
 import type { WardrobeItem } from '../../app/wardrobe/types';
 import { Dialog, DialogContent } from './components/dialog';
@@ -50,6 +50,8 @@ const ItemDetailDialog = ({ item, open, onOpenChange }: ItemDetailDialogProps) =
         </div>
         <div className={styles.body}>
           <div className={styles.infoGrid}>
+            <InfoRow icon={Tag} label="Бренд" value={item.brand || 'Не указан'} />
+            <InfoRow icon={Package} label="Материал" value={item.material || 'Не указан'} />
             <InfoRow icon={Tag} label="Категория" value={item.category} />
             <InfoRow icon={Sun} label="Сезон" value={item.season} />
             <InfoRow icon={Palette} label="Цвет" value={item.color} />

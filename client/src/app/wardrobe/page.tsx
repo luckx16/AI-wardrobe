@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import AddItemDialog from '../../features/wardrobe/AddItemDialog';
+import EditItemDialog from '../../features/wardrobe/EditItemDialog';
 import { getAll, removeClothesItem } from '../../features/wardrobe/api/wardrobeApi';
 import ItemDetailDialog from '../../features/wardrobe/ItemDetailDialog';
 import WardrobeCard from '../../features/wardrobe/WardrobeCard';
@@ -19,6 +20,7 @@ const WardrobePage = () => {
   const [filterSeason, setFilterSeason] = useState<Season | 'all'>('all');
   const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all');
   const [selectedItem, setSelectedItem] = useState<WardrobeItem | null>(null);
+  const [editingItem, setEditingItem] = useState<WardrobeItem | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -47,6 +49,39 @@ const WardrobePage = () => {
       setItems((prev) => prev.filter((item) => item.id !== id));
     } catch (e) {
       console.error(e);
+    }
+  }, []);
+
+  const handleEditItem = useCallback(
+    (id: string) => {
+      const item = items.find((currentItem) => String(currentItem.id) === String(id));
+
+      if (item) {
+        setEditingItem(item);
+      }
+    },
+    [items],
+  );
+
+  const handleSaveEditItem = useCallback(async (updatedItem: WardrobeItem) => {
+    setItems((prev) =>
+      prev.map((item) => (String(item.id) === String(updatedItem.id) ? updatedItem : item)),
+    );
+    setSelectedItem((current) =>
+      current && String(current.id) === String(updatedItem.id) ? updatedItem : current,
+    );
+    setEditingItem(null);
+
+    try {
+      const freshItems = await getAll();
+      setItems(freshItems);
+      setSelectedItem((current) => {
+        if (!current) return current;
+        const refreshed = freshItems.find((item) => String(item.id) === String(current.id));
+        return refreshed ?? current;
+      });
+    } catch (error) {
+      console.error(error);
     }
   }, []);
 
@@ -98,12 +133,21 @@ const WardrobePage = () => {
                 item={item}
                 index={i}
                 onDelete={handleDeleteItem}
+                onEdit={handleEditItem}
                 onClick={() => setSelectedItem(item)}
               />
             ))}
           </div>
         )}
       </div>
+      <EditItemDialog
+        item={editingItem}
+        open={!!editingItem}
+        onOpenChange={(v) => {
+          if (!v) setEditingItem(null);
+        }}
+        onSave={handleSaveEditItem}
+      />
       <ItemDetailDialog
         item={selectedItem}
         open={!!selectedItem}

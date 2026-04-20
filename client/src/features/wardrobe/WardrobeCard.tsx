@@ -15,6 +15,7 @@ interface WardrobeCardProps {
 const WardrobeCard = ({ item, index, onDelete, onClick, onEdit }: WardrobeCardProps) => {
   return (
     <div className={styles.card} style={{ animationDelay: `${index * 60}ms` }} onClick={onClick}>
+
       {onDelete && (
         <button
           onClick={(e) => {
@@ -28,19 +29,18 @@ const WardrobeCard = ({ item, index, onDelete, onClick, onEdit }: WardrobeCardPr
         </button>
       )}
 
-            {onEdit && (
+      {onEdit && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onEdit(item.id);
           }}
-          className={styles.delete}
+          className={styles.edit}
           aria-label="Редактировать"
         >
           <Pencil size={14} />
         </button>
       )}
-
 
       <div className={styles.imageWrap}>
         <img
@@ -58,6 +58,7 @@ const WardrobeCard = ({ item, index, onDelete, onClick, onEdit }: WardrobeCardPr
           <span className={styles.text}>{item.category}</span>
           <span className={styles.badge}>{item.season}</span>
         </div>
+
         <p className={styles.text}>{item.color}</p>
       </div>
     </div>

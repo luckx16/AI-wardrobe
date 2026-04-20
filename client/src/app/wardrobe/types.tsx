@@ -16,6 +16,8 @@ export type Category =
 export interface WardrobeItem {
   id: string;
   title: string;
+  brand?: string | null;
+  material?: string | null;
   category: Category;
   season: Season;
   color: string;
