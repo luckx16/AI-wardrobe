@@ -55,6 +55,8 @@
 }
 
 .day {
+  animation: var(--anim-animate-up);
+
   min-height: 72px;
   display: flex;
   flex-direction: column;

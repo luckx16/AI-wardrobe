@@ -1,16 +1,19 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 
 import clsx from 'clsx';
+import { BadgePlus } from 'lucide-react';
 
 import { getAllLooksThunk } from '@/entities/look';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
+import { LookCard } from '@/widgets/LookCard';
 
 import { createEventThunk, updateEventThunk } from '../../api/eventsThunk';
-import { EventDataFromClient, IEvent } from '../../model/types';
+import { EVENT_MODAL_CONSTANTS } from '../../model/constants';
+import { EventDataFromClient } from '../../model/types';
 import styles from './EventModal.module.css';
 
 const EVENT_OPTIONS = [
@@ -28,38 +31,24 @@ const EVENT_OPTIONS = [
 const ACTIVITY_TYPES_OPTIONS = [
   {
     label: 'Город и работа',
-    options: [
-      { value: 'casual', label: '🏙 Повседневный (Casual)' },
-      { value: 'smart_casual', label: '👔 Смарт-кэжуал' },
-      { value: 'business', label: '💼 Деловой' },
-      { value: 'streetwear', label: '🔥 Уличный стиль' },
-    ],
+    options: ['🏙 Повседневный (Casual)', '👔 Смарт-кэжуал', '💼 Деловой', '🔥 Уличный стиль'],
   },
   {
     label: 'Спорт и отдых',
-    options: [
-      { value: 'sport', label: '👟 Спорт' },
-      { value: 'outdoor', label: '🌲 Активный отдых / Природа' },
-      { value: 'athleisure', label: '🧘 Спортивный шик' },
-    ],
+    options: ['👟 Спорт', '🌲 Активный отдых / Природа', '🧘 Спортивный шик'],
   },
   {
     label: 'События и выходы',
-    options: [
-      { value: 'cocktail', label: '🍸 Коктейльный' },
-      { value: 'romantic', label: '🌹 Романтический' },
-      { value: 'formal', label: '✨ Торжественный' },
-    ],
+    options: ['🍸 Коктейльный', '🌹 Романтический', '✨ Торжественный'],
   },
   {
     label: 'Для дома',
-    options: [{ value: 'home', label: '🏠 Домашний уют' }],
+    options: ['🏠 Домашний уют'],
   },
 ];
 interface EventModalProps {
   initialDate: string;
   onClose: () => void;
-  editedEvent: IEvent | null;
 }
 
 type CustomSelectType = {
@@ -68,37 +57,29 @@ type CustomSelectType = {
   isLookIdEditing: boolean;
 };
 
-const getEmptyFormInitial = (date: string): EventDataFromClient => ({
-  title: '',
-  date,
-  activity_type: '',
-  look_id: '',
-});
-
 const customSelectInitial = {
   isEventEditing: false,
   isActivityTypeEditing: false,
   isLookIdEditing: false,
 };
 
-export function EventModal({ initialDate, editedEvent, onClose }: EventModalProps) {
-  const isEditing = !!editedEvent;
+export function EventModal({ initialDate, onClose }: EventModalProps) {
+  const { addQueryParams, searchParams } = useCustomRouter();
+  const editedEventId = searchParams.get(EVENT_MODAL_CONSTANTS.IN_EDIT_MODE_EVENT_ID);
+  const isEditing = !!editedEventId;
 
-  const getFormInitialData = (): EventDataFromClient =>
-    isEditing
-      ? {
-          title: editedEvent.title,
-          date: editedEvent.date,
-          activity_type: editedEvent.activity_type ?? '',
-          look_id: editedEvent.lookId,
-        }
-      : getEmptyFormInitial(initialDate);
   const [customSelect, setCustomSelect] = useState<CustomSelectType>(customSelectInitial);
-  const [form, setForm] = useState<EventDataFromClient>(getFormInitialData);
+  // const [form, setForm] = useState<EventDataFromClient>(getFormInitialData);
+  const form = {
+    title: searchParams.get('title') ?? '',
+    date: searchParams.get('date') ?? initialDate,
+    activity_type: searchParams.get('activity_type') ?? '',
+    look_id: searchParams.get('look_id') ?? '',
+  };
+
   const { looks } = useAppSelector((state) => state.looks);
   const dispatch = useAppDispatch();
   const isLoading = useAppSelector((state) => state.events.isLoading);
-  const router = useRouter();
   const { events } = useAppSelector((state) => state.events);
 
   const customEventsOptionsArr = useMemo(() => {
@@ -108,13 +89,24 @@ export function EventModal({ initialDate, editedEvent, onClose }: EventModalProp
   useEffect(() => {
     dispatch(getAllLooksThunk());
   }, [dispatch]);
+  useEffect(() => {
+    if (form.look_id) {
+      setTimeout(() => {
+        document.getElementById(form.look_id)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+      }, 100);
+    }
+  }, [form.look_id]);
 
   function handleChange(field: keyof EventDataFromClient, value: string) {
-    setForm((f) => ({ ...f, [field]: value }));
+    addQueryParams({ [field]: value });
   }
 
   async function handleSave() {
-    if (!form.title.trim() || !form.date) return;
+    if (!form.title.trim() || !form.date || !form.look_id) return;
 
     const trimedFormActivityType = form.activity_type?.trim();
 
@@ -126,7 +118,7 @@ export function EventModal({ initialDate, editedEvent, onClose }: EventModalProp
     };
 
     if (isEditing) {
-      await dispatch(updateEventThunk({ editedEventId: editedEvent.id, ...eventDataFromClient }));
+      await dispatch(updateEventThunk({ editedEventId: editedEventId, ...eventDataFromClient }));
     } else {
       await dispatch(createEventThunk(eventDataFromClient));
     }
@@ -154,143 +146,190 @@ export function EventModal({ initialDate, editedEvent, onClose }: EventModalProp
     }
   };
 
-  const hadleLookChange = (e: ChangeEvent<HTMLSelectElement, HTMLSelectElement>) => {
-    const value = e.target.value;
+  const hadleLookChange = (value: string) => {
     if (value === 'create_newLook') {
       setCustomSelect((prev) => ({ ...prev, isLookIdEditing: true }));
-      router.push(CLIENT_ROUTES.LOOK_BUILDER());
+      addQueryParams(form as unknown as Record<string, string>, CLIENT_ROUTES.LOOK_BUILDER());
     } else {
       handleChange('look_id', value);
     }
   };
 
   console.log('form', form);
-  console.log('looks', looks);
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalTitle}>Новое событие</div>
+      <div className={styles.modalInnerWrapper} onClick={(e) => e.stopPropagation()}>
+        <form
+          className={styles.form}
+          onSubmit={(e) => {
+            console.log('1', 1);
 
-        {/* ----Event */}
-        <div className={styles.field}>
-          <label className={styles.label}>Название *</label>
-          {!customSelect.isEventEditing ? (
-            <div className={styles.selectWrapper}>
-              <select
-                className={clsx(styles.input, styles.select)}
-                value={form.title}
-                onChange={hadleEventTitleChange}
-              >
-                <optgroup label="Базовые:">
-                  {EVENT_OPTIONS.map((option) => {
-                    return (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    );
-                  })}
-                </optgroup>
-                <optgroup label="Мои:">
-                  {customEventsOptionsArr.map((option) => {
-                    return (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    );
-                  })}
-                </optgroup>
-                <option value="create_newEvent"> + Свой вариант</option>
-              </select>
-            </div>
-          ) : (
-            <input
-              className={styles.input}
-              placeholder="Например: Ужин, Вечеринка…"
-              value={form.title}
-              onChange={(e) => handleChange('title', e.target.value)}
-            />
-          )}
-        </div>
+            e.preventDefault();
+            handleSave();
+          }}
+        >
+          <div className={styles.modalTitle}>
+            {isEditing ? 'Изменить событие' : 'Новое событие'}
+          </div>
 
-        {/* ----Дата */}
-        <div className={styles.field}>
-          <label className={styles.label}>Дата *</label>
-          <input
-            className={styles.input}
-            type="date"
-            value={form.date}
-            onChange={(e) => handleChange('date', e.target.value)}
-          />
-        </div>
-
-        {/* ----Тип активности */}
-        <div className={styles.field}>
-          <label className={styles.label}>Тип активности</label>
-          {!customSelect.isActivityTypeEditing ? (
-            <div className={styles.selectWrapper}>
-              <select
-                className={clsx(styles.input, styles.select)}
-                value={form.activity_type}
-                onChange={hadleActivityTypeChange}
-              >
-                {ACTIVITY_TYPES_OPTIONS.map((group) => (
-                  <optgroup key={group.label} label={group.label}>
-                    {group.options.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
+          {/* ----Event */}
+          <div className={styles.field}>
+            <label className={styles.label}>Название *</label>
+            {!customSelect.isEventEditing ? (
+              <div className={styles.selectWrapper}>
+                <select
+                  required
+                  className={clsx(styles.input, styles.select)}
+                  value={form.title}
+                  onChange={hadleEventTitleChange}
+                >
+                  <option value="">Выберите</option>
+                  <optgroup label="Базовые:">
+                    {EVENT_OPTIONS.map((option) => {
+                      return (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      );
+                    })}
                   </optgroup>
-                ))}
-                <option value="create_newActivity"> + Свой вариант</option>
-              </select>
-            </div>
-          ) : (
+                  <optgroup label="Мои:">
+                    {customEventsOptionsArr.map((option, i) => {
+                      return (
+                        <option key={option + i} value={option}>
+                          {option}
+                        </option>
+                      );
+                    })}
+                  </optgroup>
+                  <option value="create_newEvent"> + Свой вариант</option>
+                </select>
+              </div>
+            ) : (
+              <input
+                required
+                className={styles.input}
+                placeholder="Например: Ужин, Вечеринка…"
+                value={form.title}
+                onChange={(e) => handleChange('title', e.target.value)}
+              />
+            )}
+          </div>
+
+          {/* ----Дата */}
+          <div className={styles.field}>
+            <label className={styles.label}>Дата *</label>
             <input
+              required
               className={styles.input}
-              placeholder="Например: Casual, Прогулка…"
-              value={form.activity_type}
-              onChange={(e) => handleChange('activity_type', e.target.value)}
+              type="date"
+              value={form.date}
+              onChange={(e) => handleChange('date', e.target.value)}
             />
-          )}
-        </div>
+          </div>
 
-        {/* ----Лук */}
-        <div className={styles.field}>
-          <label className={styles.label}>Лук</label>
-          {!customSelect.isLookIdEditing && (
-            <div className={styles.selectWrapper}>
-              <select
-                className={clsx(styles.input, styles.select)}
-                value={form.look_id}
-                onChange={hadleLookChange}
-              >
-                {looks.map((look) => {
-                  return (
-                    <option key={look.id} value={look.id}>
-                      {look.title}
-                    </option>
-                  );
-                })}
-                <option value="create_newLook"> + Создать образ</option>
-              </select>
-            </div>
-          )}
-        </div>
+          {/* ----Тип активности */}
+          <div className={styles.field}>
+            <label className={styles.label}>Тип активности</label>
+            {!customSelect.isActivityTypeEditing ? (
+              <div className={styles.selectWrapper}>
+                <select
+                  required
+                  className={clsx(styles.input, styles.select)}
+                  value={form.activity_type}
+                  onChange={hadleActivityTypeChange}
+                >
+                  <option value="">Выберите тип активности</option>
+                  {ACTIVITY_TYPES_OPTIONS.map((group) => (
+                    <optgroup key={group.label} label={group.label}>
+                      {group.options.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                  <option value="create_newActivity"> + Свой вариант</option>
+                </select>
+              </div>
+            ) : (
+              <input
+                required
+                className={styles.input}
+                placeholder="Например: Casual, Прогулка…"
+                value={form.activity_type}
+                onChange={(e) => handleChange('activity_type', e.target.value)}
+              />
+            )}
+          </div>
 
-        <div className={styles.modalActions}>
-          <button className={styles.cancelBtn} onClick={onClose} disabled={isLoading}>
-            Отмена
-          </button>
-          <button
-            className={styles.saveBtn}
-            onClick={handleSave}
-            disabled={isLoading || !form.title.trim() || !form.date}
-          >
-            {isLoading ? 'Сохранение…' : 'Сохранить'}
-          </button>
-        </div>
+          {/* ----Лук */}
+          <div className={styles.field}>
+            <label className={styles.label}>Лук</label>
+            {!customSelect.isLookIdEditing && (
+              <div className={styles.lookFieldRow}>
+                <div className={clsx(styles.selectWrapper, styles.lookSelectWrapper)}>
+                  <select
+                    className={clsx(styles.input, styles.select)}
+                    value={form.look_id}
+                    onChange={(e) => hadleLookChange(e.target.value)}
+                    required
+                  >
+                    <option value="">Выберите лук</option>
+                    {looks.map((look) => {
+                      return (
+                        <option key={look.id} value={look.id}>
+                          {look.title}
+                        </option>
+                      );
+                    })}
+                    <option value="create_newLook"> + Создать новый лук</option>
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => hadleLookChange('create_newLook')}
+                  className={styles.createLookBtn}
+                  title="Создать новый лук"
+                >
+                  <BadgePlus size={20} color="currentColor" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className={styles.cancelBtn}
+              disabled={isLoading}
+              onClick={onClose}
+            >
+              Отмена
+            </button>
+            <button
+              className={styles.saveBtn}
+              type="submit"
+              disabled={isLoading || !form.title.trim() || !form.date}
+            >
+              {isLoading ? 'Сохранение…' : 'Сохранить'}
+            </button>
+          </div>
+        </form>
+        {looks.length > 0 && (
+          <div className={styles.lookCardContainer}>
+            {looks?.map((l) => (
+              <LookCard
+                key={l.id}
+                id={l.id}
+                className={clsx(styles.lookCard, l.id === form.look_id && styles.selectedLookCard)}
+                look={l}
+                onClick={() => hadleLookChange(l.id)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

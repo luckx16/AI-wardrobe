@@ -1,21 +1,22 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { LOOKS_PAGE_CONSTANTS } from '@/entities/look';
 import { deleteLookThunk, getAllLooksThunk, toggleLikeThunk } from '@/entities/look/api/lookThunk';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
+import { LookCard } from '@/widgets/LookCard';
 
 import styles from './looks.module.css';
-import { LookCard } from './ui/LookCard/LookCard';
 
 type Tab = 'all' | 'favorites';
 
 export default function OutfitsPage() {
   const dispatch = useAppDispatch();
   const { looks, isLoading } = useAppSelector((state) => state.looks);
-  const router = useRouter();
+  const { addQueryParams } = useCustomRouter();
   const [tab, setTab] = useState<Tab>('all');
 
   useEffect(() => {
@@ -76,11 +77,16 @@ export default function OutfitsPage() {
             {arrayOfLooksObj.map((look) => {
               return (
                 <LookCard
-                  key={look.id}
                   look={look}
-                  onToggleFav={toggleFav}
-                  onEdit={(id) => router.push(CLIENT_ROUTES.LOOK_BUILDER(id))}
-                  onDelete={deleteLookHandler}
+                  key={look.id}
+                  onDelete={(lookId) => deleteLookHandler(lookId)}
+                  onEdit={(lookId) => {
+                    addQueryParams(
+                      { [LOOKS_PAGE_CONSTANTS.FROM_LOOKS_PAGE]: 'true' },
+                      CLIENT_ROUTES.LOOK_BUILDER(lookId),
+                    );
+                  }}
+                  toggleFav={toggleFav}
                 />
               );
             })}

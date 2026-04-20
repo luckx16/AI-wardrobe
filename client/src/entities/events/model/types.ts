@@ -4,7 +4,7 @@ export interface IEvent {
   title: string;
   date: string;
   activity_type: string | null;
-  lookId: string;
+  look_id: string;
   createdAt: string;
   updatedAt: string;
 }
