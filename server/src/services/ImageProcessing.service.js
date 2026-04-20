@@ -65,29 +65,4 @@ class ImageProcessingService {
   }
 }
 
-// async function getProcessedFiles() {
-//   const processedDir = path.join(__dirname, '../public/uploads/processed');
-//   const files = await fs.readdir(processedDir);
-//   console.log('files', files);
-//   files.forEach((fileName) => {
-//     ImageProcessingService.removeBackgroundAndOptimize(
-//       `/Users/4tune/Desktop/Elbrus/phase3/FinalProject/server/src/public/uploads/processed/${fileName}`,
-//       `/Users/4tune/Desktop/Elbrus/phase3/FinalProject/server/src/public/uploads/processed/2${fileName}`,
-//     );
-//   });
-//   // return files.filter((f) => !f.startsWith('.'));
-// }
-// async function renameProcessedFiles() {
-//   const processedDir = path.join(__dirname, '../public/uploads/processed');
-//   const files = await fs.readdir(processedDir);
-//   for (const fileName of files) {
-//     if (fileName.startsWith('2')) {
-//       const oldPath = path.join(processedDir, fileName);
-//       const newPath = path.join(processedDir, fileName.slice(1));
-//       await fs.rename(oldPath, newPath);
-//       console.log(`Renamed: ${fileName} → ${fileName.slice(1)}`);
-//     }
-//   }
-// }
-
 module.exports = ImageProcessingService;
