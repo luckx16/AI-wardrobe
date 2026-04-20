@@ -5,6 +5,7 @@ export type MessageClothChip = {
   title: string
   category?: string | null
   color?: string | null
+  image?: string | null
 }
 
 export interface Message {
@@ -13,6 +14,7 @@ export interface Message {
   content: React.ReactNode
   createdAt?: Date
   cloths?: MessageClothChip[]
+  lookTitle?: string
 }
 
 export interface ChatState {

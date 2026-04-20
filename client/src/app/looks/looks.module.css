@@ -258,3 +258,22 @@
   color: var(--danger);
   background: var(--border);
 }
+
+.saveTextBtn {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+  background: var(--surface-elevated);
+}
+
+.saveTextBtn:hover:enabled {
+  border-color: var(--accent);
+}
+
+.saveTextBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

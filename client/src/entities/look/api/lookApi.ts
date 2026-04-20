@@ -19,6 +19,14 @@ export async function generateLook(payload: { userId: number; userPrompt?: strin
   return data.data;
 }
 
+export async function generateLookTitle(payload: { clothIds: number[] }) {
+  const { data } = await axiosInstance.post<ServerResponseType<{ title: string }>>(
+    '/looks/generate-title',
+    payload,
+  );
+  return data.data;
+}
+
 export async function saveLook(payload: { title: string; cloth_ids: number[] }) {
   const { data } = await axiosInstance.post<ServerResponseType<SavedLook>>('/looks', payload);
   return data.data;

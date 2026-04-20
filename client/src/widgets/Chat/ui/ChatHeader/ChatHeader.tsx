@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronDownIcon, HistoryIcon, SettingsIcon, SparklesIcon } from '@/shared/ui';
+import { HistoryIcon, SettingsIcon, SparklesIcon } from '@/shared/ui';
 
 import styles from './ChatHeader.module.css';
 
@@ -21,12 +21,6 @@ export function ChatHeader({ onToggleHistory }: ChatHeaderProps) {
             <p className={styles.subtitle}>Персональный стилист</p>
           </div>
         </div>
-
-        <button className={styles.modelSelector} type="button">
-          <span className={styles.statusDot} />
-          <span>Style AI v2</span>
-          <ChevronDownIcon className={styles.chevronIcon} />
-        </button>
 
         <div className={styles.actions}>
           <button

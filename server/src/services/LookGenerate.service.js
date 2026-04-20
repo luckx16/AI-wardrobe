@@ -109,11 +109,91 @@ function httpError(status, body) {
   return e;
 }
 
+async function generateLookTitle({ user_id, attachedClothIds }) {
+  const attachedIds = Array.isArray(attachedClothIds)
+    ? [...new Set(attachedClothIds.map(Number).filter(Number.isFinite))]
+    : [];
+  if (!attachedIds.length) {
+    return { title: 'Образ', fromCache: false };
+  }
+
+  const existingUser = await db.User.findByPk(user_id);
+  if (!existingUser) {
+    throw new Error('Invalid session: user not found');
+  }
+
+  const clothAttrs = [
+    'id',
+    'title',
+    'brand',
+    'material',
+    'color',
+    'category',
+    'season',
+    'ai_metadata',
+    'processing_status',
+  ];
+
+  const [profile, cloths] = await Promise.all([
+    db.Profile.findOne({ where: { user_id } }),
+    db.Cloth.findAll({
+      where: { user_id, processing_status: 'completed', id: attachedIds },
+      attributes: clothAttrs,
+    }),
+  ]);
+
+  const byId = new Map((cloths ?? []).map((c) => [Number(c.id), c]));
+  const ordered = attachedIds.map((id) => byId.get(id)).filter(Boolean);
+  if (!ordered.length) {
+    return { title: 'Образ', fromCache: false };
+  }
+
+  const prefs = profile?.prefs && typeof profile.prefs === 'object' ? profile.prefs : {};
+  const cacheKey = md5(user_id + '::title::' + JSON.stringify(prefs) + JSON.stringify(attachedIds));
+  const cached = getCache(cacheKey);
+  if (cached) {
+    return { title: cached, fromCache: true };
+  }
+
+  const itemsLine = ordered.map((c) => compactItem(pickClothFields(c))).join('\n');
+  const prompt = [
+    'You are a professional stylist.',
+    'Given a list of wardrobe items (compact), invent ONE short, catchy Russian outfit name.',
+    'The name should sound like a real look name (e.g. "Городской минимализм", "Тёплый casual", "Офисный smart").',
+    'Avoid quotes, emoji, and overly long names.',
+    'Return ONLY valid JSON: {"look_name": string}',
+    '',
+    '## Wardrobe items (compact)',
+    itemsLine,
+  ].join('\n');
+
+  let aiJson;
+  try {
+    aiJson = await geminiClient.generateJson({
+      prompt,
+      responseSchema: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['look_name'],
+        properties: { look_name: { type: 'string', minLength: 1, maxLength: 140 } },
+      },
+      timeoutMs: 12000,
+    });
+  } catch {
+    aiJson = await openaiClient.generateJson({ prompt, timeoutMs: 12000 });
+  }
+
+  const title = String(aiJson?.look_name ?? '').trim();
+  const finalTitle = title || 'Образ';
+  setCache(cacheKey, finalTitle);
+  return { title: finalTitle, fromCache: false };
+}
+
 /**
  * AI-генерация лука: кэш, Gemini → fallback GPT, Zod, транзакция Look + LookCloth.
  * @returns {{ response: object, fromCache: boolean }}
  */
-async function generateLook({ user_id, userPrompt, attachedClothIds }) {
+async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) {
   const isDev = String(process.env.NODE_ENV || '').toLowerCase() !== 'production';
   let stage = 'init';
   let lastAiJson = null;
@@ -183,6 +263,7 @@ async function generateLook({ user_id, userPrompt, attachedClothIds }) {
   const cacheKey = md5(
     user_id +
       String(userPrompt ?? '') +
+      JSON.stringify(weather ?? null) +
       JSON.stringify(prefs) +
       JSON.stringify(attachedIds.slice().sort((a, b) => a - b)),
   );
@@ -194,6 +275,7 @@ async function generateLook({ user_id, userPrompt, attachedClothIds }) {
   stage = 'build_prompt';
   const prompt = buildStylistPrompt(profile, cloths.map(pickClothFields), userPrompt, {
     focusClothIds: attachedIds,
+    weather,
   });
 
   stage = 'ai_gemini';
@@ -303,6 +385,7 @@ async function generateLook({ user_id, userPrompt, attachedClothIds }) {
 
 module.exports = {
   generateLook,
+  generateLookTitle,
   formatZodError,
   buildAiPreview,
 };
