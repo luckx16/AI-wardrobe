@@ -14,7 +14,7 @@ class ClothController {
       const { user } = res.locals;
 
       // 2. Получаем текстовые поля из формы
-      const { title, brand, material, color, category, season } = JSON.parse(req.body.data);
+      const { title, brand, material, color, category, season } = req.body;
 
       const section = getSectionFromCategory(category);
       // 3. Проверяем, что файл был загружен
@@ -25,7 +25,7 @@ class ClothController {
       // 4. Пути к файлам
       const tempImagePath = req.file.path; // uploads/temp/имя_файла
       const processedImageName = `processed-${Date.now()}-${req.file.filename}`;
-      const processedImagePath = path.join(__dirname, '..', 'uploads', 'processed');
+      const processedImagePath = path.join(__dirname, '..',  'public', 'uploads', 'processed');
       await fs.copyFile(tempImagePath, path.join(processedImagePath, processedImageName));
 
       // 5. Создаем запись в БД со статусом 'pending'
@@ -166,7 +166,7 @@ class ClothController {
 
       const tempImagePath = req.file.path;
       const processedImageName = `processed-${Date.now()}-${req.file.filename}.png`;
-      const processedImagePath = path.join(__dirname, '..', 'uploads', 'processed');
+      const processedImagePath = path.join(__dirname, '..',  'public', 'uploads', 'processed');
 
       const resultPath = await ImageProcessingService.removeBackgroundAndOptimize(
         tempImagePath,
@@ -177,7 +177,7 @@ class ClothController {
 
       return res.json(
         formatResponse(200, 'Background removed', {
-          url: `/uploads/processed/${path.basename(resultPath)}`,
+          url: `public/uploads/processed/${path.basename(resultPath)}`,
         }),
       );
     } catch (error) {
