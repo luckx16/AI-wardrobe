@@ -66,13 +66,13 @@ export default function OutfitsPage() {
     dispatch(getAllLooksThunk());
   }, [dispatch]);
 
-  const toggleFav = (id: number) => {
+  const toggleFav = (id: string) => {
     dispatch(toggleLikeThunk(id));
   };
 
   const arrayOfLooksObj = tab === 'all' ? looks : looks.filter((l) => l.is_in_favorites);
 
-  const deleteLookHandler = (id: number) => {
+  const deleteLookHandler = (id: string) => {
     dispatch(deleteLookThunk(id));
   };
 

@@ -7,7 +7,7 @@ import styles from './EventSidebar.module.css';
 interface EventSidebarProps {
   selectedDate: string;
   eventsOfSelectedDateArr: IEvent[];
-  deleteEventHandler: (id: number) => void;
+  deleteEventHandler: (id: string) => void;
   openUpdateModalHandler: (eventObj: IEvent) => void;
   isLoading: boolean;
 }
