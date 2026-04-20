@@ -1,6 +1,7 @@
 const crypto = require('node:crypto');
 
 const { buildStylistPrompt } = require('../utils/stylistPrompt');
+const { compactItem } = require('../utils/stylistPrompt');
 const { generatedLookSchema, geminiGeneratedLookJsonSchema } = require('../schemas/lookSchema');
 const { geminiClient, openaiClient } = require('../config/aiConfig');
 
@@ -43,6 +44,26 @@ function pickClothFields(cloth) {
     image: cloth.image,
     ai_metadata: cloth.ai_metadata,
   };
+}
+
+function buildFallbackLookTitleFromItems(items) {
+  const plain = (items ?? []).map((c) => (c && typeof c.toJSON === 'function' ? c.toJSON() : c));
+  const titles = plain
+    .map((c) => (c && typeof c.title === 'string' ? c.title.trim() : ''))
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (titles.length >= 2) return `${titles[0]} + ${titles[1]}`;
+  if (titles.length === 1) return titles[0];
+
+  const cats = plain
+    .map((c) => (c && typeof c.category === 'string' ? c.category.trim() : ''))
+    .filter(Boolean)
+    .slice(0, 2);
+  if (cats.length >= 2) return `${cats[0]} + ${cats[1]}`;
+  if (cats.length === 1) return cats[0];
+
+  return 'Образ';
 }
 
 function formatZodError(err) {
@@ -179,8 +200,16 @@ async function generateLookTitle({ user_id, attachedClothIds }) {
       },
       timeoutMs: 12000,
     });
-  } catch {
-    aiJson = await openaiClient.generateJson({ prompt, timeoutMs: 12000 });
+  } catch (geminiErr) {
+    try {
+      aiJson = await openaiClient.generateJson({ prompt, timeoutMs: 12000 });
+    } catch (openaiErr) {
+      // Если AI недоступен (нет ключей/таймаут/провайдер лежит) — не валим весь endpoint.
+      // Клиент всё равно умеет показывать fallback, но здесь вернём более осмысленное название.
+      const finalTitle = buildFallbackLookTitleFromItems(ordered);
+      setCache(cacheKey, finalTitle);
+      return { title: finalTitle, fromCache: false, aiError: openaiErr?.message ?? geminiErr?.message };
+    }
   }
 
   const title = String(aiJson?.look_name ?? '').trim();

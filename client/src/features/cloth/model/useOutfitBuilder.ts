@@ -53,6 +53,16 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
     dispatch(getAllClothesThunk()).unwrap();
   }, [dispatch]);
 
+  useEffect(() => {
+    // при выходе из режима редактирования возвращаемся в create-mode,
+    // иначе isLookNameDirty остаётся true и авто-генерация названия не запускается
+    if (!editedLookId) {
+      setInitializedForLookId(undefined);
+      setIsLookNameDirty(false);
+      setLookName('');
+    }
+  }, [editedLookId]);
+
   const editedLook = editedLookId ? looks.find((l) => l.id === editedLookId) : undefined;
   if (editedLook && initializedForLookId !== editedLookId) {
     setInitializedForLookId(editedLookId);
@@ -87,6 +97,9 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
     if (!isCreateMode || isLookNameDirty) return;
 
     const clothIds = buildClothIdsFromState(state);
+    if (clothIds.length === 0) {
+      return;
+    }
     if (clothIds.length < 2) {
       setLookNameRaw(makeUniqueTitle('Образ', existingLookTitles));
       return;
@@ -111,6 +124,11 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
     }, 700);
   };
 
+  useEffect(() => {
+    requestAiTitle(filledSectionsState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filledSectionsState, isCreateMode, isLookNameDirty]);
+
   const clothCountUsedInLooksMap = useMemo(() => {
     const counterMap = new Map<string, number>();
 
@@ -126,32 +144,26 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
     activeFilter === 'all' ? clothes : clothes.filter((item) => item.section === activeFilter);
 
   const setClothToSelected = (cloth: IClothFromDb) => {
-    let nextState: Record<ClothingSection, Set<string>> | null = null;
     setFilledSectionsState((prev) => {
       const copy = { ...prev };
       const updatedSection = new Set(copy[cloth.section]);
       updatedSection.add(cloth.id);
 
       copy[cloth.section] = updatedSection;
-      nextState = copy;
       return copy;
     });
-    if (nextState) requestAiTitle(nextState);
     setMessage(null);
   };
 
   const removeClothFromSelected = (sectionId: ClothingSection, clothId: string) => {
-    let nextState: Record<ClothingSection, Set<string>> | null = null;
     setFilledSectionsState((prev) => {
       const copy = { ...prev };
       const updatedSection = new Set(copy[sectionId]);
       updatedSection.delete(clothId);
 
       copy[sectionId] = updatedSection;
-      nextState = copy;
       return copy;
     });
-    if (nextState) requestAiTitle(nextState);
     setMessage(null);
   };
 

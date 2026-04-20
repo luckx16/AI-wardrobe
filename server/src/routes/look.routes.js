@@ -2,7 +2,6 @@ const router = require('express').Router();
 const lookController = require('../controllers/Look.controller');
 const verifyAccessToken = require('../middleware/verifyAccessToken');
 
-// Важно: /generate до /:id, иначе "generate" попадёт в параметр id.
 router.post('/generate', verifyAccessToken, lookController.generateLook.bind(lookController));
 router.post('/generate-title', verifyAccessToken, lookController.generateLookTitle.bind(lookController));
 

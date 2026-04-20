@@ -466,7 +466,7 @@ export function ChatWidget() {
             </div>
           </div>
 
-          {messages.length <= 1 && !isBootstrapping && (
+          {!isBootstrapping && (
             <div className={styles.suggestionsWrapper}>
               <SuggestionChips onSelect={handleSend} />
             </div>
