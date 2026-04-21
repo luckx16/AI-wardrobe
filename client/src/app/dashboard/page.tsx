@@ -66,6 +66,22 @@ type DashboardNumbersResponse = {
   looksNumber: number;
   wornLast30Days: number;
   notWornMoreThan30Days: number;
+  clothesTrend: {
+    value: number;
+    label: string;
+  };
+  looksTrend: {
+    value: number;
+    label: string;
+  };
+  wornTrend: {
+    value: number;
+    label: string;
+  };
+  notWornTrend: {
+    value: number;
+    label: string;
+  };
 };
 
 type DashboardSectionsResponse = {
@@ -140,6 +156,10 @@ export default function DashboardPage() {
     looksNumber: 0,
     wornLast30Days: 0,
     notWornMoreThan30Days: 0,
+    clothesTrend: { value: 0, label: 'к предыдущим 30 дням' },
+    looksTrend: { value: 0, label: 'к предыдущим 30 дням' },
+    wornTrend: { value: 0, label: 'к предыдущим 30 дням' },
+    notWornTrend: { value: 0, label: 'к предыдущим 30 дням' },
   });
 
   const navigateToEventsPageHandler = () => {
@@ -267,22 +287,28 @@ export default function DashboardPage() {
         value: dashboardNumbers.clothesNumber,
         icon: Shirt,
         subtitle: 'в гардеробе',
-        trend: { value: 5, label: 'за месяц' },
+        trend: dashboardNumbers.clothesTrend,
       },
       {
         title: 'Образов',
         value: dashboardNumbers.looksNumber,
         icon: Palette,
         subtitle: 'сохранено',
-        trend: { value: 20, label: 'за месяц' },
+        trend: dashboardNumbers.looksTrend,
       },
-      { title: 'Носилось', value: dashboardNumbers.wornLast30Days, icon: Eye, subtitle: 'за 30 дней' },
+      {
+        title: 'Носилось',
+        value: dashboardNumbers.wornLast30Days,
+        icon: Eye,
+        subtitle: 'за 30 дней',
+        trend: dashboardNumbers.wornTrend,
+      },
       {
         title: 'Не носилось',
         value: dashboardNumbers.notWornMoreThan30Days,
         icon: TrendingUp,
         subtitle: 'более 60 дней',
-        trend: { value: -8, label: 'vs прошлый' },
+        trend: dashboardNumbers.notWornTrend,
       },
     ],
     [dashboardNumbers],
