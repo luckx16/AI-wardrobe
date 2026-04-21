@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 
 import { EventModal, EventsCalendar, EventSidebar } from '@/entities/events';
@@ -72,6 +74,8 @@ export default function EventsPage() {
       [EVENT_MODAL_CONSTANTS.IS_OPEN]: 'true',
     } satisfies EventDataFromClient & {
       look_id: string;
+      [EVENT_MODAL_CONSTANTS.IN_EDIT_MODE_EVENT_ID]: string;
+      [EVENT_MODAL_CONSTANTS.IS_OPEN]: 'true';
     });
   };
 
@@ -84,8 +88,8 @@ export default function EventsPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>{t('events.title')}</h1>
-          <p className={styles.subtitle}>{t('events.subtitle')}</p>
+          <h1 className={clsx(styles.title, 'pageTitle')}>{t('events.title')}</h1>
+          <p className={clsx('pageSubtitle')}>{t('events.subtitle')}</p>
         </div>
         <button className={styles.addButton} onClick={() => setEventModal(true)}>
           {t('events.new')}

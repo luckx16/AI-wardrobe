@@ -48,6 +48,10 @@
 
   --surface: #ffffff;
   --surface-elevated: #f5f3f1;
+
+  --page-max-width: 64rem;
+  --page-padding: 2rem 1.25rem 3rem;
+  --header-h: 4rem;
 }
 
 html {
@@ -78,6 +82,8 @@ body {
 *::before,
 *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 a {
@@ -112,14 +118,22 @@ a:focus-visible {
   padding: 0;
 }
 
-.app-main > * {
-  padding-top: 1.5rem;
-}
-
 .app-main > [data-no-header-offset='true'] {
   padding-top: 0;
 }
 
+.pageTitle {
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--foreground, #111111);
+}
+
+.pageSubtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  color: var(--muted, #737373);
+}
 /* Auth pages (sign-in / sign-up headings) */
 .auth-page-title {
   margin: 0 0 1.25rem;

@@ -119,7 +119,7 @@ const WardrobePage = () => {
     };
 
     load();
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     const processingItems = items.filter(
@@ -160,17 +160,20 @@ const WardrobePage = () => {
     setItems((prev) => [item, ...prev]);
   }, []);
 
-  const handleDeleteItem = useCallback(async (id: string) => {
-    try {
-      await removeClothesItem(id);
+  const handleDeleteItem = useCallback(
+    async (id: string) => {
+      try {
+        await removeClothesItem(id);
 
-      setItems((prev) => prev.filter((item) => item.id !== id));
-      toast({ variant: 'success', title: 'Удалено', description: 'Вещь удалена из гардероба' });
-    } catch (e) {
-      console.error(e);
-      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить вещь' });
-    }
-  }, [toast]);
+        setItems((prev) => prev.filter((item) => item.id !== id));
+        toast({ variant: 'success', title: 'Удалено', description: 'Вещь удалена из гардероба' });
+      } catch (e) {
+        console.error(e);
+        toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить вещь' });
+      }
+    },
+    [toast],
+  );
 
   const handleEditItem = useCallback(
     (id: string) => {
@@ -228,40 +231,39 @@ const WardrobePage = () => {
 
   return (
     <div className={styles.page}>
-      <div className={styles.container}>
-        <WardrobeToolbar
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          filterSeason={filterSeason}
-          onFilterSeasonChange={setFilterSeason}
-          filterCategory={filterCategory}
-          onFilterCategoryChange={setFilterCategory}
-          totalCount={filtered.length}
-          addButton={<AddItemDialog onAdd={handleAddItem} />}
-        />
+      <WardrobeToolbar
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        filterSeason={filterSeason}
+        onFilterSeasonChange={setFilterSeason}
+        filterCategory={filterCategory}
+        onFilterCategoryChange={setFilterCategory}
+        totalCount={filtered.length}
+        addButton={<AddItemDialog onAdd={handleAddItem} />}
+      />
 
-        {loading ? (
-          <PageLoader />
-        ) : filtered.length === 0 ? (
-          <div className={styles.emptyState}>
-            <p className={styles.emptyTitle}>{t('wardrobe.emptyTitle')}</p>
-            <p className={styles.emptyText}>{t('wardrobe.emptyText')}</p>
-          </div>
-        ) : (
-          <div className={styles.grid}>
-            {filtered.map((item, i) => (
-              <WardrobeCard
-                key={item.id}
-                item={item}
-                index={i}
-                onDelete={handleDeleteItem}
-                onEdit={handleEditItem}
-                onClick={() => setSelectedItem(item)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {loading ? (
+        <PageLoader />
+      ) : filtered.length === 0 ? (
+        <div className={styles.emptyState}>
+          <p className={styles.emptyTitle}>{t('wardrobe.emptyTitle')}</p>
+          <p className={styles.emptyText}>{t('wardrobe.emptyText')}</p>
+        </div>
+      ) : (
+        <div className={styles.grid}>
+          {filtered.map((item, i) => (
+            <WardrobeCard
+              key={item.id}
+              item={item}
+              index={i}
+              onDelete={handleDeleteItem}
+              onEdit={handleEditItem}
+              onClick={() => setSelectedItem(item)}
+            />
+          ))}
+        </div>
+      )}
+
       <EditItemDialog
         item={editingItem}
         open={!!editingItem}

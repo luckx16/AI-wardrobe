@@ -1,64 +1,35 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
+import clsx from 'clsx';
 import { Eye, Palette, Shirt, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import {
+  DashboardNumbersResponse,
+  DashboardSectionsResponse,
+  loadDashboardNumbersApi,
+  loadDashboardSectionsApi,
+} from '@/entities/dashboard';
+import { EVENT_MODAL_CONSTANTS, IEvent } from '@/entities/events';
+import { getAllEventsThunk } from '@/entities/events/api/eventsThunk';
+import { fetchWeatherApi } from '@/entities/weather';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
-import { USER_API_ROUTES } from '@/shared/constants/userApiRoutes';
-import { axiosInstance } from '@/shared/lib/axiosInstance';
+import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 import { USER_LOCATION_UPDATED_EVENT, userLocationStorage } from '@/shared/lib/userLocation';
-import type { ServerResponseType } from '@/shared/types';
 import { StatsCard } from '@/shared/ui';
 import { CalendarPlans, OutfitOfTheDay } from '@/widgets';
 import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
 
 import styles from './dashboard.module.css';
 
-type WeatherByCoordsResponse = {
-  temperature: string;
-  description: string;
-  feels_like: string;
-  location?: string;
-};
-
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const router = useRouter();
+  const { router, addQueryParams } = useCustomRouter();
   const [weatherText, setWeatherText] = useState<string>(t('dashboard.weather.undefined'));
   const [weatherTip, setWeatherTip] = useState<string>(t('dashboard.weather.tipDefault'));
-
-  type DashboardNumbersResponse = {
-    clothesNumber: number;
-    looksNumber: number;
-    wornLast30Days: number;
-    notWornMoreThan30Days: number;
-    clothesTrend: {
-      value: number;
-      label: string;
-    };
-    looksTrend: {
-      value: number;
-      label: string;
-    };
-    wornTrend: {
-      value: number;
-      label: string;
-    };
-    notWornTrend: {
-      value: number;
-      label: string;
-    };
-  };
-
-  type DashboardSectionsResponse = {
-    name: string;
-    emoji: string;
-    count: number;
-    percentage: number;
-  }[];
 
   /*
    */
@@ -76,104 +47,64 @@ export default function DashboardPage() {
   const navigateToEventsPageHandler = () => {
     router.push(CLIENT_ROUTES.EVENTS);
   };
+  const navigateToEventEditingEventsPageHandler = (event: IEvent) => {
+    const { id, title, date, activity_type, look_id } = event;
+    addQueryParams(
+      {
+        title,
+        date,
+        activity_type,
+        look_id,
+        [EVENT_MODAL_CONSTANTS.IS_OPEN]: 'true',
+        [EVENT_MODAL_CONSTANTS.IN_EDIT_MODE_EVENT_ID]: id,
+      },
+      CLIENT_ROUTES.EVENTS,
+    );
+  };
 
   useEffect(() => {
-    const loadDashboardNumbers = async () => {
-      try {
-        const { data } =
-          await axiosInstance.get<ServerResponseType<DashboardNumbersResponse>>(
-            '/dashboard/numbers',
-          );
-
-        if (data.data) {
-          setDashboardNumbers(data.data);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const loadDashboardSections = async () => {
-      try {
-        const { data } =
-          await axiosInstance.get<ServerResponseType<DashboardSectionsResponse>>(
-            '/dashboard/sections',
-          );
-
-        if (data.data?.length) {
-          setCategories(data.data);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const fetchWeatherByCoords = async (
-      lat: number,
-      lon: number,
-    ): Promise<WeatherByCoordsResponse | null> => {
-      try {
-        const { data } = await axiosInstance.get<ServerResponseType<WeatherByCoordsResponse>>(
-          USER_API_ROUTES.WEATHER_BY_COORDS,
-          {
-            params: { lat, lon },
-          },
-        );
-        return data.data ?? null;
-      } catch {
-        return null;
-      }
-    };
-
-    const fetchWeatherByCity = async (city: string): Promise<WeatherByCoordsResponse | null> => {
-      try {
-        const { data } = await axiosInstance.get<ServerResponseType<WeatherByCoordsResponse>>(
-          USER_API_ROUTES.WEATHER,
-          {
-            params: { city },
-          },
-        );
-        return data.data ?? null;
-      } catch {
-        return null;
-      }
-    };
-
-    const loadWeather = async () => {
+    const loadWeatherData = async () => {
       const coords = userLocationStorage.getCoords();
       const city = userLocationStorage.getCity();
 
-      const weatherData =
-        (coords ? await fetchWeatherByCoords(coords.lat, coords.lon) : null) ||
-        (city ? await fetchWeatherByCity(city) : null);
+      if (!coords && !city) {
+        setWeatherText(t('dashboard.weather.enterCity'));
+        setWeatherTip(t('dashboard.weather.headerHint'));
+        return;
+      }
+
+      const weatherData = await fetchWeatherApi(coords ?? city ?? undefined);
 
       if (!weatherData) {
-        if (!coords && !city) {
-          setWeatherText(t('dashboard.weather.enterCity'));
-          setWeatherTip(t('dashboard.weather.headerHint'));
-          return;
-        }
-
         setWeatherText(t('dashboard.weather.loadFailed'));
         setWeatherTip(t('dashboard.weather.tryAgain'));
         return;
       }
 
-      try {
-        const weatherLine = `${weatherData.temperature}°C, ${weatherData.description}`;
-        setWeatherText(weatherLine);
-        setWeatherTip(t('dashboard.weather.feelsLike', { value: weatherData.feels_like }));
-      } catch {
-        setWeatherText(t('dashboard.weather.loadFailed'));
-        setWeatherTip(t('dashboard.weather.tryAgain'));
+      const weatherLine = `${weatherData.temperature}°C, ${weatherData.description}`;
+      setWeatherText(weatherLine);
+      setWeatherTip(t('dashboard.weather.feelsLike', { value: weatherData.feels_like }));
+    };
+
+    const loadDashboardData = async () => {
+      const [dashboardNumbers, dashboardSections] = await Promise.all([
+        loadDashboardNumbersApi(),
+        loadDashboardSectionsApi(),
+      ]);
+
+      if (dashboardNumbers) {
+        setDashboardNumbers(dashboardNumbers);
+      }
+      if (dashboardSections) {
+        setCategories(dashboardSections);
       }
     };
-    void loadWeather();
-    void loadDashboardNumbers();
-    void loadDashboardSections();
+
+    loadWeatherData();
+    loadDashboardData();
 
     const onUserLocationUpdated = () => {
-      void loadWeather();
+      loadWeatherData();
     };
 
     window.addEventListener(USER_LOCATION_UPDATED_EVENT, onUserLocationUpdated);
@@ -217,39 +148,13 @@ export default function DashboardPage() {
     [t, weatherText, weatherTip],
   );
 
-  const plans = useMemo(
-    () => [
-      {
-        id: 1,
-        date: t('dashboard.plans.items.today.date'),
-        title: t('dashboard.plans.items.today.title'),
-        outfit: t('dashboard.plans.items.today.outfit'),
-        color: '#8a6a4a',
-      },
-      {
-        id: 2,
-        date: t('dashboard.plans.items.tomorrow.date'),
-        title: t('dashboard.plans.items.tomorrow.title'),
-        outfit: t('dashboard.plans.items.tomorrow.outfit'),
-        color: '#10b981',
-      },
-      {
-        id: 3,
-        date: t('dashboard.plans.items.upcomingOne.date'),
-        title: t('dashboard.plans.items.upcomingOne.title'),
-        outfit: t('dashboard.plans.items.upcomingOne.outfit'),
-        color: '#f59e0b',
-      },
-      {
-        id: 4,
-        date: t('dashboard.plans.items.upcomingTwo.date'),
-        title: t('dashboard.plans.items.upcomingTwo.title'),
-        outfit: t('dashboard.plans.items.upcomingTwo.outfit'),
-        color: '#f43f5e',
-      },
-    ],
-    [t],
-  );
+  const { events } = useAppSelector((s) => s.events);
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(getAllEventsThunk());
+  }, [dispatch]);
+
+  console.log('events', events);
 
   const statsData = useMemo(
     () => [
@@ -287,34 +192,32 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.page}>
-      <main className={styles.main}>
-        <div className={styles.welcome}>
-          <h2 className={styles.welcomeTitle}>{t('dashboard.welcomeTitle')} 👋</h2>
-          <p className={styles.welcomeSubtitle}>{t('dashboard.welcomeSubtitle')}</p>
-        </div>
+      <div className={styles.welcome}>
+        <h1 className={clsx('pageTitle')}>{t('dashboard.welcomeTitle')} 👋</h1>
+        <p className={clsx('pageSubtitle')}>{t('dashboard.welcomeSubtitle')}</p>
+      </div>
 
-        <div className={styles.statsGrid}>
-          {statsData.map((stat) => (
-            <StatsCard key={stat.title} {...stat} />
-          ))}
-        </div>
+      <div className={styles.statsGrid}>
+        {statsData.map((stat) => (
+          <StatsCard key={stat.title} {...stat} />
+        ))}
+      </div>
 
-        <div className={styles.widgetsGrid}>
-          <div className={styles.widgetItem}>
-            <OutfitOfTheDay outfit={outfitWithWeather} />
-          </div>
-          <div className={styles.widgetItem}>
-            <CalendarPlans
-              plans={plans}
-              onAllPlans={navigateToEventsPageHandler}
-              onPlanClick={navigateToEventsPageHandler}
-            />
-          </div>
-          <div className={styles.widgetItem}>
-            <CategoryBreakdown categories={categories} />
-          </div>
+      <div className={styles.widgetsGrid}>
+        <div className={styles.widgetItem}>
+          <OutfitOfTheDay outfit={outfitWithWeather} />
         </div>
-      </main>
+        <div className={styles.widgetItem}>
+          <CalendarPlans
+            plans={events}
+            onAllPlans={navigateToEventsPageHandler}
+            onPlanClick={navigateToEventEditingEventsPageHandler}
+          />
+        </div>
+        <div className={styles.widgetItem}>
+          <CategoryBreakdown categories={categories} />
+        </div>
+      </div>
     </div>
   );
 }

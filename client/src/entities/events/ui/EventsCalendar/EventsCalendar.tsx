@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+
 import { useTranslation } from 'react-i18next';
 
 import { getDays, toDateStr } from '../../lib/calendar';
@@ -22,7 +23,9 @@ export function EventsCalendar({ selectedDate, eventsByDate, onSelectDate }: Pro
   const days = useMemo(() => getDays(viewYear, viewMonth), [viewYear, viewMonth]);
   const monthLabel = useMemo(
     () =>
-      new Intl.DateTimeFormat(i18n.language, { month: 'long' }).format(new Date(viewYear, viewMonth, 1)),
+      new Intl.DateTimeFormat(i18n.language, { month: 'long' }).format(
+        new Date(viewYear, viewMonth, 1),
+      ),
     [i18n.language, viewMonth, viewYear],
   );
   const weekdays = useMemo(() => {

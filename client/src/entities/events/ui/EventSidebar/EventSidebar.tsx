@@ -31,11 +31,12 @@ export function EventSidebar({
       day: 'numeric',
       month: 'long',
     });
+  console.log('selectedDate', selectedDate);
 
   return (
     <div className={styles.sidebar}>
       <span className={styles.sidebarTitle}>
-        {selectedDate} {isToday && `(${t('events.today')})`}
+        {selectedDayAndMonth} {isToday && `(${t('events.today')})`}
       </span>
 
       {isEmptyArr && <div className={styles.noEvents}>{t('events.noEventsForDate')}</div>}

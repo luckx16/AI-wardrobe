@@ -1,6 +1,9 @@
-import type { Category, Season } from '../../app/wardrobe/types';
-import { getCategoryLabel, getSeasonLabel } from '@/shared/lib/wardrobeI18n';
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
+
+import { getSeasonLabel } from '@/shared/lib/wardrobeI18n';
+
+import type { Category, Season } from '../../app/wardrobe/types';
 import styles from './WardrobeToolbar.module.css';
 
 type SortField = 'title' | 'season' | 'createdAt' | 'category';
@@ -54,10 +57,8 @@ const WardrobeToolbar = ({
     <div className={styles.root}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>{t('wardrobe.title')}</h1>
-          <p className={styles.count}>
-            {t('wardrobe.itemsCount', { count: totalCount })}
-          </p>
+          <h1 className={clsx('pageTitle')}>{t('wardrobe.title')}</h1>
+          <p className={clsx('pageSubtitle')}>{t('wardrobe.itemsCount', { count: totalCount })}</p>
         </div>
         {addButton}
       </div>

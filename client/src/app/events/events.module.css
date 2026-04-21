@@ -2,28 +2,17 @@
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  padding: 0 24px 48px;
+
+  margin: 0 auto;
+  max-width: var(--page-max-width);
+  padding: var(--page-padding);
 }
 
 .header {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 48px 0 32px;
+  padding-bottom: 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.title {
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
-}
-
-.subtitle {
-  font-size: 14px;
-  color: var(--muted);
-  margin-top: 4px;
 }
 
 .addButton {

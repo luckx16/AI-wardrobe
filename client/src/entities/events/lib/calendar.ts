@@ -15,7 +15,8 @@ export const MONTHS = [
   'Декабрь',
 ];
 
-export function toDateStr(d: Date): string {
+export function toDateStr(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
@@ -33,5 +34,3 @@ export function getDays(year: number, month: number): { date: Date; current: boo
   }
   return days;
 }
-
-

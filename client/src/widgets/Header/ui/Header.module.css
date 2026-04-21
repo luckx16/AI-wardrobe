@@ -7,16 +7,15 @@
   border-bottom: 1px solid var(--border, #e8e5e0);
   background: #fafaf8;
   overflow-y: hidden;
-}
-
-:global(:root) {
-  --header-h: 3rem;
+  height: var(--header-h);
 }
 
 .inner {
-  max-width: 64rem;
   margin: 0 auto;
-  padding: 0.2rem 1.25rem;
+  max-width: var(--page-max-width);
+  padding: var(--page-padding);
+  padding-block: 0;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -39,8 +38,8 @@
   height: 9.25rem;
   position: absolute;
   top: 50%;
-  left: 0.25rem;
-  transform: translate(-50%, -50%);
+  left: 0rem;
+  transform: translate(0, -50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;

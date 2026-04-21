@@ -2,21 +2,15 @@
 
 import { useTranslation } from 'react-i18next';
 
+import { IEvent } from '@/entities/events';
+
 import styles from './CalendarPlans.module.css';
 
-type Plan = {
-  id: string | number;
-  title: string;
-  date: string;
-  outfit: string;
-  color: string;
-};
-
 type CalendarPlansProps = {
-  plans: Plan[];
+  plans: IEvent[];
   onAllPlans: () => void;
   onCardClick?: () => void;
-  onPlanClick?: (plan: Plan) => void;
+  onPlanClick?: (plan: IEvent) => void;
   calendarIcon?: React.ReactNode;
   chevronIcon?: React.ReactNode;
 };
@@ -28,7 +22,7 @@ export function CalendarPlans({
   calendarIcon,
   chevronIcon,
 }: CalendarPlansProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   return (
     <div className={styles.card}>
@@ -39,28 +33,37 @@ export function CalendarPlans({
           </div>
           <h3 className={styles.title}>{t('dashboard.plans.title')}</h3>
         </div>
-        <button className={styles.allBtn} onClick={onAllPlans} type="button">
+        <button className={styles.allBtn} onClick={() => onAllPlans()} type="button">
           {t('dashboard.plans.all')}
         </button>
       </div>
 
       <div className={styles.list}>
-        {plans.map((plan) => (
-          <div key={plan.id} className={styles.plan} onClick={() => onPlanClick?.(plan)}>
-            <div className={styles.planBar} style={{ background: plan.color }} />
-            <div className={styles.planInfo}>
-              <div className={styles.planTop}>
-                <p className={styles.planTitle}>{plan.title}</p>
-                <span className={styles.planChevron}>{chevronIcon ?? '›'}</span>
-              </div>
-              <div className={styles.planMeta}>
-                <span className={styles.planDate}>{plan.date}</span>
-                <span className={styles.planDot}>•</span>
-                <span className={styles.planOutfit}>{plan.outfit}</span>
+        {plans.map((plan, ind) => {
+          const localeDate = new Date(plan.date).toLocaleDateString(i18n.language, {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          });
+          return (
+            <div key={plan.id} className={styles.plan} onClick={() => onPlanClick?.(plan)}>
+              <div
+                className={styles.planBar}
+                style={{ background: ind % 2 === 0 ? 'var(--accent)' : 'var(--success)' }}
+              />
+              <div className={styles.planInfo}>
+                <div className={styles.planTop}>
+                  <p className={styles.planTitle}>{plan.title}</p>
+                  <span className={styles.planChevron}>{chevronIcon ?? '›'}</span>
+                </div>
+                <div className={styles.planMeta}>
+                  <span className={styles.planDate}>{localeDate}</span>
+                  <span className={styles.planOutfit}>{plan.look.title}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

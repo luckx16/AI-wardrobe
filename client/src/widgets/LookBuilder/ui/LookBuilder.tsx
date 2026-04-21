@@ -53,10 +53,10 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
   return (
     <section className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>
+        <h1 className={clsx('pageTitle')}>
           {editedLook ? t('lookBuilder.edit') : t('lookBuilder.build')} {t('lookBuilder.titleTail')}
         </h1>
-        <p className={styles.subtitle}>{t('lookBuilder.subtitle')}</p>
+        <p className={clsx('pageSubtitle')}>{t('lookBuilder.subtitle')}</p>
       </header>
 
       <div className={styles.layout}>

@@ -2,14 +2,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { LocateFixed } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { refreshTokensThunk } from '@/entities/user/api/apiUserThunk';
-import { AppLanguage, supportedLngs } from '@/shared/i18n/config';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+import { AppLanguage, supportedLngs } from '@/shared/i18n/config';
 import {
   requestAndStoreUserLocation,
   setAndStoreUserCity,
