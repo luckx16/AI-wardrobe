@@ -42,9 +42,9 @@ const WardrobePage = () => {
     setItems((prev) => [item, ...prev]);
   }, []);
 
-  const handleDeleteItem = useCallback(async (id: string) => {
+  const handleDeleteItem = useCallback(async (id: number) => {
     try {
-      await removeClothesItem(id);
+      await removeClothesItem(id.toString());
 
       setItems((prev) => prev.filter((item) => item.id !== id));
     } catch (e) {

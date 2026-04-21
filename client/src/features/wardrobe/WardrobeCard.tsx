@@ -7,7 +7,7 @@ import styles from './WardrobeCard.module.css';
 interface WardrobeCardProps {
   item: WardrobeItem;
   index: number;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: number) => void;
   onEdit?: (id: string) => void;
   onClick?: () => void;
 }

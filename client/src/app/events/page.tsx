@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { EventModal, EventsCalendar, EventSidebar } from '@/entities/events';
+import { EVENT_MODAL_CONSTANTS, toDateStr } from '@/entities/events';
 import { deleteEventThunk, getAllEventsThunk } from '@/entities/events/api/eventsThunk';
-import { toDateStr } from '@/entities/events/lib/calendar';
-import { IEvent } from '@/entities/events/model/types';
+import { EventDataFromClient, IEvent } from '@/entities/events/model/types';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 
 import styles from './events.module.css';
 
@@ -16,10 +17,15 @@ export default function EventsPage() {
 
   const { events, isLoading } = useAppSelector((state) => state.events);
   const dispatch = useAppDispatch();
+  const { addQueryParams, deleteQueryParams, searchParams } = useCustomRouter();
 
   const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [editedEvent, setEditedEvent] = useState<IEvent | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+
+  const eventModalOpened = searchParams.get(EVENT_MODAL_CONSTANTS.IS_OPEN) === 'true';
+
+  const setEventModal = (isOpened: boolean) => {
+    addQueryParams({ [EVENT_MODAL_CONSTANTS.IS_OPEN]: isOpened.toString() });
+  };
 
   useEffect(() => {
     dispatch(getAllEventsThunk());
@@ -47,14 +53,22 @@ export default function EventsPage() {
     dispatch(deleteEventThunk(eventId));
   };
 
-  const openUpdateModalHandler = (event: IEvent) => {
-    setModalOpen(true);
-    setEditedEvent(event);
+  const openUpdateModalHandler = ({ id, title, activity_type, date, look_id }: IEvent) => {
+    addQueryParams({
+      title,
+      activity_type: activity_type ?? '',
+      date: date.slice(0, 10),
+      look_id,
+      [EVENT_MODAL_CONSTANTS.IN_EDIT_MODE_EVENT_ID]: id,
+      [EVENT_MODAL_CONSTANTS.IS_OPEN]: 'true',
+    } satisfies EventDataFromClient & {
+      look_id: string;
+    });
   };
 
   const closeModal = () => {
-    setModalOpen(false);
-    setEditedEvent(null);
+    setEventModal(false);
+    deleteQueryParams('clearAllQueryParams');
   };
 
   return (
@@ -64,7 +78,7 @@ export default function EventsPage() {
           <h1 className={styles.title}>Мои события</h1>
           <p className={styles.subtitle}>Планируй образы для каждого события</p>
         </div>
-        <button className={styles.addButton} onClick={() => setModalOpen(true)}>
+        <button className={styles.addButton} onClick={() => setEventModal(true)}>
           + Новое событие
         </button>
       </div>
@@ -84,9 +98,7 @@ export default function EventsPage() {
         />
       </div>
 
-      {modalOpen && (
-        <EventModal editedEvent={editedEvent} initialDate={selectedDate} onClose={closeModal} />
-      )}
+      {eventModalOpened && <EventModal initialDate={selectedDate} onClose={closeModal} />}
     </div>
   );
 }

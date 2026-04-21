@@ -6,8 +6,24 @@ import { ReduxProvider } from '@/app/providers/ReduxProvider';
 import { Footer, Header } from '@/widgets';
 
 export const metadata: Metadata = {
-  title: 'Next.js Blog',
-  description: 'Next.js Blog',
+  title: 'AI Wardrobe',
+  description: 'Персональный AI-стилист для создания идеального гардероба',
+  icons: [
+    {
+      rel: 'icon',
+      url: '/favicon/favicon.png',
+      type: 'image/png',
+    },
+    {
+      rel: 'shortcut icon',
+      url: '/favicon/favicon.png',
+      type: 'image/png',
+    },
+    {
+      rel: 'apple-touch-icon',
+      url: '/favicon/favicon.png',
+    },
+  ],
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
