@@ -16,21 +16,26 @@ import {
 } from './components/dialog';
 
 const seasons: Season[] = ['зима', 'весна', 'лето', 'осень', 'всесезон'];
-const categories: Category[] = [
-  'футболка',
-  'рубашка',
-  'платье',
-  'брюки',
-  'юбка',
-  'пальто',
-  'куртка',
-  'свитер',
-  'худи',
-  'шорты',
-  'обувь',
-  'аксессуары',
-  'другое',
+
+const categoryOptions: Array<{ value: Category; label: string }> = [
+  { value: 'headwear', label: 'Головные уборы' },
+  { value: 'top', label: 'Верх' },
+  { value: 'accessory', label: 'Аксессуары' },
+  { value: 'bags', label: 'Сумки' },
+  { value: 'bottom', label: 'Низ' },
+  { value: 'shoes', label: 'Обувь' },
+  { value: 'other', label: 'Другое' },
 ];
+
+const categoryToBackendCategory: Record<Category, string> = {
+  headwear: 'шапка',
+  top: 'футболка',
+  accessory: 'аксессуары',
+  bags: 'сумка',
+  bottom: 'брюки',
+  shoes: 'обувь',
+  other: 'другое',
+};
 
 interface AddItemDialogProps {
   onAdd: (item: WardrobeItem) => void;
@@ -39,11 +44,10 @@ interface AddItemDialogProps {
 const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<Category>('футболка');
+  const [category, setCategory] = useState<Category>('top');
   const [season, setSeason] = useState<Season>('всесезон');
-  const [brand, setBrand] = useState('H&M');
-  const [material, setMaterial] = useState('хлопок');
-
+  const [brand, setBrand] = useState('');
+  const [material, setMaterial] = useState('');
   const [color, setColor] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -51,10 +55,11 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
 
   const reset = () => {
     setName('');
-    setCategory('футболка');
+    setCategory('top');
     setSeason('всесезон');
+    setBrand('');
+    setMaterial('');
     setColor('');
-
     setImagePreview(null);
     setImageFile(null);
   };
@@ -75,7 +80,7 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
         {
           title: name,
           brand: brand,
-          category: category,
+          category: categoryToBackendCategory[category],
           material: material,
           color: color,
           season: season,
@@ -171,9 +176,9 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
                 onChange={(e) => setCategory(e.target.value as Category)}
                 className={styles.select}
               >
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {categoryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>

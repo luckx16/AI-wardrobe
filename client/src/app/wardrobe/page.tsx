@@ -16,6 +16,78 @@ import styles from './WardrobePage.module.css';
 
 type SortField = 'title' | 'season' | 'createdAt' | 'category';
 
+const categoryAliasToSection: Record<string, Category> = {
+  футболка: 'top',
+  поло: 'top',
+  топ: 'top',
+  рубашка: 'top',
+  блузка: 'top',
+  кофта: 'top',
+  куртка: 'top',
+  пальто: 'top',
+  пиджак: 'top',
+  тренч: 'top',
+  пуховик: 'top',
+  ветровка: 'top',
+  жилет: 'top',
+  свитер: 'top',
+  джемпер: 'top',
+  кардиган: 'top',
+  худи: 'top',
+  толстовка: 'top',
+  платье: 'other',
+  сарафан: 'other',
+  комбинезон: 'other',
+  брюки: 'bottom',
+  джинсы: 'bottom',
+  леггинсы: 'bottom',
+  юбка: 'bottom',
+  'мини-юбка': 'bottom',
+  шорты: 'bottom',
+  бермуды: 'bottom',
+  кепка: 'headwear',
+  шапка: 'headwear',
+  шляпа: 'headwear',
+  кроссовки: 'shoes',
+  кеды: 'shoes',
+  ботинки: 'shoes',
+  сапоги: 'shoes',
+  туфли: 'shoes',
+  сандалии: 'shoes',
+  обувь: 'shoes',
+  сумка: 'bags',
+  рюкзак: 'bags',
+  галстук: 'accessory',
+  ремень: 'accessory',
+  шарф: 'accessory',
+  перчатки: 'accessory',
+  аксессуары: 'accessory',
+  носки: 'accessory',
+  'нижнее бельё': 'other',
+  купальник: 'other',
+  'спортивная одежда': 'other',
+  'домашняя одежда': 'other',
+  другое: 'other',
+};
+
+const sectionCategories = new Set<Category>([
+  'headwear',
+  'top',
+  'accessory',
+  'bags',
+  'bottom',
+  'shoes',
+  'other',
+]);
+
+const normalizeItemCategory = (item: WardrobeItem): Category => {
+  const rawCategory = item.category?.toLowerCase();
+  if (rawCategory && sectionCategories.has(rawCategory as Category)) {
+    return rawCategory as Category;
+  }
+  return categoryAliasToSection[rawCategory ?? ''] ?? 'other';
+};
+
 const WardrobePage = () => {
   const [items, setItems] = useState<WardrobeItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +168,7 @@ const WardrobePage = () => {
       result = result.filter((i) => i.season === filterSeason);
     }
     if (filterCategory !== 'all') {
-      result = result.filter((i) => i.category === filterCategory);
+      result = result.filter((i) => normalizeItemCategory(i) === filterCategory);
     }
 
     result.sort((a: WardrobeItem, b: WardrobeItem) => {
