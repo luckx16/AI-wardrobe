@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import AddItemDialog from '../../features/wardrobe/AddItemDialog';
-import { getAll, removeClothesItem } from '../../features/wardrobe/api/wardrobeApi';
+import {
+  getAll,
+  getClothProcessingStatus,
+  removeClothesItem,
+} from '../../features/wardrobe/api/wardrobeApi';
 import ItemDetailDialog from '../../features/wardrobe/ItemDetailDialog';
 import WardrobeCard from '../../features/wardrobe/WardrobeCard';
 import WardrobeToolbar from '../../features/wardrobe/WardrobeToolbar';
@@ -35,6 +39,41 @@ const WardrobePage = () => {
 
     load();
   }, []);
+
+  useEffect(() => {
+    const processingItems = items.filter(
+      (item) => item.processing_status === 'pending' || item.processing_status === 'processing',
+    );
+    if (!processingItems.length) return;
+
+    const intervalId = window.setInterval(() => {
+      void Promise.all(
+        processingItems.map(async (item) => {
+          try {
+            const statusData = await getClothProcessingStatus(String(item.id));
+            setItems((prev) =>
+              prev.map((prevItem) =>
+                prevItem.id === item.id
+                  ? {
+                      ...prevItem,
+                      processing_status: statusData.processingStatus,
+                      image:
+                        statusData.imageUrl && statusData.processingStatus === 'completed'
+                          ? `http://localhost:4000${statusData.imageUrl}`
+                          : prevItem.image,
+                    }
+                  : prevItem,
+              ),
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }),
+      );
+    }, 2500);
+
+    return () => window.clearInterval(intervalId);
+  }, [items]);
 
   const handleAddItem = useCallback((item: WardrobeItem) => {
     setItems((prev) => [item, ...prev]);

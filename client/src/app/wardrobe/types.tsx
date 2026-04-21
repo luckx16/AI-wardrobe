@@ -6,6 +6,7 @@ export type Category =
   | 'брюки'
   | 'юбка'
   | 'куртка'
+  | 'пальто'
   | 'свитер'
   | 'худи'
   | 'шорты'
@@ -20,5 +21,6 @@ export interface WardrobeItem {
   season: Season;
   color: string;
   image: string;
+  processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: string;
 }
