@@ -9,6 +9,7 @@ import { deleteEventThunk, getAllEventsThunk } from '@/entities/events/api/event
 import { EventDataFromClient, IEvent } from '@/entities/events/model/types';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
+import { useToast } from '@/shared/ui';
 
 import styles from './events.module.css';
 
@@ -17,6 +18,7 @@ export default function EventsPage() {
   const today = new Date();
   const todayStr = toDateStr(today);
 
+  const { toast } = useToast();
   const { events, isLoading } = useAppSelector((state) => state.events);
   const dispatch = useAppDispatch();
   const { addQueryParams, deleteQueryParams, searchParams } = useCustomRouter();
@@ -51,8 +53,13 @@ export default function EventsPage() {
 
   const eventsOfSelectedDateArr = eventsByDateObj[selectedDate] ?? [];
 
-  const deleteEventHandler = (eventId: string) => {
-    dispatch(deleteEventThunk(eventId));
+  const deleteEventHandler = async (eventId: string) => {
+    try {
+      await dispatch(deleteEventThunk(eventId)).unwrap();
+      toast({ variant: 'success', title: 'Событие удалено' });
+    } catch {
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить событие' });
+    }
   };
 
   const openUpdateModalHandler = ({ id, title, activity_type, date, look_id }: IEvent) => {

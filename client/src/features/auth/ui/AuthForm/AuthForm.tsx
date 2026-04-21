@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Eye, EyeOff } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -14,6 +14,7 @@ import { signInThunk, signUpThunk } from '@/entities/user/api/apiUserThunk';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch';
 import { requestAndStoreUserLocation } from '@/shared/lib/userLocation';
+import { useToast } from '@/shared/ui';
 
 import styles from './AuthForm.module.css';
 
@@ -25,6 +26,7 @@ export function AuthForm(): React.JSX.Element {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   const activeTab = searchParams.get('tab') === 'sign-up' ? 'sign-up' : 'sign-in';
   const [showSignInPassword, setShowSignInPassword] = React.useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = React.useState(false);
@@ -89,7 +91,9 @@ export function AuthForm(): React.JSX.Element {
       await dispatch(signInThunk(values)).unwrap();
       await requestAndStoreUserLocation().catch(() => null);
       router.push(CLIENT_ROUTES.DASHBOARD);
-    } catch (_error) {}
+    } catch (_error) {
+      toast({ variant: 'error', title: 'Ошибка входа', description: 'Неверный email или пароль' });
+    }
   });
 
   const onSubmitSignUp = handleSignUpSubmit(async ({ name, email, password }) => {
@@ -97,7 +101,13 @@ export function AuthForm(): React.JSX.Element {
       await dispatch(signUpThunk({ name, email, password })).unwrap();
       await requestAndStoreUserLocation().catch(() => null);
       router.push(CLIENT_ROUTES.DASHBOARD);
-    } catch (_error) {}
+    } catch (_error) {
+      toast({
+        variant: 'error',
+        title: 'Ошибка регистрации',
+        description: 'Не удалось создать аккаунт',
+      });
+    }
   });
 
   return (
@@ -141,7 +151,9 @@ export function AuthForm(): React.JSX.Element {
               placeholder="you@example.com"
               {...registerSignIn('email')}
             />
-            {signInErrors.email ? <p className={styles.errorText}>{signInErrors.email.message}</p> : null}
+            {signInErrors.email ? (
+              <p className={styles.errorText}>{signInErrors.email.message}</p>
+            ) : null}
 
             <label className={styles.label} htmlFor="auth-signin-password">
               {t('auth.password')}
@@ -166,7 +178,9 @@ export function AuthForm(): React.JSX.Element {
                 {showSignInPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {signInErrors.password ? <p className={styles.errorText}>{signInErrors.password.message}</p> : null}
+            {signInErrors.password ? (
+              <p className={styles.errorText}>{signInErrors.password.message}</p>
+            ) : null}
 
             <button className={styles.submitButton} type="submit" disabled={isSignInSubmitting}>
               {isSignInSubmitting ? t('auth.signingIn') : t('auth.signIn')}
@@ -190,7 +204,9 @@ export function AuthForm(): React.JSX.Element {
               placeholder={t('auth.yourName')}
               {...registerSignUp('name')}
             />
-            {signUpErrors.name ? <p className={styles.errorText}>{signUpErrors.name.message}</p> : null}
+            {signUpErrors.name ? (
+              <p className={styles.errorText}>{signUpErrors.name.message}</p>
+            ) : null}
 
             <label className={styles.label} htmlFor="auth-signup-email">
               Email
@@ -203,7 +219,9 @@ export function AuthForm(): React.JSX.Element {
               placeholder="you@example.com"
               {...registerSignUp('email')}
             />
-            {signUpErrors.email ? <p className={styles.errorText}>{signUpErrors.email.message}</p> : null}
+            {signUpErrors.email ? (
+              <p className={styles.errorText}>{signUpErrors.email.message}</p>
+            ) : null}
 
             <label className={styles.label} htmlFor="auth-signup-password">
               {t('auth.password')}
@@ -228,7 +246,9 @@ export function AuthForm(): React.JSX.Element {
                 {showSignUpPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {signUpErrors.password ? <p className={styles.errorText}>{signUpErrors.password.message}</p> : null}
+            {signUpErrors.password ? (
+              <p className={styles.errorText}>{signUpErrors.password.message}</p>
+            ) : null}
 
             <label className={styles.label} htmlFor="auth-signup-confirm">
               {t('auth.confirmPassword')}

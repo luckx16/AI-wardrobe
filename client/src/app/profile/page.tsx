@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/shared/hooks';
 import type { ProfileDto } from '@/shared/lib/profileApi';
 import { getProfile, upsertProfile } from '@/shared/lib/profileApi';
-import { SidebarNav } from '@/shared/ui';
+import { SidebarNav, useToast } from '@/shared/ui';
 
 import styles from './profilePage.module.css';
 import { AppearanceAnalysis } from './ui/AppearanceAnalysis/AppearanceAnalysis';
@@ -91,6 +91,7 @@ function formFromDto(dto: ProfileDto): ProfileFormState {
 export default function ProfilePage(): React.JSX.Element {
   const { t } = useTranslation();
   // Имя берём из стора, но даём редактировать локально (пока без сохранения на сервер).
+  const { toast } = useToast();
   const user = useAppSelector((state) => state.user.user);
   const [displayName, setDisplayName] = useState<string>(user?.name ?? '');
 
@@ -306,8 +307,10 @@ export default function ProfilePage(): React.JSX.Element {
                   const next = formFromDto(dto);
                   setForm(next);
                   setLastLoaded(next);
+                  toast({ variant: 'success', title: 'Профиль сохранён' });
                 } catch {
-                  setError(t('profile.errors.saveFailed'));
+                  toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось сохранить профиль' });
+                  setError('Не удалось сохранить профиль');
                 } finally {
                   setIsSaving(false);
                 }
