@@ -1,8 +1,10 @@
 'use client';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { CalendarDays, Palette, Sun, Tag } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import type { WardrobeItem } from '../../app/wardrobe/types';
+import { getCategoryLabel, getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 import { Dialog, DialogContent } from './components/dialog';
 import styles from './ItemDetailDialog.module.css';
 
@@ -33,9 +35,10 @@ const InfoRow = ({
 );
 
 const ItemDetailDialog = ({ item, open, onOpenChange }: ItemDetailDialogProps) => {
+  const { t, i18n } = useTranslation();
   if (!item) return null;
 
-  const dateFormatted = new Date(item.createdAt).toLocaleDateString('ru-RU', {
+  const dateFormatted = new Date(item.createdAt).toLocaleDateString(i18n.language, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -50,10 +53,14 @@ const ItemDetailDialog = ({ item, open, onOpenChange }: ItemDetailDialogProps) =
         </div>
         <div className={styles.body}>
           <div className={styles.infoGrid}>
-            <InfoRow icon={Tag} label="Категория" value={item.category} />
-            <InfoRow icon={Sun} label="Сезон" value={item.season} />
-            <InfoRow icon={Palette} label="Цвет" value={item.color} />
-            <InfoRow icon={CalendarDays} label="Добавлено" value={dateFormatted} />
+            <InfoRow
+              icon={Tag}
+              label={t('wardrobe.category')}
+              value={getCategoryLabel(item.category, t)}
+            />
+            <InfoRow icon={Sun} label={t('wardrobe.season')} value={getSeasonLabel(item.season, t)} />
+            <InfoRow icon={Palette} label={t('wardrobe.color')} value={item.color} />
+            <InfoRow icon={CalendarDays} label={t('wardrobe.added')} value={dateFormatted} />
           </div>
         </div>
       </DialogContent>

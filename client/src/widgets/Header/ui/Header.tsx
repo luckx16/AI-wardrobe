@@ -2,10 +2,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { LocateFixed } from 'lucide-react';
 
 import { refreshTokensThunk } from '@/entities/user/api/apiUserThunk';
+import { AppLanguage, supportedLngs } from '@/shared/i18n/config';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import {
@@ -17,6 +19,7 @@ import {
 import styles from './Header.module.css';
 
 export function Header() {
+  const { t, i18n } = useTranslation();
   const { user } = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
   const [city, setCity] = useState<string | null>(null);
@@ -69,7 +72,7 @@ export function Header() {
   const saveCityHandler = async () => {
     const normalizedCity = cityInput.trim();
     if (!normalizedCity) {
-      setCityError('Введите название города');
+      setCityError(t('header.saveCityError'));
       return;
     }
 
@@ -80,7 +83,7 @@ export function Header() {
       setCity(location.city);
       closeCityModal();
     } catch {
-      setCityError('Не удалось обновить город. Попробуйте еще раз');
+      setCityError(t('header.saveCityFail'));
     } finally {
       setIsSavingCity(false);
     }
@@ -95,7 +98,7 @@ export function Header() {
         setCity(location.city);
       }
     } catch {
-      setCityError('Не удалось обновить геолокацию. Проверьте доступ к местоположению');
+      setCityError(t('header.geolocationFail'));
     } finally {
       setIsRefreshingLocation(false);
     }
@@ -104,7 +107,7 @@ export function Header() {
   return (
     <nav className={styles.nav}>
       <div className={styles.inner}>
-        <Link href={CLIENT_ROUTES.HOME} className={styles.brand} aria-label="На главную">
+        <Link href={CLIENT_ROUTES.HOME} className={styles.brand} aria-label={t('header.home')}>
           <span className={styles.brandLogoWrap}>
             <Image
               src="/logo/New_Logo.png"
@@ -124,7 +127,7 @@ export function Header() {
                   type="button"
                   className={styles.cityBadgeButton}
                   onClick={openCityModal}
-                  aria-label="Изменить текущий город"
+                  aria-label={t('header.editCity')}
                 >
                   {city}
                 </button>
@@ -133,8 +136,8 @@ export function Header() {
                   className={styles.locationRefreshButton}
                   onClick={refreshUserLocationHandler}
                   disabled={isRefreshingLocation}
-                  aria-label="Обновить геолокацию"
-                  title="Определить город автоматически"
+                  aria-label={t('header.detectCityAutomatically')}
+                  title={t('header.detectCityAutomatically')}
                 >
                   <LocateFixed size={14} aria-hidden />
                 </button>
@@ -145,43 +148,43 @@ export function Header() {
             <>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.DASHBOARD}>
-                  Дашборд
+                  {t('header.dashboard')}
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.EVENTS}>
-                  События
+                  {t('header.events')}
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.WARDROBE}>
-                  Мой гардероб
+                  {t('header.wardrobe')}
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.LOOK_BUILDER()}>
-                  Сборщик образов
+                  {t('header.lookBuilder')}
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.AI}>
-                  ИИ-чат
+                  {t('header.chat')}
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.LOOKS}>
-                  Образы
+                  {t('header.looks')}
                 </Link>
               </li>
 
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.PROFILE}>
-                  Профиль
+                  {t('header.profile')}
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.SIGN_OUT}>
-                  Выйти
+                  {t('header.signOut')}
                 </Link>
               </li>
             </>
@@ -189,21 +192,35 @@ export function Header() {
             <>
               <li>
                 <Link className={styles.link} href={CLIENT_ROUTES.HOME}>
-                  Главная
+                  {t('header.home')}
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={`${CLIENT_ROUTES.AUTH}?tab=sign-up`}>
-                  Регистрация
+                  {t('header.signUp')}
                 </Link>
               </li>
               <li>
                 <Link className={styles.link} href={`${CLIENT_ROUTES.AUTH}?tab=sign-in`}>
-                  Вход
+                  {t('header.signIn')}
                 </Link>
               </li>
             </>
           )}
+          <li>
+            <select
+              className={styles.languageSelect}
+              value={i18n.language}
+              onChange={(event) => void i18n.changeLanguage(event.target.value as AppLanguage)}
+              aria-label="Language"
+            >
+              {supportedLngs.map((lang) => (
+                <option key={lang} value={lang}>
+                  {t(`lang.${lang}`)}
+                </option>
+              ))}
+            </select>
+          </li>
         </ul>
       </div>
       {cityError && !isCityModalOpen ? <p className={styles.inlineCityError}>{cityError}</p> : null}
@@ -217,14 +234,14 @@ export function Header() {
             onClick={(event) => event.stopPropagation()}
           >
             <h3 id="city-modal-title" className={styles.cityModalTitle}>
-              Изменить город
+              {t('header.editCity')}
             </h3>
             <input
               type="text"
               className={styles.cityInput}
               value={cityInput}
               onChange={(event) => setCityInput(event.target.value)}
-              placeholder="Введите ваш город"
+              placeholder={t('header.enterCity')}
               autoFocus
             />
             {cityError ? <p className={styles.cityError}>{cityError}</p> : null}
@@ -234,7 +251,7 @@ export function Header() {
                 className={styles.cityModalButtonSecondary}
                 onClick={closeCityModal}
               >
-                Отмена
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -242,7 +259,7 @@ export function Header() {
                 onClick={saveCityHandler}
                 disabled={isSavingCity}
               >
-                {isSavingCity ? 'Сохранение...' : 'Сохранить'}
+                {isSavingCity ? `${t('common.save')}...` : t('common.save')}
               </button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import AddItemDialog from '../../features/wardrobe/AddItemDialog';
 import { getAll, removeClothesItem } from '../../features/wardrobe/api/wardrobeApi';
@@ -13,6 +14,7 @@ import styles from './WardrobePage.module.css';
 type SortField = 'title' | 'season' | 'createdAt' | 'category';
 
 const WardrobePage = () => {
+  const { t } = useTranslation();
   const [items, setItems] = useState<WardrobeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortField>('title');
@@ -87,8 +89,8 @@ const WardrobePage = () => {
 
         {filtered.length === 0 ? (
           <div className={styles.emptyState}>
-            <p className={styles.emptyTitle}>Ничего не найдено</p>
-            <p className={styles.emptyText}>Попробуйте изменить фильтры</p>
+            <p className={styles.emptyTitle}>{t('wardrobe.emptyTitle')}</p>
+            <p className={styles.emptyText}>{t('wardrobe.emptyText')}</p>
           </div>
         ) : (
           <div className={styles.grid}>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { EventModal, EventsCalendar, EventSidebar } from '@/entities/events';
 import { EVENT_MODAL_CONSTANTS, toDateStr } from '@/entities/events';
@@ -12,6 +13,7 @@ import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 import styles from './events.module.css';
 
 export default function EventsPage() {
+  const { t } = useTranslation();
   const today = new Date();
   const todayStr = toDateStr(today);
 
@@ -75,11 +77,11 @@ export default function EventsPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Мои события</h1>
-          <p className={styles.subtitle}>Планируй образы для каждого события</p>
+          <h1 className={styles.title}>{t('events.title')}</h1>
+          <p className={styles.subtitle}>{t('events.subtitle')}</p>
         </div>
         <button className={styles.addButton} onClick={() => setEventModal(true)}>
-          + Новое событие
+          {t('events.new')}
         </button>
       </div>
 

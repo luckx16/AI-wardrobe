@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
-import { getDays, MONTHS, toDateStr, WEEKDAYS } from '../../lib/calendar';
+import { getDays, toDateStr } from '../../lib/calendar';
 import { IEvent } from '../../model/types';
 import styles from './EventsCalendar.module.css';
 
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function EventsCalendar({ selectedDate, eventsByDate, onSelectDate }: Props) {
+  const { i18n } = useTranslation();
   const today = new Date();
   const todayStr = toDateStr(today);
 
@@ -18,6 +20,20 @@ export function EventsCalendar({ selectedDate, eventsByDate, onSelectDate }: Pro
   const [viewMonth, setViewMonth] = useState(today.getMonth());
 
   const days = useMemo(() => getDays(viewYear, viewMonth), [viewYear, viewMonth]);
+  const monthLabel = useMemo(
+    () =>
+      new Intl.DateTimeFormat(i18n.language, { month: 'long' }).format(new Date(viewYear, viewMonth, 1)),
+    [i18n.language, viewMonth, viewYear],
+  );
+  const weekdays = useMemo(() => {
+    // Monday-first labels
+    const monday = new Date(Date.UTC(2024, 0, 1));
+    return Array.from({ length: 7 }, (_, idx) =>
+      new Intl.DateTimeFormat(i18n.language, { weekday: 'short' }).format(
+        new Date(monday.getTime() + idx * 24 * 60 * 60 * 1000),
+      ),
+    );
+  }, [i18n.language]);
 
   function prevMonth() {
     if (viewMonth === 0) {
@@ -44,7 +60,7 @@ export function EventsCalendar({ selectedDate, eventsByDate, onSelectDate }: Pro
           ←
         </button>
         <span className={styles.calendarMonth}>
-          {MONTHS[viewMonth]} {viewYear}
+          {monthLabel} {viewYear}
         </span>
         <button className={styles.navBtn} onClick={nextMonth}>
           →
@@ -52,7 +68,7 @@ export function EventsCalendar({ selectedDate, eventsByDate, onSelectDate }: Pro
       </div>
 
       <div className={styles.weekdays}>
-        {WEEKDAYS.map((d) => (
+        {weekdays.map((d) => (
           <span key={d}>{d}</span>
         ))}
       </div>
