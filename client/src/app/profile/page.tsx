@@ -53,7 +53,10 @@ function numOrNull(raw: string): number | null {
 
 function toChipArray(value: unknown): Chip[] {
   const strings = asStringArray(value);
-  return strings.map((text) => ({ id: `srv-${text}-${Math.random().toString(16).slice(2)}`, text }));
+  return strings.map((text) => ({
+    id: `srv-${text}-${Math.random().toString(16).slice(2)}`,
+    text,
+  }));
 }
 
 function chipTexts(chips: Chip[]): string[] {
@@ -208,7 +211,9 @@ export default function ProfilePage(): React.JSX.Element {
                 name={displayName}
                 onNameChange={setDisplayName}
                 portraitPhoto={form.portraitPhoto}
-                onPortraitPhotoChange={(next) => setForm((prev) => ({ ...prev, portraitPhoto: next }))}
+                onPortraitPhotoChange={(next) =>
+                  setForm((prev) => ({ ...prev, portraitPhoto: next }))
+                }
               />
             </section>
             <section id="appearance" className={styles.anchorSection} aria-label="Анализ внешности">
@@ -237,7 +242,9 @@ export default function ProfilePage(): React.JSX.Element {
                     ...(field === 'hipsCm' ? { hipsCm: value } : {}),
                     ...(field === 'heightCm' ? { heightCm: value } : {}),
                     ...(field === 'footCm' ? { footCm: value } : {}),
-                    ...(field === 'legRatio' ? { legRatio: (value || null) as LegRatio | null } : {}),
+                    ...(field === 'legRatio'
+                      ? { legRatio: (value || null) as LegRatio | null }
+                      : {}),
                   }))
                 }
               />
