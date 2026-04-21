@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 
 import { AxiosError } from 'axios';
 
-import { LookCard } from '@/app/looks/ui/LookCard/LookCard';
 import { type Message, MessageBubble } from '@/entities/message';
 import {
   type ClientChat,
@@ -20,6 +19,7 @@ import { useAppSelector } from '@/shared/hooks';
 import { makeUniqueTitle } from '@/shared/lib/makeUniqueTitle';
 import { TrashIcon } from '@/shared/ui';
 import { ChatHeader } from '@/widgets';
+import { LookCard } from '@/widgets/LookCard';
 
 import styles from './ChatWidget.module.css';
 
