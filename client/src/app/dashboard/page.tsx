@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Eye, Palette, Shirt, TrendingUp } from 'lucide-react';
 
@@ -16,41 +17,6 @@ import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
 
 import styles from './dashboard.module.css';
 
-const MOCK_STATS_DATA = [
-  {
-    title: 'Всего вещей',
-    value: 69,
-    icon: Shirt,
-    subtitle: 'в гардеробе',
-    trend: { value: 5, label: 'за месяц' },
-  },
-  {
-    title: 'Образов',
-    value: 12,
-    icon: Palette,
-    subtitle: 'сохранено',
-    trend: { value: 20, label: 'за месяц' },
-  },
-  { title: 'Носилось', value: 43, icon: Eye, subtitle: 'за 30 дней' },
-  {
-    title: 'Не носилось',
-    value: 26,
-    icon: TrendingUp,
-    subtitle: 'более 60 дней',
-    trend: { value: -8, label: 'vs прошлый' },
-  },
-];
-
-const MOCK_OUTFIT = {
-  weather: 'Погода не определена',
-  items: [
-    { id: 12, name: 'Синие джинсы', category: 'Низ', emoji: '👖' },
-    { id: 45, name: 'Белая худи', category: 'Верх', emoji: '🧥' },
-    { id: 7, name: 'Бежевый тренч', category: 'Верхняя одежда', emoji: '🧥' },
-    { id: 23, name: 'Белые кроссовки', category: 'Обувь', emoji: '👟' },
-  ],
-  tip: 'Подберите образ с учетом температуры и осадков',
-};
 
 type WeatherByCoordsResponse = {
   temperature: string;
@@ -59,63 +25,40 @@ type WeatherByCoordsResponse = {
   location?: string;
 };
 
-const WEATHER_DESCRIPTION_RU_MAP: Record<string, string> = {
-  Sunny: 'Солнечно',
-  Clear: 'Ясно',
-  'Partly cloudy': 'Переменная облачность',
-  Cloudy: 'Облачно',
-  Overcast: 'Пасмурно',
-  Mist: 'Легкий туман',
-  Fog: 'Туман',
-  'Freezing fog': 'Ледяной туман',
-  'Patchy rain possible': 'Местами возможен дождь',
-  'Patchy light drizzle': 'Местами слабая морось',
-  'Light drizzle': 'Слабая морось',
-  'Light rain': 'Небольшой дождь',
-  'Moderate rain': 'Умеренный дождь',
-  'Heavy rain': 'Сильный дождь',
-  'Patchy light rain': 'Местами небольшой дождь',
-  'Patchy moderate rain': 'Местами умеренный дождь',
-  'Patchy heavy rain': 'Местами сильный дождь',
-  'Rain shower': 'Ливень',
-  'Patchy snow possible': 'Местами возможен снег',
-  'Light snow': 'Небольшой снег',
-  'Moderate snow': 'Умеренный снег',
-  'Heavy snow': 'Сильный снег',
-  'Patchy sleet possible': 'Местами возможен мокрый снег',
-  'Light sleet': 'Небольшой мокрый снег',
-  'Moderate or heavy sleet': 'Умеренный или сильный мокрый снег',
-  'Patchy freezing drizzle possible': 'Местами возможна ледяная морось',
-  'Freezing drizzle': 'Ледяная морось',
-  'Thundery outbreaks possible': 'Возможна гроза',
-  'Patchy light rain with thunder': 'Местами небольшой дождь с грозой',
-  'Moderate or heavy rain with thunder': 'Умеренный или сильный дождь с грозой',
-};
-
-const toRussianWeatherDescription = (description: string): string => {
-  const normalized = description.trim();
-  return WEATHER_DESCRIPTION_RU_MAP[normalized] ?? normalized;
-};
-
-const MOCK_PLANS = [
-  { id: 1, date: 'Сегодня', title: 'Деловая встреча', outfit: 'Офисный стиль', color: '#8a6a4a' },
-  { id: 2, date: 'Завтра', title: 'Ужин с друзьями', outfit: 'Casual вечерний', color: '#10b981' },
-  { id: 3, date: 'Ср, 16 апр', title: 'Презентация', outfit: 'Формальный', color: '#f59e0b' },
-  { id: 4, date: 'Пт, 18 апр', title: 'Прогулка', outfit: 'Спортивный', color: '#f43f5e' },
-];
-
-const MOCK_CATEGORIES = [
-  { name: 'Верх', count: 24, percentage: 35, emoji: '👕' },
-  { name: 'Низ', count: 16, percentage: 23, emoji: '👖' },
-  { name: 'Обувь', count: 12, percentage: 17, emoji: '👟' },
-  { name: 'Верхняя одежда', count: 8, percentage: 12, emoji: '🧥' },
-  { name: 'Аксессуары', count: 9, percentage: 13, emoji: '🎒' },
-];
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const router = useRouter();
-  const [weatherText, setWeatherText] = useState<string>(MOCK_OUTFIT.weather);
-  const [weatherTip, setWeatherTip] = useState<string>(MOCK_OUTFIT.tip);
+  const [weatherText, setWeatherText] = useState<string>(t('dashboard.weather.undefined'));
+  const [weatherTip, setWeatherTip] = useState<string>(t('dashboard.weather.tipDefault'));
+
+  const statsData = useMemo(
+    () => [
+      {
+        title: t('dashboard.stats.totalItems.title'),
+        value: 69,
+        icon: Shirt,
+        subtitle: t('dashboard.stats.totalItems.subtitle'),
+        trend: { value: 5, label: t('dashboard.stats.totalItems.trend') },
+      },
+      {
+        title: t('dashboard.stats.looks.title'),
+        value: 12,
+        icon: Palette,
+        subtitle: t('dashboard.stats.looks.subtitle'),
+        trend: { value: 20, label: t('dashboard.stats.looks.trend') },
+      },
+      { title: t('dashboard.stats.worn.title'), value: 43, icon: Eye, subtitle: t('dashboard.stats.worn.subtitle') },
+      {
+        title: t('dashboard.stats.notWorn.title'),
+        value: 26,
+        icon: TrendingUp,
+        subtitle: t('dashboard.stats.notWorn.subtitle'),
+        trend: { value: -8, label: t('dashboard.stats.notWorn.trend') },
+      },
+    ],
+    [t],
+  );
 
   const navigateToEventsPageHandler = () => {
     router.push(CLIENT_ROUTES.EVENTS);
@@ -163,26 +106,25 @@ export default function DashboardPage() {
 
       if (!weatherData) {
         if (!coords && !city) {
-          setWeatherText('Введите город, чтобы увидеть погоду');
-          setWeatherTip('Укажите город в шапке, и данные обновятся автоматически');
+          setWeatherText(t('dashboard.weather.enterCity'));
+          setWeatherTip(t('dashboard.weather.headerHint'));
           return;
         }
 
-        setWeatherText('Не удалось загрузить погоду');
-        setWeatherTip('Попробуйте снова или укажите другой город в шапке');
+        setWeatherText(t('dashboard.weather.loadFailed'));
+        setWeatherTip(t('dashboard.weather.tryAgain'));
         return;
       }
 
       try {
-        const weatherLine = `${weatherData.temperature}°C, ${toRussianWeatherDescription(weatherData.description)}`;
+        const weatherLine = `${weatherData.temperature}°C, ${weatherData.description}`;
         setWeatherText(weatherLine);
-        setWeatherTip(`Ощущается как ${weatherData.feels_like}°C`);
+        setWeatherTip(t('dashboard.weather.feelsLike', { value: weatherData.feels_like }));
       } catch {
-        setWeatherText('Не удалось загрузить погоду');
-        setWeatherTip('Попробуйте снова или укажите другой город в шапке');
+        setWeatherText(t('dashboard.weather.loadFailed'));
+        setWeatherTip(t('dashboard.weather.tryAgain'));
       }
     };
-    //в ${weatherData.location}
     void loadWeather();
 
     const onUserLocationUpdated = () => {
@@ -194,27 +136,82 @@ export default function DashboardPage() {
     return () => {
       window.removeEventListener(USER_LOCATION_UPDATED_EVENT, onUserLocationUpdated);
     };
-  }, []);
+  }, [t]);
 
   const outfitWithWeather = useMemo(
     () => ({
-      ...MOCK_OUTFIT,
+      items: [
+        { id: 12, name: t('dashboard.outfit.items.jeans'), category: t('dashboard.categories.items.bottom'), emoji: '👖' },
+        { id: 45, name: t('dashboard.outfit.items.hoodie'), category: t('dashboard.categories.items.top'), emoji: '🧥' },
+        {
+          id: 7,
+          name: t('dashboard.outfit.items.trench'),
+          category: t('dashboard.categories.items.outerwear'),
+          emoji: '🧥',
+        },
+        { id: 23, name: t('dashboard.outfit.items.sneakers'), category: t('dashboard.categories.items.shoes'), emoji: '👟' },
+      ],
       weather: weatherText,
       tip: weatherTip,
     }),
-    [weatherText, weatherTip],
+    [t, weatherText, weatherTip],
+  );
+
+  const plans = useMemo(
+    () => [
+      {
+        id: 1,
+        date: t('dashboard.plans.items.today.date'),
+        title: t('dashboard.plans.items.today.title'),
+        outfit: t('dashboard.plans.items.today.outfit'),
+        color: '#8a6a4a',
+      },
+      {
+        id: 2,
+        date: t('dashboard.plans.items.tomorrow.date'),
+        title: t('dashboard.plans.items.tomorrow.title'),
+        outfit: t('dashboard.plans.items.tomorrow.outfit'),
+        color: '#10b981',
+      },
+      {
+        id: 3,
+        date: t('dashboard.plans.items.upcomingOne.date'),
+        title: t('dashboard.plans.items.upcomingOne.title'),
+        outfit: t('dashboard.plans.items.upcomingOne.outfit'),
+        color: '#f59e0b',
+      },
+      {
+        id: 4,
+        date: t('dashboard.plans.items.upcomingTwo.date'),
+        title: t('dashboard.plans.items.upcomingTwo.title'),
+        outfit: t('dashboard.plans.items.upcomingTwo.outfit'),
+        color: '#f43f5e',
+      },
+    ],
+    [t],
+  );
+
+  const categories = useMemo(
+    () => [
+      { name: t('dashboard.categories.items.top'), count: 24, percentage: 35, emoji: '👕' },
+      { name: t('dashboard.categories.items.bottom'), count: 16, percentage: 23, emoji: '👖' },
+      { name: t('dashboard.categories.items.shoes'), count: 12, percentage: 17, emoji: '👟' },
+      { name: t('dashboard.categories.items.outerwear'), count: 8, percentage: 12, emoji: '🧥' },
+      { name: t('dashboard.categories.items.accessories'), count: 9, percentage: 13, emoji: '🎒' },
+    ],
+    [t],
   );
 
   return (
     <div className={styles.page}>
       <main className={styles.main}>
         <div className={styles.welcome}>
-          <h2 className={styles.welcomeTitle}>Добро пожаловать 👋</h2>
-          <p className={styles.welcomeSubtitle}>Вот что происходит с вашим гардеробом сегодня</p>
+          <h2 className={styles.welcomeTitle}>{t('dashboard.welcomeTitle')} 👋</h2>
+          <p className={styles.welcomeSubtitle}>{t('dashboard.welcomeSubtitle')}</p>
         </div>
 
         <div className={styles.statsGrid}>
-          {MOCK_STATS_DATA.map((stat) => (
+          {statsData.map((stat) => (
             <StatsCard key={stat.title} {...stat} />
           ))}
         </div>
@@ -225,13 +222,13 @@ export default function DashboardPage() {
           </div>
           <div className={styles.widgetItem}>
             <CalendarPlans
-              plans={MOCK_PLANS}
+              plans={plans}
               onAllPlans={navigateToEventsPageHandler}
               onPlanClick={navigateToEventsPageHandler}
             />
           </div>
           <div className={styles.widgetItem}>
-            <CategoryBreakdown categories={MOCK_CATEGORIES} />
+            <CategoryBreakdown categories={categories} />
           </div>
         </div>
       </main>

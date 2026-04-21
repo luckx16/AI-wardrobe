@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Мои образы — AI Wardrobe',
-  description: 'Ваши сохранённые образы и комбинации',
+  title: 'My Looks — AI Wardrobe',
+  description: 'Your saved looks and combinations',
 };
 
 export default function LooksLayout({ children }: { children: React.ReactNode }) {

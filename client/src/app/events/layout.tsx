@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'События — AI Wardrobe',
-  description: 'Планирование событий и подбор образов',
+  title: 'Events — AI Wardrobe',
+  description: 'Plan events and match outfits',
 };
 
 export default function EventsLayout({ children }: { children: React.ReactNode }) {

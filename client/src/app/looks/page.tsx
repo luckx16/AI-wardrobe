@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { LOOKS_PAGE_CONSTANTS } from '@/entities/look';
 import { deleteLookThunk, getAllLooksThunk, toggleLikeThunk } from '@/entities/look/api/lookThunk';
@@ -16,6 +17,7 @@ type Tab = 'all' | 'favorites';
 
 export default function OutfitsPage() {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { looks, isLoading } = useAppSelector((state) => state.looks);
   const { addQueryParams } = useCustomRouter();
@@ -45,8 +47,8 @@ export default function OutfitsPage() {
       <div className={styles.container}>
         <header className={styles.header}>
           <div className={styles.titleBlock}>
-            <h1>Образы</h1>
-            <p>Все ваши образы в одном месте</p>
+            <h1>{t('looks.title')}</h1>
+            <p>{t('looks.subtitle')}</p>
           </div>
           <div className={styles.tabs} role="tablist">
             <button
@@ -55,7 +57,7 @@ export default function OutfitsPage() {
               className={`${styles.tab} ${tab === 'all' ? styles.tabActive : ''}`}
               onClick={() => setTab('all')}
             >
-              Все образы
+              {t('looks.all')}
             </button>
             <button
               role="tab"
@@ -63,7 +65,7 @@ export default function OutfitsPage() {
               className={`${styles.tab} ${tab === 'favorites' ? styles.tabActive : ''}`}
               onClick={() => setTab('favorites')}
             >
-              Избранные
+              {t('looks.favorites')}
             </button>
           </div>
         </header>
@@ -73,11 +75,11 @@ export default function OutfitsPage() {
         ) : arrayOfLooksObj.length === 0 ? (
           <div className={styles.empty}>
             <strong>
-              {tab === 'favorites' ? 'В избранном пока нет образов' : 'У вас пока нет образов'}
+              {tab === 'favorites' ? t('looks.emptyFav') : t('looks.emptyAll')}
             </strong>
             {tab === 'favorites'
-              ? 'Нажмите на сердечко на любом образе, чтобы добавить его сюда.'
-              : 'Создайте первый образ в Outfit Builder.'}
+              ? t('looks.emptyFavHint')
+              : t('looks.emptyAllHint')}
           </div>
         ) : (
           <div className={styles.grid}>

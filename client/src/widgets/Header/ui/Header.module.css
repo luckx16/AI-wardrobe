@@ -214,3 +214,12 @@
   color: var(--foreground, #111111);
   border-bottom-color: var(--accent, #b09070);
 }
+
+.languageSelect {
+  border: 1px solid #d8c8b3;
+  border-radius: 0.45rem;
+  background: #fff;
+  color: #4f3b28;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.35rem;
+}

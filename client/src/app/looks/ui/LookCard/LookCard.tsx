@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 
 import clsx from 'clsx';
 import { Heart, HeartPlus, Pencil, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import type { GeneratedLook, ILook } from '@/entities/look';
 import { saveLook } from '@/entities/look/api/lookApi';
@@ -76,6 +77,7 @@ type LookCardGeneratedProps = {
 type Props = LookCardSavedProps | LookCardGeneratedProps;
 
 export function LookCard(props: Props) {
+  const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const router = useRouter();
@@ -147,13 +149,13 @@ export function LookCard(props: Props) {
           );
         })}
 
-        {sorted.length === 0 && <div className={styles.flatlayEmpty}>Нет фото</div>}
+        {sorted.length === 0 && <div className={styles.flatlayEmpty}>{t('lookCard.noPhoto')}</div>}
 
         {isSaved && (props as LookCardSavedProps).onToggleFav && (
           <button
             className={`${styles.favBtn} ${isFav ? styles.favActive : ''}`}
             onClick={() => (props as LookCardSavedProps).onToggleFav?.(look!.id)}
-            aria-label={isFav ? 'Удалить из избранного' : 'Добавить в избранное'}
+            aria-label={isFav ? t('lookCard.removeFromFavorites') : t('lookCard.addToFavorites')}
             type="button"
           >
             {isFav ? <Heart size={16} /> : <HeartPlus size={16} color="#a8896e" />}
@@ -164,7 +166,7 @@ export function LookCard(props: Props) {
       <div className={styles.bottom}>
         <div className={styles.meta}>
           <h3 className={styles.title}>{title}</h3>
-          <p className={styles.tag}>{clothCount} вещей</p>
+          <p className={styles.tag}>{t('lookCard.itemsCount', { count: clothCount })}</p>
         </div>
 
         {isSaved ? (
@@ -174,7 +176,7 @@ export function LookCard(props: Props) {
                 <button
                   className={clsx(styles.btn, styles.editBtn)}
                   onClick={() => (props as LookCardSavedProps).onEdit?.(look!.id)}
-                  title="Редактировать"
+                  title={t('lookCard.edit')}
                   type="button"
                 >
                   <Pencil size={16} />
@@ -185,7 +187,7 @@ export function LookCard(props: Props) {
                 <button
                   className={clsx(styles.btn, styles.deleteBtn)}
                   onClick={() => (props as LookCardSavedProps).onDelete?.(look!.id)}
-                  title="Удалить"
+                  title={t('lookCard.delete')}
                   type="button"
                 >
                   <Trash2 size={16} />
@@ -198,8 +200,8 @@ export function LookCard(props: Props) {
             <button
               className={clsx(styles.btn, styles.editBtn)}
               onClick={() => void handleEditGenerated()}
-              title="Редактировать"
-              aria-label="Редактировать"
+              title={t('lookCard.edit')}
+              aria-label={t('lookCard.edit')}
               type="button"
               disabled={isSaving}
             >
@@ -212,7 +214,7 @@ export function LookCard(props: Props) {
               type="button"
               disabled={isSaving || !!savedId || clothIdsForSave.length === 0}
             >
-              {savedId ? 'Сохранено' : isSaving ? 'Сохранение...' : 'Сохранить'}
+              {savedId ? t('lookCard.saved') : isSaving ? t('lookCard.saving') : t('lookCard.save')}
             </button>
           </div>
         )}

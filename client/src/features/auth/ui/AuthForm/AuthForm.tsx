@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
@@ -17,33 +18,11 @@ import { useToast } from '@/shared/ui';
 
 import styles from './AuthForm.module.css';
 
-const SignInSchema = z.object({
-  email: z.string().trim().min(1, 'Введите email').email('Неверный email'),
-  password: z.string().min(1, 'Введите пароль'),
-});
-
-const passwordRules = z
-  .string()
-  .min(8, 'Минимум 8 символов')
-  .regex(/[A-Za-z]/, 'Добавьте хотя бы одну букву')
-  .regex(/[0-9]/, 'Добавьте хотя бы одну цифру');
-
-const SignUpSchema = z
-  .object({
-    name: z.string().trim().min(2, 'Введите имя').max(20, 'Слишком длинное имя'),
-    email: z.string().trim().min(1, 'Введите email').email('Неверный email'),
-    password: passwordRules,
-    confirmPassword: passwordRules,
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Пароли не совпадают',
-    path: ['confirmPassword'],
-  });
-
-type SignInValues = z.infer<typeof SignInSchema>;
-type SignUpValues = z.infer<typeof SignUpSchema>;
+type SignInValues = { email: string; password: string };
+type SignUpValues = { name: string; email: string; password: string; confirmPassword: string };
 
 export function AuthForm(): React.JSX.Element {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -53,12 +32,41 @@ export function AuthForm(): React.JSX.Element {
   const [showSignUpPassword, setShowSignUpPassword] = React.useState(false);
   const [showSignUpConfirmPassword, setShowSignUpConfirmPassword] = React.useState(false);
 
+  const signInSchema = React.useMemo(
+    () =>
+      z.object({
+        email: z.string().trim().min(1, t('auth.validation.enterEmail')).email(t('auth.validation.invalidEmail')),
+        password: z.string().min(1, t('auth.validation.enterPassword')),
+      }),
+    [t],
+  );
+
+  const signUpSchema = React.useMemo(() => {
+    const passwordRules = z
+      .string()
+      .min(8, t('auth.validation.minChars'))
+      .regex(/[A-Za-z]/, t('auth.validation.needLetter'))
+      .regex(/[0-9]/, t('auth.validation.needDigit'));
+
+    return z
+      .object({
+        name: z.string().trim().min(2, t('auth.validation.enterName')).max(20, t('auth.validation.longName')),
+        email: z.string().trim().min(1, t('auth.validation.enterEmail')).email(t('auth.validation.invalidEmail')),
+        password: passwordRules,
+        confirmPassword: passwordRules,
+      })
+      .refine((data) => data.password === data.confirmPassword, {
+        message: t('auth.validation.passwordMismatch'),
+        path: ['confirmPassword'],
+      });
+  }, [t]);
+
   const {
     register: registerSignIn,
     handleSubmit: handleSignInSubmit,
     formState: { errors: signInErrors, isSubmitting: isSignInSubmitting },
   } = useForm<SignInValues>({
-    resolver: zodResolver(SignInSchema),
+    resolver: zodResolver(signInSchema),
     mode: 'onTouched',
     defaultValues: { email: '', password: '' },
   });
@@ -68,7 +76,7 @@ export function AuthForm(): React.JSX.Element {
     handleSubmit: handleSignUpSubmit,
     formState: { errors: signUpErrors, isSubmitting: isSignUpSubmitting },
   } = useForm<SignUpValues>({
-    resolver: zodResolver(SignUpSchema),
+    resolver: zodResolver(signUpSchema),
     mode: 'onTouched',
     defaultValues: {
       name: '',
@@ -107,8 +115,8 @@ export function AuthForm(): React.JSX.Element {
       <div className={styles.bgOverlay} />
 
       <div className={styles.heroText}>
-        <h1>Ваш личный стилист c искусственным интеллектом</h1>
-        <p>Управляйте гардеробом, создавайте образы и получайте рекомендации от AI</p>
+        <h1>{t('auth.heroTitle')}</h1>
+        <p>{t('auth.heroLead')}</p>
       </div>
 
       <div className={styles.card}>
@@ -117,20 +125,20 @@ export function AuthForm(): React.JSX.Element {
             href={`${CLIENT_ROUTES.AUTH}?tab=sign-in`}
             className={`${styles.tab} ${activeTab === 'sign-in' ? styles.tabActive : ''}`}
           >
-            Вход
+            {t('auth.signIn')}
           </Link>
           <Link
             href={`${CLIENT_ROUTES.AUTH}?tab=sign-up`}
             className={`${styles.tab} ${activeTab === 'sign-up' ? styles.tabActive : ''}`}
           >
-            Регистрация
+            {t('auth.signUp')}
           </Link>
         </div>
 
         {activeTab === 'sign-in' ? (
           <form onSubmit={onSubmitSignIn} noValidate className={styles.form}>
-            <h2 className={styles.formTitle}>Добро пожаловать</h2>
-            <p className={styles.formLead}>Войдите, чтобы продолжить</p>
+            <h2 className={styles.formTitle}>{t('auth.welcome')}</h2>
+            <p className={styles.formLead}>{t('auth.signInLead')}</p>
 
             <label className={styles.label} htmlFor="auth-signin-email">
               Email
@@ -148,7 +156,7 @@ export function AuthForm(): React.JSX.Element {
             ) : null}
 
             <label className={styles.label} htmlFor="auth-signin-password">
-              Пароль
+              {t('auth.password')}
             </label>
             <div className={styles.passwordField}>
               <input
@@ -158,13 +166,13 @@ export function AuthForm(): React.JSX.Element {
                 className={`${styles.input} ${styles.passwordInput} ${
                   signInErrors.password ? styles.inputError : ''
                 }`}
-                placeholder="Введите пароль"
+                placeholder={t('auth.enterPassword')}
                 {...registerSignIn('password')}
               />
               <button
                 type="button"
                 className={styles.passwordToggle}
-                aria-label={showSignInPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                aria-label={showSignInPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 onClick={() => setShowSignInPassword((current) => !current)}
               >
                 {showSignInPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -175,25 +183,25 @@ export function AuthForm(): React.JSX.Element {
             ) : null}
 
             <button className={styles.submitButton} type="submit" disabled={isSignInSubmitting}>
-              {isSignInSubmitting ? 'Входим...' : 'Войти'}
+              {isSignInSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </button>
 
-            <p className={styles.terms}>Продолжая, вы соглашаетесь с условиями использования</p>
+            <p className={styles.terms}>{t('auth.terms')}</p>
           </form>
         ) : (
           <form onSubmit={onSubmitSignUp} noValidate className={styles.form}>
-            <h2 className={styles.formTitle}>Создайте аккаунт</h2>
-            <p className={styles.formLead}>Начните управлять гардеробом с AI</p>
+            <h2 className={styles.formTitle}>{t('auth.createAccount')}</h2>
+            <p className={styles.formLead}>{t('auth.signUpLead')}</p>
 
             <label className={styles.label} htmlFor="auth-signup-name">
-              Имя
+              {t('auth.name')}
             </label>
             <input
               id="auth-signup-name"
               type="text"
               autoComplete="name"
               className={`${styles.input} ${signUpErrors.name ? styles.inputError : ''}`}
-              placeholder="Ваше имя"
+              placeholder={t('auth.yourName')}
               {...registerSignUp('name')}
             />
             {signUpErrors.name ? (
@@ -216,7 +224,7 @@ export function AuthForm(): React.JSX.Element {
             ) : null}
 
             <label className={styles.label} htmlFor="auth-signup-password">
-              Пароль
+              {t('auth.password')}
             </label>
             <div className={styles.passwordField}>
               <input
@@ -226,13 +234,13 @@ export function AuthForm(): React.JSX.Element {
                 className={`${styles.input} ${styles.passwordInput} ${
                   signUpErrors.password ? styles.inputError : ''
                 }`}
-                placeholder="Введите пароль"
+                placeholder={t('auth.enterPassword')}
                 {...registerSignUp('password')}
               />
               <button
                 type="button"
                 className={styles.passwordToggle}
-                aria-label={showSignUpPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                aria-label={showSignUpPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 onClick={() => setShowSignUpPassword((current) => !current)}
               >
                 {showSignUpPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -243,7 +251,7 @@ export function AuthForm(): React.JSX.Element {
             ) : null}
 
             <label className={styles.label} htmlFor="auth-signup-confirm">
-              Подтвердите пароль
+              {t('auth.confirmPassword')}
             </label>
             <div className={styles.passwordField}>
               <input
@@ -253,13 +261,13 @@ export function AuthForm(): React.JSX.Element {
                 className={`${styles.input} ${styles.passwordInput} ${
                   signUpErrors.confirmPassword ? styles.inputError : ''
                 }`}
-                placeholder="Повторите пароль"
+                placeholder={t('auth.repeatPassword')}
                 {...registerSignUp('confirmPassword')}
               />
               <button
                 type="button"
                 className={styles.passwordToggle}
-                aria-label={showSignUpConfirmPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                aria-label={showSignUpConfirmPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                 onClick={() => setShowSignUpConfirmPassword((current) => !current)}
               >
                 {showSignUpConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -270,15 +278,15 @@ export function AuthForm(): React.JSX.Element {
             ) : null}
 
             <button className={styles.submitButton} type="submit" disabled={isSignUpSubmitting}>
-              {isSignUpSubmitting ? 'Создаем...' : 'Создать аккаунт'}
+              {isSignUpSubmitting ? t('auth.creating') : t('auth.createAccount')}
             </button>
 
-            <p className={styles.terms}>Продолжая, вы соглашаетесь с условиями использования</p>
+            <p className={styles.terms}>{t('auth.terms')}</p>
           </form>
         )}
 
         <Link href={CLIENT_ROUTES.HOME} className={styles.backHome}>
-          ← На главную
+          {t('auth.backHome')}
         </Link>
       </div>
     </section>
