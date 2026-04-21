@@ -7,6 +7,7 @@ import { ImagePlus, Plus, X } from 'lucide-react';
 
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import { resolveAssetUrl } from '@/shared/lib/uploadApi';
+import { getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 import { useToast } from '@/shared/ui';
 
 

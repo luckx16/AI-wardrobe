@@ -1,8 +1,9 @@
+import { t } from 'i18next';
 import { Trash2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+
+import { getCategoryLabel, getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 
 import type { WardrobeItem } from '../../app/wardrobe/types';
-import { getCategoryLabel, getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 import styles from './WardrobeCard.module.css';
 
 interface WardrobeCardProps {
