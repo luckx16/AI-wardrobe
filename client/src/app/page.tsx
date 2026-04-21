@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppSelector } from '@/shared/hooks';
@@ -8,6 +9,7 @@ import { useAppSelector } from '@/shared/hooks';
 import styles from './page.module.css';
 
 export default function Home() {
+  const { t } = useTranslation();
   const router = useRouter();
   const user = useAppSelector((state) => state.user.user);
   const isAuthenticated = Boolean(user);
@@ -25,138 +27,111 @@ export default function Home() {
   return (
     <main className={styles.page} data-no-header-offset="true">
       <section className={styles.hero}>
-        <p className={`${styles.badge} ${styles.animatedBadge}`}>Умный гардероб нового поколения</p>
+        <p className={`${styles.badge} ${styles.animatedBadge}`}>{t('home.hero.badge')}</p>
         <h1 className={styles.heroTitle}>
-          Ваш личный стилист
-          <span>с искусственным интеллектом</span>
+          {t('home.hero.title')}
+          <span>{t('home.hero.titleAccent')}</span>
         </h1>
-        <p className={styles.heroLead}>
-          Управляйте гардеробом, создавайте образы и получайте ежедневные рекомендации от
-          AI-стилиста - все в одном приложении.
-        </p>
+        <p className={styles.heroLead}>{t('home.hero.lead')}</p>
         <button className={styles.primaryCta} type="button" onClick={handleTryClick}>
-          Попробовать →
+          {t('home.hero.try')}
         </button>
       </section>
       <section className={styles.closetSection}>
-        <p className={`${styles.badge} ${styles.animatedBadge}`}>Цифровой гардероб</p>
-        <h2>Зачем вам приложение для шкафа</h2>
-        <p className={styles.sectionLead}>
-          Управляйте коллекцией одежды так же легко, как музыкой в плейлисте.
-        </p>
+        <p className={`${styles.badge} ${styles.animatedBadge}`}>{t('home.closet.badge')}</p>
+        <h2>{t('home.closet.title')}</h2>
+        <p className={styles.sectionLead}>{t('home.closet.lead')}</p>
         <div className={styles.infoGrid}>
           <article className={styles.infoCard}>
-            <img className={styles.infoPreview} src="/home/Следите.png" alt="Мой гардероб" />
-            <h3>Следите за тем, что у вас есть</h3>
-            <p>
-              Добавляйте вещи, категории и фильтры, чтобы быстро находить нужную одежду и не терять
-              вещи в шкафу.
-            </p>
+            <img className={styles.infoPreview} src="/home/Следите.png" alt={t('home.closet.cards.first.alt')} />
+            <h3>{t('home.closet.cards.first.title')}</h3>
+            <p>{t('home.closet.cards.first.text')}</p>
           </article>
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
               src="/home/Находите.png"
-              alt="Конструктор образов"
+              alt={t('home.closet.cards.second.alt')}
             />
-            <h3>Находите новые наряды</h3>
-            <p>
-              Экспериментируйте с сочетаниями верха, низа и обуви - AI предложит гармоничный образ и
-              объяснит, почему он работает.
-            </p>
+            <h3>{t('home.closet.cards.second.title')}</h3>
+            <p>{t('home.closet.cards.second.text')}</p>
           </article>
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
               src="/home/Упростите.png"
-              alt="Список для поездки"
+              alt={t('home.closet.cards.third.alt')}
             />
-            <h3>Упростите упаковку для отпуска</h3>
-            <p>
-              Собирайте списки вещей на любые поездки: выберите стиль и длительность, а приложение
-              предложит оптимальный набор.
-            </p>
+            <h3>{t('home.closet.cards.third.title')}</h3>
+            <p>{t('home.closet.cards.third.text')}</p>
           </article>
         </div>
       </section>
       <section id="why-ai" className={styles.whySection}>
-        <p className={`${styles.badge} ${styles.animatedBadge}`}>AI-стилист</p>
-        <h2>Зачем нужен стилист с искусственным интеллектом</h2>
-        <p className={styles.sectionLead}>
-          Персональные рекомендации, которые учитывают ваш стиль, погоду и планы.
-        </p>
+        <p className={`${styles.badge} ${styles.animatedBadge}`}>{t('home.ai.badge')}</p>
+        <h2>{t('home.ai.title')}</h2>
+        <p className={styles.sectionLead}>{t('home.ai.lead')}</p>
 
         <div className={styles.infoGrid}>
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
               src="/home/рекомендации.png"
-              alt="Ежедневные рекомендации AI"
+              alt={t('home.ai.cards.first.alt')}
             />
-            <h3>Получайте рекомендации по одежде ежедневно</h3>
-            <p>
-              На основе вашего гардероба AI-стилист каждый день создает для вас предложения по
-              образу, учитывая стиль, погоду и планы.
-            </p>
+            <h3>{t('home.ai.cards.first.title')}</h3>
+            <p>{t('home.ai.cards.first.text')}</p>
           </article>
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
               src="/home/Образ.png"
-              alt="Образ для особого случая"
+              alt={t('home.ai.cards.second.alt')}
             />
-            <h3>Образ для особого случая</h3>
-            <p>
-              Обратитесь к личному стилисту за образом для свадьбы, делового ужина или вечеринки - и
-              соберите цельный look из уже имеющихся вещей.
-            </p>
+            <h3>{t('home.ai.cards.second.title')}</h3>
+            <p>{t('home.ai.cards.second.text')}</p>
           </article>
           <article className={styles.infoCard}>
             <img
               className={styles.infoPreview}
               src="/home/Статистика.png"
-              alt="Статистика категорий гардероба"
+              alt={t('home.ai.cards.third.alt')}
             />
-            <h3>Заполните пробелы в гардеробе</h3>
-            <p>
-              WardrobeAI поможет определить, каких вещей не хватает, чтобы собрать больше образов и
-              повысить вариативность гардероба.
-            </p>
+            <h3>{t('home.ai.cards.third.title')}</h3>
+            <p>{t('home.ai.cards.third.text')}</p>
           </article>
         </div>
       </section>
 
       <section id="features" className={styles.featuresSection}>
         <div className={styles.featuresInner}>
-          <p className={`${styles.badge} ${styles.animatedBadge}`}>Возможности</p>
-          <h2>Функции, которые вам понравятся</h2>
-          <p className={styles.sectionLead}>
-            Вы получаете все необходимые функции для вашего цифрового гардероба.
-          </p>
+          <p className={`${styles.badge} ${styles.animatedBadge}`}>{t('home.features.badge')}</p>
+          <h2>{t('home.features.title')}</h2>
+          <p className={styles.sectionLead}>{t('home.features.lead')}</p>
           <div className={styles.featureGrid}>
             <article className={styles.featureCard}>
               <span className={styles.featureIconBadge}>✨</span>
-              <p>Создавайте наряды из своей одежды</p>
+              <p>{t('home.features.items.0')}</p>
             </article>
             <article className={styles.featureCard}>
               <span className={styles.featureIconBadge}>🤳</span>
-              <p>Виртуальная примерка</p>
+              <p>{t('home.features.items.1')}</p>
             </article>
             <article className={styles.featureCard}>
               <span className={styles.featureIconBadge}>💡</span>
-              <p>Предложения по образу от AI</p>
+              <p>{t('home.features.items.2')}</p>
             </article>
             <article className={styles.featureCard}>
               <span className={styles.featureIconBadge}>🗓️</span>
-              <p>Составление образа под ближайшие планы</p>
+              <p>{t('home.features.items.3')}</p>
             </article>
             <article className={styles.featureCard}>
               <span className={styles.featureIconBadge}>👥</span>
-              <p>Общайтесь с друзьями и просматривайте их гардеробы</p>
+              <p>{t('home.features.items.4')}</p>
             </article>
             <article className={styles.featureCard}>
               <span className={styles.featureIconBadge}>📐</span>
-              <p>Вносите параметры тела для точного подбора образа</p>
+              <p>{t('home.features.items.5')}</p>
             </article>
           </div>
         </div>
@@ -164,13 +139,10 @@ export default function Home() {
 
       <section className={styles.ctaSection}>
         <div className={styles.ctaCard}>
-          <h2>Готовы упорядочить свой гардероб?</h2>
-          <p>
-            Присоединяйтесь к тысячам пользователей, которые уже открыли новый способ одеваться с
-            помощью AI.
-          </p>
+          <h2>{t('home.cta.title')}</h2>
+          <p>{t('home.cta.lead')}</p>
           <button className={styles.primaryCta} type="button" onClick={handleStartClick}>
-            Начать →
+            {t('home.cta.start')}
           </button>
         </div>
       </section>

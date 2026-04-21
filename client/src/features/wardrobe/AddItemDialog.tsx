@@ -1,6 +1,7 @@
 'use client';
 
 import { type ChangeEvent, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ImagePlus, Plus, X } from 'lucide-react';
 
@@ -42,6 +43,7 @@ interface AddItemDialogProps {
 }
 
 const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState<Category>('top');
@@ -109,21 +111,21 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
       <DialogTrigger asChild>
         <button type="button" className={styles.triggerButton}>
           <Plus className={styles.triggerIcon} />
-          Добавить
+          {t('wardrobe.add')}
         </button>
       </DialogTrigger>
 
       <DialogContent className={styles.dialogContent}>
         <DialogHeader>
-          <DialogTitle className={styles.dialogTitle}>Новый предмет</DialogTitle>
+          <DialogTitle className={styles.dialogTitle}>{t('wardrobe.newItem')}</DialogTitle>
         </DialogHeader>
 
         <div className={styles.form}>
           <div className={styles.field}>
-            <label className={styles.label}>Фото</label>
+            <label className={styles.label}>{t('wardrobe.photo')}</label>
             {imagePreview ? (
               <div className={styles.imagePreviewWrap}>
-                <img src={imagePreview} alt="Preview" className={styles.imagePreview} />
+                <img src={imagePreview} alt={t('wardrobe.preview')} className={styles.imagePreview} />
                 <button
                   type="button"
                   onClick={() => {
@@ -143,7 +145,7 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
                 className={styles.uploadButton}
               >
                 <ImagePlus className={styles.uploadIcon} />
-                <span className={styles.uploadText}>Загрузить фото</span>
+                <span className={styles.uploadText}>{t('wardrobe.uploadPhoto')}</span>
               </button>
             )}
             <input
@@ -157,20 +159,20 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
 
           <div className={styles.field}>
             <label htmlFor="item-name" className={styles.label}>
-              Название
+              {t('wardrobe.name')}
             </label>
             <input
               id="item-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Например: Кашемировый свитер"
+              placeholder={t('wardrobe.namePlaceholder')}
               className={styles.textInput}
             />
           </div>
 
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>Категория</label>
+              <label className={styles.label}>{t('wardrobe.category')}</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as Category)}
@@ -184,7 +186,7 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
               </select>
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Сезон</label>
+              <label className={styles.label}>{t('wardrobe.season')}</label>
               <select
                 value={season}
                 onChange={(e) => setSeason(e.target.value as Season)}
@@ -192,7 +194,7 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
               >
                 {seasons.map((s) => (
                   <option key={s} value={s}>
-                    {s}
+                    {getSeasonLabel(s, t)}
                   </option>
                 ))}
               </select>
@@ -201,22 +203,22 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
 
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>Бренд</label>
+              <label className={styles.label}>{t('wardrobe.brand')}</label>
               <input
                 id="item-brand"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
-                placeholder="Например: H&M"
+                placeholder={t('wardrobe.brandPlaceholder')}
                 className={styles.textInput}
               />
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Материал</label>
+              <label className={styles.label}>{t('wardrobe.material')}</label>
               <input
                 id="item-material"
                 value={material}
                 onChange={(e) => setMaterial(e.target.value)}
-                placeholder="Например: Хлопок"
+                placeholder={t('wardrobe.materialPlaceholder')}
                 className={styles.textInput}
               />
             </div>
@@ -224,13 +226,13 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
 
           <div className={styles.field}>
             <label htmlFor="item-color" className={styles.label}>
-              Цвет
+              {t('wardrobe.color')}
             </label>
             <input
               id="item-color"
               value={color}
               onChange={(e) => setColor(e.target.value)}
-              placeholder="Например: Бежевый"
+              placeholder={t('wardrobe.colorPlaceholder')}
               className={styles.textInput}
             />
           </div>
@@ -241,7 +243,7 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
             disabled={!isValid}
             className={styles.submitButton}
           >
-            Добавить в гардероб
+            {t('wardrobe.addToWardrobe')}
           </button>
         </div>
       </DialogContent>

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Конструктор образов — AI Wardrobe',
-  description: 'Создавайте идеальные комбинации одежды',
+  title: 'Look Builder — AI Wardrobe',
+  description: 'Create ideal clothing combinations',
 };
 
 export default function LookBuilderLayout({ children }: { children: React.ReactNode }) {
