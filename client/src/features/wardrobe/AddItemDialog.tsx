@@ -5,10 +5,6 @@ import { useTranslation } from 'react-i18next';
 
 import { ImagePlus, Plus, X } from 'lucide-react';
 
-import { axiosInstance } from '@/shared/lib/axiosInstance';
-import { getCategoryLabel, getSeasonLabel } from '@/shared/lib/wardrobeI18n';
-import { resolveAssetUrl } from '@/shared/lib/uploadApi';
-
 import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
 import styles from './AddItemDialog.module.css';
 import { createClothesItem } from './api/wardrobeApi';
@@ -21,20 +17,26 @@ import {
 } from './components/dialog';
 
 const seasons: Season[] = ['зима', 'весна', 'лето', 'осень', 'всесезон'];
-const categories: Category[] = [
-  'футболка',
-  'рубашка',
-  'платье',
-  'брюки',
-  'юбка',
-  'куртка',
-  'свитер',
-  'худи',
-  'шорты',
-  'обувь',
-  'аксессуары',
-  'другое',
+
+const categoryOptions: Array<{ value: Category; label: string }> = [
+  { value: 'headwear', label: 'Головные уборы' },
+  { value: 'top', label: 'Верх' },
+  { value: 'accessory', label: 'Аксессуары' },
+  { value: 'bags', label: 'Сумки' },
+  { value: 'bottom', label: 'Низ' },
+  { value: 'shoes', label: 'Обувь' },
+  { value: 'other', label: 'Другое' },
 ];
+
+const categoryToBackendCategory: Record<Category, string> = {
+  headwear: 'шапка',
+  top: 'футболка',
+  accessory: 'аксессуары',
+  bags: 'сумка',
+  bottom: 'брюки',
+  shoes: 'обувь',
+  other: 'другое',
+};
 
 interface AddItemDialogProps {
   onAdd: (item: WardrobeItem) => void;
@@ -44,25 +46,22 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<Category>('футболка');
+  const [category, setCategory] = useState<Category>('top');
   const [season, setSeason] = useState<Season>('всесезон');
-  const [brand, setBrand] = useState('H&M');
-  const [material, setMaterial] = useState('хлопок');
-
+  const [brand, setBrand] = useState('');
+  const [material, setMaterial] = useState('');
   const [color, setColor] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [isRemovingBackground, setIsRemovingBackground] = useState(false);
-  const [removeBackgroundError, setRemoveBackgroundError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setName('');
-    setCategory('футболка');
+    setCategory('top');
     setSeason('всесезон');
+    setBrand('');
+    setMaterial('');
     setColor('');
-
-    setRemoveBackgroundError(null);
     setImagePreview(null);
     setImageFile(null);
   };
@@ -70,43 +69,9 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
   const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setRemoveBackgroundError(null);
     setImageFile(file);
     const url = URL.createObjectURL(file);
     setImagePreview(url);
-  };
-
-  const handleRemoveBackground = async () => {
-    if (!imageFile || isRemovingBackground) return;
-
-    setIsRemovingBackground(true);
-    setRemoveBackgroundError(null);
-
-    try {
-      const formData = new FormData();
-      formData.append('image', imageFile);
-
-      const { data } = await axiosInstance.post<{
-        statusCode: number;
-        message: string;
-        data: { url: string } | null;
-        error: string | null;
-      }>('/cloth/remove-background', formData);
-
-      const processedUrl = data.data?.url ? resolveAssetUrl(data.data.url) : null;
-      if (!processedUrl) {
-        throw new Error('Empty server response');
-      }
-
-      setImagePreview(processedUrl);
-      setImageFile(null);
-      if (fileRef.current) fileRef.current.value = '';
-    } catch (error) {
-      console.error(error);
-      setRemoveBackgroundError(t('wardrobe.removeBgError'));
-    } finally {
-      setIsRemovingBackground(false);
-    }
   };
 
   const handleSubmit = async () => {
@@ -117,7 +82,7 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
         {
           title: name,
           brand: brand,
-          category: category,
+          category: categoryToBackendCategory[category],
           material: material,
           color: color,
           season: season,
@@ -164,7 +129,6 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
                 <button
                   type="button"
                   onClick={() => {
-                    setRemoveBackgroundError(null);
                     setImageFile(null);
                     setImagePreview(null);
                     if (fileRef.current) fileRef.current.value = '';
@@ -191,21 +155,6 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
               className={styles.hiddenInput}
               onChange={handleFile}
             />
-            {imagePreview ? (
-              <div className={styles.photoActions}>
-                <button
-                  type="button"
-                  onClick={handleRemoveBackground}
-                  className={styles.removeBackgroundButton}
-                  disabled={!imageFile || isRemovingBackground}
-                >
-                  {isRemovingBackground ? t('wardrobe.removingBg') : t('wardrobe.removeBg')}
-                </button>
-                {removeBackgroundError ? (
-                  <p className={styles.removeBackgroundError}>{removeBackgroundError}</p>
-                ) : null}
-              </div>
-            ) : null}
           </div>
 
           <div className={styles.field}>
@@ -229,9 +178,9 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
                 onChange={(e) => setCategory(e.target.value as Category)}
                 className={styles.select}
               >
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {getCategoryLabel(c, t)}
+                {categoryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>

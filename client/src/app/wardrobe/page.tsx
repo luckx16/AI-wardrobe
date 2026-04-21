@@ -4,7 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import AddItemDialog from '../../features/wardrobe/AddItemDialog';
-import { getAll, removeClothesItem } from '../../features/wardrobe/api/wardrobeApi';
+import {
+  getAll,
+  getClothProcessingStatus,
+  removeClothesItem,
+} from '../../features/wardrobe/api/wardrobeApi';
 import ItemDetailDialog from '../../features/wardrobe/ItemDetailDialog';
 import WardrobeCard from '../../features/wardrobe/WardrobeCard';
 import WardrobeToolbar from '../../features/wardrobe/WardrobeToolbar';
@@ -12,6 +16,78 @@ import { type Category, type Season, type WardrobeItem } from './types';
 import styles from './WardrobePage.module.css';
 
 type SortField = 'title' | 'season' | 'createdAt' | 'category';
+
+const categoryAliasToSection: Record<string, Category> = {
+  футболка: 'top',
+  поло: 'top',
+  топ: 'top',
+  рубашка: 'top',
+  блузка: 'top',
+  кофта: 'top',
+  куртка: 'top',
+  пальто: 'top',
+  пиджак: 'top',
+  тренч: 'top',
+  пуховик: 'top',
+  ветровка: 'top',
+  жилет: 'top',
+  свитер: 'top',
+  джемпер: 'top',
+  кардиган: 'top',
+  худи: 'top',
+  толстовка: 'top',
+  платье: 'other',
+  сарафан: 'other',
+  комбинезон: 'other',
+  брюки: 'bottom',
+  джинсы: 'bottom',
+  леггинсы: 'bottom',
+  юбка: 'bottom',
+  'мини-юбка': 'bottom',
+  шорты: 'bottom',
+  бермуды: 'bottom',
+  кепка: 'headwear',
+  шапка: 'headwear',
+  шляпа: 'headwear',
+  кроссовки: 'shoes',
+  кеды: 'shoes',
+  ботинки: 'shoes',
+  сапоги: 'shoes',
+  туфли: 'shoes',
+  сандалии: 'shoes',
+  обувь: 'shoes',
+  сумка: 'bags',
+  рюкзак: 'bags',
+  галстук: 'accessory',
+  ремень: 'accessory',
+  шарф: 'accessory',
+  перчатки: 'accessory',
+  аксессуары: 'accessory',
+  носки: 'accessory',
+  'нижнее бельё': 'other',
+  купальник: 'other',
+  'спортивная одежда': 'other',
+  'домашняя одежда': 'other',
+  другое: 'other',
+};
+
+const sectionCategories = new Set<Category>([
+  'headwear',
+  'top',
+  'accessory',
+  'bags',
+  'bottom',
+  'shoes',
+  'other',
+]);
+
+const normalizeItemCategory = (item: WardrobeItem): Category => {
+  const rawCategory = item.category?.toLowerCase();
+  if (rawCategory && sectionCategories.has(rawCategory as Category)) {
+    return rawCategory as Category;
+  }
+  return categoryAliasToSection[rawCategory ?? ''] ?? 'other';
+};
 
 const WardrobePage = () => {
   const { t } = useTranslation();
@@ -38,6 +114,41 @@ const WardrobePage = () => {
     load();
   }, []);
 
+  useEffect(() => {
+    const processingItems = items.filter(
+      (item) => item.processing_status === 'pending' || item.processing_status === 'processing',
+    );
+    if (!processingItems.length) return;
+
+    const intervalId = window.setInterval(() => {
+      void Promise.all(
+        processingItems.map(async (item) => {
+          try {
+            const statusData = await getClothProcessingStatus(String(item.id));
+            setItems((prev) =>
+              prev.map((prevItem) =>
+                prevItem.id === item.id
+                  ? {
+                      ...prevItem,
+                      processing_status: statusData.processingStatus,
+                      image:
+                        statusData.imageUrl && statusData.processingStatus === 'completed'
+                          ? `http://localhost:4000${statusData.imageUrl}`
+                          : prevItem.image,
+                    }
+                  : prevItem,
+              ),
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }),
+      );
+    }, 2500);
+
+    return () => window.clearInterval(intervalId);
+  }, [items]);
+
   const handleAddItem = useCallback((item: WardrobeItem) => {
     setItems((prev) => [item, ...prev]);
   }, []);
@@ -59,7 +170,7 @@ const WardrobePage = () => {
       result = result.filter((i) => i.season === filterSeason);
     }
     if (filterCategory !== 'all') {
-      result = result.filter((i) => i.category === filterCategory);
+      result = result.filter((i) => normalizeItemCategory(i) === filterCategory);
     }
 
     result.sort((a: WardrobeItem, b: WardrobeItem) => {

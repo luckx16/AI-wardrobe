@@ -13,7 +13,8 @@ interface WardrobeCardProps {
 }
 
 const WardrobeCard = ({ item, index, onDelete, onClick }: WardrobeCardProps) => {
-  const { t } = useTranslation();
+  const isProcessing =
+    item.processing_status === 'pending' || item.processing_status === 'processing';
 
   return (
     <div className={styles.card} style={{ animationDelay: `${index * 60}ms` }} onClick={onClick}>
@@ -38,6 +39,12 @@ const WardrobeCard = ({ item, index, onDelete, onClick }: WardrobeCardProps) => 
           height={640}
           className={styles.image}
         />
+        {isProcessing ? (
+          <div className={styles.processingOverlay}>
+            <div className={styles.spinner} />
+            <span className={styles.processingText}>Обработка фото...</span>
+          </div>
+        ) : null}
       </div>
       <div className={styles.body}>
         <h3 className={styles.title}>{item.title}</h3>

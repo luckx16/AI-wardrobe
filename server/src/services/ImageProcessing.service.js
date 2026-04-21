@@ -34,7 +34,7 @@ class ImageProcessingService {
       // Оптимизируем через Jimp
       const image = await Jimp.read(resultBuffer);
       console.log('Image width:', image.width, 'height:', image.height);
-      image.resize({ w: 800 });
+      image.resize({ w: 1000 });
       const baseName = path.basename(inputPath, path.extname(inputPath)) + '.png';
       const outputPath = path.join(outputDir, baseName);
       await image.write(outputPath);

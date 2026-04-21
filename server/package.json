@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node --env-file .env ./src/app.js",
     "dev": "node --watch --env-file .env ./src/app.js",
+    "start:prod": "cross-env NODE_ENV=production node --env-file .env ./src/app.js",
     "db:create": "sequelize db:create",
     "db:migrate": "sequelize db:migrate",
     "db:seed": "sequelize db:seed:all",
@@ -31,5 +32,8 @@
     "sequelize-cli": "^6.6.5",
     "ws": "^8.20.0",
     "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }

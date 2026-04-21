@@ -283,9 +283,9 @@ class ClothController {
 
       // удаляем файл изображения (если есть)
       if (cloth.image) {
-        const filePath = path.join(__dirname, '..', 'uploads', 'processed', cloth.image);
-
-        await fs.unlink(filePath).catch(() => { });
+        const imageName = path.basename(cloth.image);
+        const filePath = path.join(__dirname, '..', 'public', 'uploads', 'processed', imageName);
+        await fs.unlink(filePath).catch(() => {});
       }
 
       await ClothService.deleteCloth(id);
