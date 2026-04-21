@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import AddItemDialog from '../../features/wardrobe/AddItemDialog';
-import EditItemDialog from '../../features/wardrobe/EditItemDialog';
 import { getAll, removeClothesItem } from '../../features/wardrobe/api/wardrobeApi';
+import EditItemDialog from '../../features/wardrobe/EditItemDialog';
 import ItemDetailDialog from '../../features/wardrobe/ItemDetailDialog';
 import WardrobeCard from '../../features/wardrobe/WardrobeCard';
 import WardrobeToolbar from '../../features/wardrobe/WardrobeToolbar';
@@ -42,9 +42,9 @@ const WardrobePage = () => {
     setItems((prev) => [item, ...prev]);
   }, []);
 
-  const handleDeleteItem = useCallback(async (id: number) => {
+  const handleDeleteItem = useCallback(async (id: string) => {
     try {
-      await removeClothesItem(id.toString());
+      await removeClothesItem(id);
 
       setItems((prev) => prev.filter((item) => item.id !== id));
     } catch (e) {

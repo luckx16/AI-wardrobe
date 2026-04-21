@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Eye, Palette, Shirt, TrendingUp } from 'lucide-react';
 
@@ -16,6 +16,7 @@ import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
 
 import styles from './dashboard.module.css';
 
+/*
 const MOCK_STATS_DATA = [
   {
     title: 'Всего вещей',
@@ -40,6 +41,7 @@ const MOCK_STATS_DATA = [
     trend: { value: -8, label: 'vs прошлый' },
   },
 ];
+*/
 
 const MOCK_OUTFIT = {
   weather: 'Погода не определена',
@@ -58,6 +60,20 @@ type WeatherByCoordsResponse = {
   feels_like: string;
   location?: string;
 };
+
+type DashboardNumbersResponse = {
+  clothesNumber: number;
+  looksNumber: number;
+  wornLast30Days: number;
+  notWornMoreThan30Days: number;
+};
+
+type DashboardSectionsResponse = {
+  name: string;
+  emoji: string;
+  count: number;
+  percentage: number;
+}[];
 
 const WEATHER_DESCRIPTION_RU_MAP: Record<string, string> = {
   Sunny: 'Солнечно',
@@ -104,6 +120,7 @@ const MOCK_PLANS = [
   { id: 4, date: 'Пт, 18 апр', title: 'Прогулка', outfit: 'Спортивный', color: '#f43f5e' },
 ];
 
+/*
 const MOCK_CATEGORIES = [
   { name: 'Верх', count: 24, percentage: 35, emoji: '👕' },
   { name: 'Низ', count: 16, percentage: 23, emoji: '👖' },
@@ -111,17 +128,53 @@ const MOCK_CATEGORIES = [
   { name: 'Верхняя одежда', count: 8, percentage: 12, emoji: '🧥' },
   { name: 'Аксессуары', count: 9, percentage: 13, emoji: '🎒' },
 ];
+*/
 
 export default function DashboardPage() {
   const router = useRouter();
   const [weatherText, setWeatherText] = useState<string>(MOCK_OUTFIT.weather);
   const [weatherTip, setWeatherTip] = useState<string>(MOCK_OUTFIT.tip);
+  const [categories, setCategories] = useState<DashboardSectionsResponse>([]);
+  const [dashboardNumbers, setDashboardNumbers] = useState<DashboardNumbersResponse>({
+    clothesNumber: 0,
+    looksNumber: 0,
+    wornLast30Days: 0,
+    notWornMoreThan30Days: 0,
+  });
 
   const navigateToEventsPageHandler = () => {
     router.push(CLIENT_ROUTES.EVENTS);
   };
 
   useEffect(() => {
+    const loadDashboardNumbers = async () => {
+      try {
+        const { data } = await axiosInstance.get<ServerResponseType<DashboardNumbersResponse>>(
+          '/dashboard/numbers',
+        );
+
+        if (data.data) {
+          setDashboardNumbers(data.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const loadDashboardSections = async () => {
+      try {
+        const { data } = await axiosInstance.get<ServerResponseType<DashboardSectionsResponse>>(
+          '/dashboard/sections',
+        );
+
+        if (data.data?.length) {
+          setCategories(data.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     const fetchWeatherByCoords = async (
       lat: number,
       lon: number,
@@ -184,6 +237,8 @@ export default function DashboardPage() {
     };
     //в ${weatherData.location}
     void loadWeather();
+    void loadDashboardNumbers();
+    void loadDashboardSections();
 
     const onUserLocationUpdated = () => {
       void loadWeather();
@@ -205,6 +260,34 @@ export default function DashboardPage() {
     [weatherText, weatherTip],
   );
 
+  const statsData = useMemo(
+    () => [
+      {
+        title: 'Всего вещей',
+        value: dashboardNumbers.clothesNumber,
+        icon: Shirt,
+        subtitle: 'в гардеробе',
+        trend: { value: 5, label: 'за месяц' },
+      },
+      {
+        title: 'Образов',
+        value: dashboardNumbers.looksNumber,
+        icon: Palette,
+        subtitle: 'сохранено',
+        trend: { value: 20, label: 'за месяц' },
+      },
+      { title: 'Носилось', value: dashboardNumbers.wornLast30Days, icon: Eye, subtitle: 'за 30 дней' },
+      {
+        title: 'Не носилось',
+        value: dashboardNumbers.notWornMoreThan30Days,
+        icon: TrendingUp,
+        subtitle: 'более 60 дней',
+        trend: { value: -8, label: 'vs прошлый' },
+      },
+    ],
+    [dashboardNumbers],
+  );
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -214,7 +297,7 @@ export default function DashboardPage() {
         </div>
 
         <div className={styles.statsGrid}>
-          {MOCK_STATS_DATA.map((stat) => (
+          {statsData.map((stat) => (
             <StatsCard key={stat.title} {...stat} />
           ))}
         </div>
@@ -231,7 +314,7 @@ export default function DashboardPage() {
             />
           </div>
           <div className={styles.widgetItem}>
-            <CategoryBreakdown categories={MOCK_CATEGORIES} />
+            <CategoryBreakdown categories={categories} />
           </div>
         </div>
       </main>
