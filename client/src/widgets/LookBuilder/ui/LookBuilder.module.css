@@ -14,15 +14,6 @@
   gap: 0.45rem;
 }
 
-.eyebrow {
-  margin: 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--accent-bright);
-  font-weight: 600;
-}
-
 .title {
   margin: 0;
   font-size: clamp(1.4rem, 2.8vw, 2rem);
@@ -34,7 +25,6 @@
 .subtitle {
   margin: 0;
   color: var(--muted);
-  max-width: 40rem;
 }
 
 .layout {
@@ -53,6 +43,9 @@
 
 .canvasSection {
   background: linear-gradient(180deg, var(--surface) 0%, var(--surface-elevated) 100%);
+  position: sticky;
+  top: 4rem;
+  align-self: start;
 }
 
 .panelTitle {
@@ -63,7 +56,7 @@
 }
 
 .panelHint {
-  margin: 0.25rem 0 0.85rem;
+  margin: 0.25rem 0 0;
   color: var(--muted);
   font-size: 0.85rem;
 }
@@ -72,7 +65,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin-bottom: 0.85rem;
+  padding-block: 0.85rem;
+  position: sticky;
+  top: 3.2rem;
+  background-color: inherit;
 }
 
 .filterButton {
@@ -110,7 +106,7 @@
   background: var(--surface);
   padding: 0.75rem;
   display: flex;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
   justify-content: space-between;
   gap: 0.75rem;
   cursor: grab;
@@ -169,7 +165,6 @@
 .itemDescription {
   margin: 0.2rem 0 0;
   font-size: 0.78rem;
-  color: var(--muted);
 }
 
 .actionButton {
@@ -404,51 +399,6 @@
   margin: 0.2rem 0 0;
   font-size: 0.8rem;
   color: var(--foreground);
-}
-
-.savedSection {
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface);
-  padding: 1rem;
-}
-
-.savedTitle {
-  margin: 0;
-  font-size: 0.96rem;
-}
-
-.savedHint {
-  margin: 0.6rem 0 0;
-  color: var(--muted);
-  font-size: 0.84rem;
-}
-
-.savedList {
-  list-style: none;
-  margin: 0.7rem 0 0;
-  padding: 0;
-  display: grid;
-  gap: 0.5rem;
-}
-
-.savedCard {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.6rem 0.7rem;
-  background: var(--surface-elevated);
-}
-
-.savedName {
-  margin: 0;
-  font-size: 0.86rem;
-  font-weight: 600;
-}
-
-.savedMeta {
-  margin: 0.16rem 0 0;
-  color: var(--muted);
-  font-size: 0.75rem;
 }
 
 @media (max-width: 880px) {

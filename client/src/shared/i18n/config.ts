@@ -134,10 +134,9 @@ const resources = {
         saved: 'Сохранено',
       },
       lookBuilder: {
-        eyebrow: 'Конструктор образа:',
-        edit: 'Измени',
-        build: 'Собери',
-        titleTail: 'образ из вещей гардероба',
+        edit: 'Изменение',
+        build: 'Создание',
+        titleTail: 'образа',
         subtitle:
           'Слева выбираешь вещи из гардероба, справа сразу видишь, как выглядит комплект в сборке.',
         itemListTitle: 'Список вещей',
@@ -652,10 +651,9 @@ const resources = {
         saved: 'Saved',
       },
       lookBuilder: {
-        eyebrow: 'Look builder:',
         edit: 'Edit',
         build: 'Build',
-        titleTail: 'a look from wardrobe items',
+        titleTail: 'a look',
         subtitle: 'Choose items on the left and instantly see the assembled outfit on the right.',
         itemListTitle: 'Items list',
         itemListHint: 'Each item can be used in different saved looks.',
@@ -1380,10 +1378,9 @@ const resources = {
         },
       },
       lookBuilder: {
-        eyebrow: 'Look-Builder:',
         edit: 'Bearbeite',
         build: 'Erstelle',
-        titleTail: 'einen Look aus Garderobenteilen',
+        titleTail: 'einen Look',
         subtitle: 'Links wahlst du Teile, rechts siehst du sofort den fertigen Look.',
         itemListTitle: 'Teileliste',
         itemListHint: 'Jedes Teil kann in mehreren gespeicherten Looks verwendet werden.',
@@ -1897,10 +1894,9 @@ const resources = {
         },
       },
       lookBuilder: {
-        eyebrow: 'Createur de look :',
         edit: 'Modifier',
         build: 'Assembler',
-        titleTail: 'un look a partir de votre garde-robe',
+        titleTail: 'un look',
         subtitle: 'A gauche, choisissez des articles; a droite, voyez le resultat immediatement.',
         itemListTitle: 'Liste des articles',
         itemListHint: 'Chaque article peut etre utilise dans differents looks enregistres.',
@@ -2411,10 +2407,9 @@ const resources = {
         },
       },
       lookBuilder: {
-        eyebrow: 'Creador de look:',
         edit: 'Edita',
         build: 'Arma',
-        titleTail: 'un look con prendas del armario',
+        titleTail: 'un look',
         subtitle:
           'A la izquierda eliges prendas del armario, a la derecha ves al instante como se ve el conjunto.',
         itemListTitle: 'Lista de prendas',
@@ -2922,7 +2917,6 @@ const resources = {
         },
       },
       lookBuilder: {
-        eyebrow: '穿搭生成器：',
         edit: '修改',
         build: '创建',
         titleTail: '基于衣橱单品的穿搭',

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { useTranslation } from 'react-i18next';
 
 import { LOOKS_PAGE_CONSTANTS } from '@/entities/look';
@@ -74,12 +75,8 @@ export default function OutfitsPage() {
           <PageLoader />
         ) : arrayOfLooksObj.length === 0 ? (
           <div className={styles.empty}>
-            <strong>
-              {tab === 'favorites' ? t('looks.emptyFav') : t('looks.emptyAll')}
-            </strong>
-            {tab === 'favorites'
-              ? t('looks.emptyFavHint')
-              : t('looks.emptyAllHint')}
+            <strong>{tab === 'favorites' ? t('looks.emptyFav') : t('looks.emptyAll')}</strong>
+            {tab === 'favorites' ? t('looks.emptyFavHint') : t('looks.emptyAllHint')}
           </div>
         ) : (
           <div className={styles.grid}>
