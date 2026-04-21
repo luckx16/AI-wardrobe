@@ -3,25 +3,12 @@
 import { useEffect, useState } from 'react';
 
 import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
-import { updateClothesItem } from './api/wardrobeApi';
 import styles from './AddItemDialog.module.css';
+import { updateClothesItem } from './api/wardrobeApi';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './components/dialog';
 
 const seasons: Season[] = ['зима', 'весна', 'лето', 'осень', 'всесезон'];
-const categories: Category[] = [
-  'футболка',
-  'рубашка',
-  'платье',
-  'брюки',
-  'юбка',
-  'куртка',
-  'свитер',
-  'худи',
-  'шорты',
-  'обувь',
-  'аксессуары',
-  'другое',
-];
+const categories: Category[] = ['headwear', 'top', 'accessory', 'bags', 'bottom', 'shoes', 'other'];
 
 interface EditItemDialogProps {
   item: WardrobeItem | null;
@@ -32,7 +19,7 @@ interface EditItemDialogProps {
 
 const EditItemDialog = ({ item, open, onOpenChange, onSave }: EditItemDialogProps) => {
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<Category>('футболка');
+  const [category, setCategory] = useState<Category>('top');
   const [season, setSeason] = useState<Season>('всесезон');
   const [brand, setBrand] = useState('');
   const [material, setMaterial] = useState('');

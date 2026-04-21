@@ -4,18 +4,13 @@ type TFunction = (key: string) => string;
 
 export const getCategoryLabel = (value: Category, t: TFunction): string => {
   const map: Record<Category, string> = {
-    футболка: t('wardrobe.categories.tshirt'),
-    рубашка: t('wardrobe.categories.shirt'),
-    платье: t('wardrobe.categories.dress'),
-    брюки: t('wardrobe.categories.pants'),
-    юбка: t('wardrobe.categories.skirt'),
-    куртка: t('wardrobe.categories.jacket'),
-    свитер: t('wardrobe.categories.sweater'),
-    худи: t('wardrobe.categories.hoodie'),
-    шорты: t('wardrobe.categories.shorts'),
-    обувь: t('wardrobe.categories.shoes'),
-    аксессуары: t('wardrobe.categories.accessories'),
-    другое: t('wardrobe.categories.other'),
+    headwear: t('wardrobe.sections.headwear'),
+    top: t('wardrobe.sections.top'),
+    accessory: t('wardrobe.sections.accessory'),
+    bags: t('wardrobe.sections.bags'),
+    bottom: t('wardrobe.sections.bottom'),
+    shoes: t('wardrobe.sections.shoes'),
+    other: t('wardrobe.sections.other'),
   };
 
   return map[value];
