@@ -243,7 +243,7 @@ class ClothController {
 
       const existing = await ClothService.getClothById(id);
 
-      if (!existing || existing.user_id !== user.id) {
+      if (!existing || Number(existing.user_id) !== Number(user.id)) {
         return res.status(404).json(formatResponse(404, 'Cloth not found'));
       }
 

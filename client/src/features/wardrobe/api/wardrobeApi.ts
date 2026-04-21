@@ -22,6 +22,15 @@ type ClothStatusData = {
   imageUrl: string | null;
 };
 
+type UpdateClothRequest = {
+  title: string;
+  brand?: string;
+  material?: string;
+  color?: string;
+  category?: string;
+  season?: string;
+};
+
 export async function getAll(): Promise<WardrobeItem[]> {
   const result = await axiosInstance.get<ServerResponseType<WardrobeItem[]>>(
     WARDROBE_API_ROUTES.CLOTHES,
@@ -57,7 +66,7 @@ export async function createClothesItem(
   return updateImagePath(data.data.cloth);
 }
 
-export async function updateClothesItem(id: string, data: WardrobeItem): Promise<WardrobeItem> {
+export async function updateClothesItem(id: string, data: UpdateClothRequest): Promise<WardrobeItem> {
   const result = await axiosInstance.put<ServerResponseType<WardrobeItem>>(
     WARDROBE_API_ROUTES.CLOTH(id),
     data,

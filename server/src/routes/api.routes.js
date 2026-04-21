@@ -8,6 +8,7 @@ const chatsRoutes = require('./chats.routes');
 const lookRoutes = require('./look.routes');
 const eventRoutes = require('./event.routes');
 const clothRoutes = require('./cloth.routes');
+const dashboardRoutes = require('./dashboard.routes');
 const weatherRoutes = require('./weather.routes');
 
 
@@ -20,6 +21,7 @@ router.use('/chats', chatsRoutes);
 router.use('/looks', lookRoutes);
 router.use('/events', eventRoutes);
 router.use('/cloth', clothRoutes);
+router.use('/dashboard', dashboardRoutes);
 router.use('/weather', weatherRoutes);
 
 module.exports = router;

@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { Eye, Palette, Shirt, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { USER_API_ROUTES } from '@/shared/constants/userApiRoutes';
@@ -17,7 +17,6 @@ import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
 
 import styles from './dashboard.module.css';
 
-
 type WeatherByCoordsResponse = {
   temperature: string;
   description: string;
@@ -25,46 +24,90 @@ type WeatherByCoordsResponse = {
   location?: string;
 };
 
-
 export default function DashboardPage() {
   const { t } = useTranslation();
   const router = useRouter();
   const [weatherText, setWeatherText] = useState<string>(t('dashboard.weather.undefined'));
   const [weatherTip, setWeatherTip] = useState<string>(t('dashboard.weather.tipDefault'));
 
-  const statsData = useMemo(
-    () => [
-      {
-        title: t('dashboard.stats.totalItems.title'),
-        value: 69,
-        icon: Shirt,
-        subtitle: t('dashboard.stats.totalItems.subtitle'),
-        trend: { value: 5, label: t('dashboard.stats.totalItems.trend') },
-      },
-      {
-        title: t('dashboard.stats.looks.title'),
-        value: 12,
-        icon: Palette,
-        subtitle: t('dashboard.stats.looks.subtitle'),
-        trend: { value: 20, label: t('dashboard.stats.looks.trend') },
-      },
-      { title: t('dashboard.stats.worn.title'), value: 43, icon: Eye, subtitle: t('dashboard.stats.worn.subtitle') },
-      {
-        title: t('dashboard.stats.notWorn.title'),
-        value: 26,
-        icon: TrendingUp,
-        subtitle: t('dashboard.stats.notWorn.subtitle'),
-        trend: { value: -8, label: t('dashboard.stats.notWorn.trend') },
-      },
-    ],
-    [t],
-  );
+  type DashboardNumbersResponse = {
+    clothesNumber: number;
+    looksNumber: number;
+    wornLast30Days: number;
+    notWornMoreThan30Days: number;
+    clothesTrend: {
+      value: number;
+      label: string;
+    };
+    looksTrend: {
+      value: number;
+      label: string;
+    };
+    wornTrend: {
+      value: number;
+      label: string;
+    };
+    notWornTrend: {
+      value: number;
+      label: string;
+    };
+  };
 
+  type DashboardSectionsResponse = {
+    name: string;
+    emoji: string;
+    count: number;
+    percentage: number;
+  }[];
+
+  /*
+   */
+  const [categories, setCategories] = useState<DashboardSectionsResponse>([]);
+  const [dashboardNumbers, setDashboardNumbers] = useState<DashboardNumbersResponse>({
+    clothesNumber: 0,
+    looksNumber: 0,
+    wornLast30Days: 0,
+    notWornMoreThan30Days: 0,
+    clothesTrend: { value: 0, label: 'к предыдущим 30 дням' },
+    looksTrend: { value: 0, label: 'к предыдущим 30 дням' },
+    wornTrend: { value: 0, label: 'к предыдущим 30 дням' },
+    notWornTrend: { value: 0, label: 'к предыдущим 30 дням' },
+  });
   const navigateToEventsPageHandler = () => {
     router.push(CLIENT_ROUTES.EVENTS);
   };
 
   useEffect(() => {
+    const loadDashboardNumbers = async () => {
+      try {
+        const { data } =
+          await axiosInstance.get<ServerResponseType<DashboardNumbersResponse>>(
+            '/dashboard/numbers',
+          );
+
+        if (data.data) {
+          setDashboardNumbers(data.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const loadDashboardSections = async () => {
+      try {
+        const { data } =
+          await axiosInstance.get<ServerResponseType<DashboardSectionsResponse>>(
+            '/dashboard/sections',
+          );
+
+        if (data.data?.length) {
+          setCategories(data.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     const fetchWeatherByCoords = async (
       lat: number,
       lon: number,
@@ -126,6 +169,8 @@ export default function DashboardPage() {
       }
     };
     void loadWeather();
+    void loadDashboardNumbers();
+    void loadDashboardSections();
 
     const onUserLocationUpdated = () => {
       void loadWeather();
@@ -141,15 +186,30 @@ export default function DashboardPage() {
   const outfitWithWeather = useMemo(
     () => ({
       items: [
-        { id: 12, name: t('dashboard.outfit.items.jeans'), category: t('dashboard.categories.items.bottom'), emoji: '👖' },
-        { id: 45, name: t('dashboard.outfit.items.hoodie'), category: t('dashboard.categories.items.top'), emoji: '🧥' },
+        {
+          id: 12,
+          name: t('dashboard.outfit.items.jeans'),
+          category: t('dashboard.categories.items.bottom'),
+          emoji: '👖',
+        },
+        {
+          id: 45,
+          name: t('dashboard.outfit.items.hoodie'),
+          category: t('dashboard.categories.items.top'),
+          emoji: '🧥',
+        },
         {
           id: 7,
           name: t('dashboard.outfit.items.trench'),
           category: t('dashboard.categories.items.outerwear'),
           emoji: '🧥',
         },
-        { id: 23, name: t('dashboard.outfit.items.sneakers'), category: t('dashboard.categories.items.shoes'), emoji: '👟' },
+        {
+          id: 23,
+          name: t('dashboard.outfit.items.sneakers'),
+          category: t('dashboard.categories.items.shoes'),
+          emoji: '👟',
+        },
       ],
       weather: weatherText,
       tip: weatherTip,
@@ -191,15 +251,38 @@ export default function DashboardPage() {
     [t],
   );
 
-  const categories = useMemo(
+  const statsData = useMemo(
     () => [
-      { name: t('dashboard.categories.items.top'), count: 24, percentage: 35, emoji: '👕' },
-      { name: t('dashboard.categories.items.bottom'), count: 16, percentage: 23, emoji: '👖' },
-      { name: t('dashboard.categories.items.shoes'), count: 12, percentage: 17, emoji: '👟' },
-      { name: t('dashboard.categories.items.outerwear'), count: 8, percentage: 12, emoji: '🧥' },
-      { name: t('dashboard.categories.items.accessories'), count: 9, percentage: 13, emoji: '🎒' },
+      {
+        title: 'Всего вещей',
+        value: dashboardNumbers.clothesNumber,
+        icon: Shirt,
+        subtitle: 'в гардеробе',
+        trend: dashboardNumbers.clothesTrend,
+      },
+      {
+        title: 'Образов',
+        value: dashboardNumbers.looksNumber,
+        icon: Palette,
+        subtitle: 'сохранено',
+        trend: dashboardNumbers.looksTrend,
+      },
+      {
+        title: 'Носилось',
+        value: dashboardNumbers.wornLast30Days,
+        icon: Eye,
+        subtitle: 'за 30 дней',
+        trend: dashboardNumbers.wornTrend,
+      },
+      {
+        title: 'Не носилось',
+        value: dashboardNumbers.notWornMoreThan30Days,
+        icon: TrendingUp,
+        subtitle: 'более 60 дней',
+        trend: dashboardNumbers.notWornTrend,
+      },
     ],
-    [t],
+    [dashboardNumbers],
   );
 
   return (

@@ -1,15 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import { useTranslation } from 'react-i18next';
 
 import { PageLoader, useToast } from '@/shared/ui';
+
 import AddItemDialog from '../../features/wardrobe/AddItemDialog';
 import {
   getAll,
   getClothProcessingStatus,
   removeClothesItem,
 } from '../../features/wardrobe/api/wardrobeApi';
+import EditItemDialog from '../../features/wardrobe/EditItemDialog';
 import ItemDetailDialog from '../../features/wardrobe/ItemDetailDialog';
 import WardrobeCard from '../../features/wardrobe/WardrobeCard';
 import WardrobeToolbar from '../../features/wardrobe/WardrobeToolbar';
@@ -99,6 +102,7 @@ const WardrobePage = () => {
   const [filterSeason, setFilterSeason] = useState<Season | 'all'>('all');
   const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all');
   const [selectedItem, setSelectedItem] = useState<WardrobeItem | null>(null);
+  const [editingItem, setEditingItem] = useState<WardrobeItem | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -156,9 +160,9 @@ const WardrobePage = () => {
     setItems((prev) => [item, ...prev]);
   }, []);
 
-  const handleDeleteItem = useCallback(async (id: number) => {
+  const handleDeleteItem = useCallback(async (id: string) => {
     try {
-      await removeClothesItem(id.toString());
+      await removeClothesItem(id);
 
       setItems((prev) => prev.filter((item) => item.id !== id));
       toast({ variant: 'success', title: 'Удалено', description: 'Вещь удалена из гардероба' });
@@ -167,6 +171,39 @@ const WardrobePage = () => {
       toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить вещь' });
     }
   }, [toast]);
+
+  const handleEditItem = useCallback(
+    (id: string) => {
+      const item = items.find((currentItem) => String(currentItem.id) === String(id));
+
+      if (item) {
+        setEditingItem(item);
+      }
+    },
+    [items],
+  );
+
+  const handleSaveEditItem = useCallback(async (updatedItem: WardrobeItem) => {
+    setItems((prev) =>
+      prev.map((item) => (String(item.id) === String(updatedItem.id) ? updatedItem : item)),
+    );
+    setSelectedItem((current) =>
+      current && String(current.id) === String(updatedItem.id) ? updatedItem : current,
+    );
+    setEditingItem(null);
+
+    try {
+      const freshItems = await getAll();
+      setItems(freshItems);
+      setSelectedItem((current) => {
+        if (!current) return current;
+        const refreshed = freshItems.find((item) => String(item.id) === String(current.id));
+        return refreshed ?? current;
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
 
   const filtered = useMemo(() => {
     let result = [...items];
@@ -218,12 +255,21 @@ const WardrobePage = () => {
                 item={item}
                 index={i}
                 onDelete={handleDeleteItem}
+                onEdit={handleEditItem}
                 onClick={() => setSelectedItem(item)}
               />
             ))}
           </div>
         )}
       </div>
+      <EditItemDialog
+        item={editingItem}
+        open={!!editingItem}
+        onOpenChange={(v) => {
+          if (!v) setEditingItem(null);
+        }}
+        onSave={handleSaveEditItem}
+      />
       <ItemDetailDialog
         item={selectedItem}
         open={!!selectedItem}

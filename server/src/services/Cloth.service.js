@@ -1,4 +1,11 @@
-const { Cloth } = require('../db/models'); // Ваша модель Sequelize
+const { Op, Sequelize } = require('sequelize');
+const { Cloth, Look, LookCloth } = require('../db/models'); // Ваша модель Sequelize
+
+function getCutoffDate(days = 30) {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  return cutoff.toISOString().slice(0, 10);
+}
 
 class ClothService {
   /**
@@ -137,6 +144,79 @@ class ClothService {
       throw err;
     }
   }
+
+  /**
+   * Считает количество вещей
+   */
+  static async clothesNumber(userId) {
+    try {
+      const clothesCount = await Cloth.count({
+        where: { user_id: userId },
+      });
+
+      return clothesCount;
+    } catch (err) {
+      console.error('Clothes count error:', err.message);
+      throw err;
+    }
+  }
+
+  /**
+   * Считает количество раз, сколько носилась вещь за 30 дней
+   */
+  static async wornStats(userId) {
+    try {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>  wornStats called');
+      const cutoffDate = getCutoffDate(30);
+      const cutoff = new Date(`${cutoffDate}T00:00:00.000Z`);
+
+      const wornLast30Days = await LookCloth.count({
+        include: [
+          {
+            model: Look,
+            as: 'look',
+            attributes: [],
+            required: true,
+            where: {
+              user_id: userId,
+              updatedAt: { [Op.gte]: cutoff },
+            },
+          },
+        ],
+      });
+
+      const notWornMoreThan30Days = await Cloth.count({
+        where: {
+          user_id: userId,
+          [Op.or]: [{ worn_at: { [Op.lt]: cutoffDate } }, { worn_at: null }],
+        },
+      });
+
+      return {
+        wornLast30Days,
+        notWornMoreThan30Days,
+      };
+    } catch (err) {
+      console.error('Worn stats error:', err.message);
+      throw err;
+    }
+  }
+
+  static async getSectionsStat(user_id) {
+    const count = await Cloth.findAll({
+      attributes: [
+        'section',
+        [Sequelize.fn('COUNT', Sequelize.col('section')), 'count'],
+      ],
+      where: {
+        user_id,
+      },
+      group: ['section'],
+      raw: true,
+    });
+    return count;
+  }
+
 }
 
 module.exports = ClothService;

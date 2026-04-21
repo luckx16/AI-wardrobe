@@ -1,5 +1,6 @@
 import { t } from 'i18next';
 import { Trash2 } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 
 import { getCategoryLabel, getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 
@@ -9,16 +10,18 @@ import styles from './WardrobeCard.module.css';
 interface WardrobeCardProps {
   item: WardrobeItem;
   index: number;
-  onDelete?: (id: number) => void;
+  onDelete?: (id: string) => void;
+  onEdit?: (id: string) => void;
   onClick?: () => void;
 }
 
-const WardrobeCard = ({ item, index, onDelete, onClick }: WardrobeCardProps) => {
+const WardrobeCard = ({ item, index, onDelete, onClick, onEdit }: WardrobeCardProps) => {
   const isProcessing =
     item.processing_status === 'pending' || item.processing_status === 'processing';
 
   return (
     <div className={styles.card} style={{ animationDelay: `${index * 60}ms` }} onClick={onClick}>
+
       {onDelete && (
         <button
           onClick={(e) => {
@@ -31,6 +34,20 @@ const WardrobeCard = ({ item, index, onDelete, onClick }: WardrobeCardProps) => 
           <Trash2 size={14} />
         </button>
       )}
+
+      {onEdit && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(item.id);
+          }}
+          className={styles.edit}
+          aria-label="Редактировать"
+        >
+          <Pencil size={14} />
+        </button>
+      )}
+
       <div className={styles.imageWrap}>
         <img
           src={item.image}
@@ -53,6 +70,7 @@ const WardrobeCard = ({ item, index, onDelete, onClick }: WardrobeCardProps) => 
           <span className={styles.text}>{getCategoryLabel(item.category, t)}</span>
           <span className={styles.badge}>{getSeasonLabel(item.season, t)}</span>
         </div>
+
         <p className={styles.text}>{item.color}</p>
       </div>
     </div>
