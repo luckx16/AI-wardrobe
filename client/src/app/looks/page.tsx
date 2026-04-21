@@ -7,6 +7,7 @@ import { deleteLookThunk, getAllLooksThunk, toggleLikeThunk } from '@/entities/l
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
+import { PageLoader, useToast } from '@/shared/ui';
 import { LookCard } from '@/widgets/LookCard';
 
 import styles from './looks.module.css';
@@ -14,6 +15,7 @@ import styles from './looks.module.css';
 type Tab = 'all' | 'favorites';
 
 export default function OutfitsPage() {
+  const { toast } = useToast();
   const dispatch = useAppDispatch();
   const { looks, isLoading } = useAppSelector((state) => state.looks);
   const { addQueryParams } = useCustomRouter();
@@ -29,8 +31,13 @@ export default function OutfitsPage() {
 
   const arrayOfLooksObj = tab === 'all' ? looks : looks.filter((l) => l.is_in_favorites);
 
-  const deleteLookHandler = (id: string) => {
-    dispatch(deleteLookThunk(id));
+  const deleteLookHandler = async (id: string) => {
+    try {
+      await dispatch(deleteLookThunk(id)).unwrap();
+      toast({ variant: 'success', title: 'Образ удалён' });
+    } catch {
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить образ' });
+    }
   };
 
   return (
@@ -62,7 +69,7 @@ export default function OutfitsPage() {
         </header>
 
         {isLoading ? (
-          <div className={styles.loading}>Загрузка...</div>
+          <PageLoader />
         ) : arrayOfLooksObj.length === 0 ? (
           <div className={styles.empty}>
             <strong>

@@ -17,7 +17,7 @@ import {
 import { ChatInput, type ChatSendOptions, SuggestionChips } from '@/features/send-message';
 import { useAppSelector } from '@/shared/hooks';
 import { makeUniqueTitle } from '@/shared/lib/makeUniqueTitle';
-import { TrashIcon } from '@/shared/ui';
+import { TrashIcon, useToast } from '@/shared/ui';
 import { ChatHeader } from '@/widgets';
 import { LookCard } from '@/widgets/LookCard';
 
@@ -68,6 +68,7 @@ function formatChatListDate(chat: ClientChat, index: number) {
 }
 
 export function ChatWidget() {
+  const { toast } = useToast();
   const { user } = useAppSelector((state) => state.user);
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [isLoading, setIsLoading] = useState(false);
@@ -182,6 +183,7 @@ export function ChatWidget() {
       setIsSidebarOpen(false);
     } catch (error) {
       console.error('Failed to load selected chat', error);
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось загрузить чат' });
     } finally {
       setIsBootstrapping(false);
     }
@@ -214,6 +216,7 @@ export function ChatWidget() {
       setChatPendingDeleteId(null);
     } catch (error) {
       console.error('Failed to create chat', error);
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось создать чат' });
     } finally {
       setIsBootstrapping(false);
     }
@@ -248,6 +251,7 @@ export function ChatWidget() {
       }
     } catch (error) {
       console.error('Failed to delete chat', error);
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить чат' });
     } finally {
       setIsBootstrapping(false);
     }

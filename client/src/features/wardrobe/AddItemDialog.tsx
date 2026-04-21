@@ -6,6 +6,7 @@ import { ImagePlus, Plus, X } from 'lucide-react';
 
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import { resolveAssetUrl } from '@/shared/lib/uploadApi';
+import { useToast } from '@/shared/ui';
 
 import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
 import styles from './AddItemDialog.module.css';
@@ -39,6 +40,7 @@ interface AddItemDialogProps {
 }
 
 const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState<Category>('футболка');
@@ -120,11 +122,13 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
           season: season,
         },
         imageFile,
-      );      
+      );
 
       onAdd(item);
+      toast({ variant: 'success', title: 'Добавлено', description: `«${name}» добавлено в гардероб` });
     } catch (error) {
       console.error(error);
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось добавить вещь' });
     }
     reset();
     setOpen(false);
