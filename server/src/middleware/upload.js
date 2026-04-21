@@ -3,8 +3,8 @@ const path = require('path');
 const fs = require('fs');
 
 // Создаем папки для файлов (если их нет)
-const tempDir = path.join(__dirname, '..', 'uploads', 'temp');
-const processedDir = path.join(__dirname, '..', 'uploads', 'processed');
+const tempDir = path.join(__dirname, '..', 'public', 'uploads', 'temp');
+const processedDir = path.join(__dirname, '..', 'public', 'uploads', 'processed');
 
 // fs.mkdirSync создает папку, { recursive: true } - создает все вложенные папки
 if (!fs.existsSync(tempDir)) {

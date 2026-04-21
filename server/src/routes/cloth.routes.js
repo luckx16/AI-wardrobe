@@ -16,7 +16,7 @@ router
 
 // 🧠 Обработка изображений
 // удалить фон для превью
-router.route('/remove-background').post(upload.single('image'), ClothController.removeBackground);
+router.route('/remove-background').post(verifyAccessToken, upload.single('image'), ClothController.removeBackground);
 // проверка статуса обработки
 router.get('/:id/status', verifyAccessToken, ClothController.getProcessingStatus);
 
