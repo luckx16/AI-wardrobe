@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+
 import styles from './CalendarPlans.module.css';
 
 type Plan = {
@@ -26,6 +28,8 @@ export function CalendarPlans({
   calendarIcon,
   chevronIcon,
 }: CalendarPlansProps) {
+  const { t } = useTranslation();
+
   return (
     <div className={styles.card}>
       <div className={styles.header}>
@@ -33,10 +37,10 @@ export function CalendarPlans({
           <div className={styles.iconWrap}>
             {calendarIcon ?? <span className={styles.icon}>📅</span>}
           </div>
-          <h3 className={styles.title}>Ближайшие планы</h3>
+          <h3 className={styles.title}>{t('dashboard.plans.title')}</h3>
         </div>
         <button className={styles.allBtn} onClick={onAllPlans} type="button">
-          Все планы
+          {t('dashboard.plans.all')}
         </button>
       </div>
 

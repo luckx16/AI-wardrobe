@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+
 import styles from './OutfitOfTheDay.module.css';
 
 type OutfitItem = {
@@ -23,6 +25,8 @@ type OutfitOfTheDayProps = {
 };
 
 export function OutfitOfTheDay({ outfit, onRefresh, weatherIcon, sparkleIcon }: OutfitOfTheDayProps) {
+  const { t } = useTranslation();
+
   return (
     <div className={styles.card}>
       <div className={styles.header}>
@@ -30,10 +34,10 @@ export function OutfitOfTheDay({ outfit, onRefresh, weatherIcon, sparkleIcon }: 
           <div className={styles.iconWrap}>
             {sparkleIcon ?? <span className={styles.icon}>✦</span>}
           </div>
-          <h3 className={styles.title}>Образ дня от AI</h3>
+          <h3 className={styles.title}>{t('dashboard.outfit.title')}</h3>
         </div>
         <button className={styles.refreshBtn} onClick={onRefresh} type="button">
-          Обновить
+          {t('dashboard.outfit.refresh')}
         </button>
       </div>
 

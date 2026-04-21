@@ -1,6 +1,7 @@
 'use client';
 
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import clsx from 'clsx';
 import { BadgePlus } from 'lucide-react';
@@ -9,6 +10,7 @@ import { getAllLooksThunk } from '@/entities/look';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
+import { useToast } from '@/shared/ui';
 import { LookCard } from '@/widgets/LookCard';
 
 import { createEventThunk, updateEventThunk } from '../../api/eventsThunk';
@@ -16,36 +18,6 @@ import { EVENT_MODAL_CONSTANTS } from '../../model/constants';
 import { EventDataFromClient } from '../../model/types';
 import styles from './EventModal.module.css';
 
-const EVENT_OPTIONS = [
-  '💼 Офис',
-  '❤️ Свидание',
-  '✨ Вечеринка',
-  '🍷 Ужин',
-  '👟 Прогулка',
-  '✈️ Путешествие',
-  '💪 Спорт',
-  '💍 Торжество',
-  '🎭 Культурный выход',
-];
-
-const ACTIVITY_TYPES_OPTIONS = [
-  {
-    label: 'Город и работа',
-    options: ['🏙 Повседневный (Casual)', '👔 Смарт-кэжуал', '💼 Деловой', '🔥 Уличный стиль'],
-  },
-  {
-    label: 'Спорт и отдых',
-    options: ['👟 Спорт', '🌲 Активный отдых / Природа', '🧘 Спортивный шик'],
-  },
-  {
-    label: 'События и выходы',
-    options: ['🍸 Коктейльный', '🌹 Романтический', '✨ Торжественный'],
-  },
-  {
-    label: 'Для дома',
-    options: ['🏠 Домашний уют'],
-  },
-];
 interface EventModalProps {
   initialDate: string;
   onClose: () => void;
@@ -64,6 +36,8 @@ const customSelectInitial = {
 };
 
 export function EventModal({ initialDate, onClose }: EventModalProps) {
+  const { toast } = useToast();
+  const { t } = useTranslation();
   const { addQueryParams, searchParams } = useCustomRouter();
   const editedEventId = searchParams.get(EVENT_MODAL_CONSTANTS.IN_EDIT_MODE_EVENT_ID);
   const isEditing = !!editedEventId;
@@ -85,6 +59,56 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
   const customEventsOptionsArr = useMemo(() => {
     return events.map((evObj) => evObj.title);
   }, [events]);
+
+  const eventOptions = useMemo(
+    () => [
+      `💼 ${t('eventModal.eventOptions.office')}`,
+      `❤️ ${t('eventModal.eventOptions.date')}`,
+      `✨ ${t('eventModal.eventOptions.party')}`,
+      `🍷 ${t('eventModal.eventOptions.dinner')}`,
+      `👟 ${t('eventModal.eventOptions.walk')}`,
+      `✈️ ${t('eventModal.eventOptions.travel')}`,
+      `💪 ${t('eventModal.eventOptions.sport')}`,
+      `💍 ${t('eventModal.eventOptions.ceremony')}`,
+      `🎭 ${t('eventModal.eventOptions.cultural')}`,
+    ],
+    [t],
+  );
+
+  const activityTypesOptions = useMemo(
+    () => [
+      {
+        label: t('eventModal.activityGroups.cityWork.label'),
+        options: [
+          `🏙 ${t('eventModal.activityGroups.cityWork.options.casual')}`,
+          `👔 ${t('eventModal.activityGroups.cityWork.options.smartCasual')}`,
+          `💼 ${t('eventModal.activityGroups.cityWork.options.business')}`,
+          `🔥 ${t('eventModal.activityGroups.cityWork.options.street')}`,
+        ],
+      },
+      {
+        label: t('eventModal.activityGroups.sportLeisure.label'),
+        options: [
+          `👟 ${t('eventModal.activityGroups.sportLeisure.options.sport')}`,
+          `🌲 ${t('eventModal.activityGroups.sportLeisure.options.outdoor')}`,
+          `🧘 ${t('eventModal.activityGroups.sportLeisure.options.sportChic')}`,
+        ],
+      },
+      {
+        label: t('eventModal.activityGroups.events.label'),
+        options: [
+          `🍸 ${t('eventModal.activityGroups.events.options.cocktail')}`,
+          `🌹 ${t('eventModal.activityGroups.events.options.romantic')}`,
+          `✨ ${t('eventModal.activityGroups.events.options.formal')}`,
+        ],
+      },
+      {
+        label: t('eventModal.activityGroups.home.label'),
+        options: [`🏠 ${t('eventModal.activityGroups.home.options.cozy')}`],
+      },
+    ],
+    [t],
+  );
 
   useEffect(() => {
     dispatch(getAllLooksThunk());
@@ -117,13 +141,18 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
       look_id: form.look_id,
     };
 
-    if (isEditing) {
-      await dispatch(updateEventThunk({ editedEventId: editedEventId, ...eventDataFromClient }));
-    } else {
-      await dispatch(createEventThunk(eventDataFromClient));
+    try {
+      if (isEditing) {
+        await dispatch(updateEventThunk({ editedEventId: editedEventId, ...eventDataFromClient })).unwrap();
+        toast({ variant: 'success', title: 'Событие обновлено' });
+      } else {
+        await dispatch(createEventThunk(eventDataFromClient)).unwrap();
+        toast({ variant: 'success', title: 'Событие создано' });
+      }
+      onClose();
+    } catch {
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось сохранить событие' });
     }
-
-    onClose();
   }
 
   const hadleEventTitleChange = (e: ChangeEvent<HTMLSelectElement, HTMLSelectElement>) => {
@@ -169,13 +198,11 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
             handleSave();
           }}
         >
-          <div className={styles.modalTitle}>
-            {isEditing ? 'Изменить событие' : 'Новое событие'}
-          </div>
+          <div className={styles.modalTitle}>{isEditing ? t('eventModal.editTitle') : t('eventModal.newTitle')}</div>
 
           {/* ----Event */}
           <div className={styles.field}>
-            <label className={styles.label}>Название *</label>
+            <label className={styles.label}>{t('eventModal.name')} *</label>
             {!customSelect.isEventEditing ? (
               <div className={styles.selectWrapper}>
                 <select
@@ -184,9 +211,9 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
                   value={form.title}
                   onChange={hadleEventTitleChange}
                 >
-                  <option value="">Выберите</option>
-                  <optgroup label="Базовые:">
-                    {EVENT_OPTIONS.map((option) => {
+                  <option value="">{t('eventModal.select')}</option>
+                  <optgroup label={t('eventModal.baseOptions')}>
+                    {eventOptions.map((option) => {
                       return (
                         <option key={option} value={option}>
                           {option}
@@ -194,7 +221,7 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
                       );
                     })}
                   </optgroup>
-                  <optgroup label="Мои:">
+                  <optgroup label={t('eventModal.myOptions')}>
                     {customEventsOptionsArr.map((option, i) => {
                       return (
                         <option key={option + i} value={option}>
@@ -203,14 +230,14 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
                       );
                     })}
                   </optgroup>
-                  <option value="create_newEvent"> + Свой вариант</option>
+                  <option value="create_newEvent">+ {t('eventModal.customOption')}</option>
                 </select>
               </div>
             ) : (
               <input
                 required
                 className={styles.input}
-                placeholder="Например: Ужин, Вечеринка…"
+                placeholder={t('eventModal.namePlaceholder')}
                 value={form.title}
                 onChange={(e) => handleChange('title', e.target.value)}
               />
@@ -219,7 +246,7 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
 
           {/* ----Дата */}
           <div className={styles.field}>
-            <label className={styles.label}>Дата *</label>
+            <label className={styles.label}>{t('eventModal.date')} *</label>
             <input
               required
               className={styles.input}
@@ -231,7 +258,7 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
 
           {/* ----Тип активности */}
           <div className={styles.field}>
-            <label className={styles.label}>Тип активности</label>
+            <label className={styles.label}>{t('eventModal.activityType')}</label>
             {!customSelect.isActivityTypeEditing ? (
               <div className={styles.selectWrapper}>
                 <select
@@ -240,8 +267,8 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
                   value={form.activity_type}
                   onChange={hadleActivityTypeChange}
                 >
-                  <option value="">Выберите тип активности</option>
-                  {ACTIVITY_TYPES_OPTIONS.map((group) => (
+                  <option value="">{t('eventModal.selectActivity')}</option>
+                  {activityTypesOptions.map((group) => (
                     <optgroup key={group.label} label={group.label}>
                       {group.options.map((opt) => (
                         <option key={opt} value={opt}>
@@ -250,14 +277,14 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
                       ))}
                     </optgroup>
                   ))}
-                  <option value="create_newActivity"> + Свой вариант</option>
+                  <option value="create_newActivity">+ {t('eventModal.customOption')}</option>
                 </select>
               </div>
             ) : (
               <input
                 required
                 className={styles.input}
-                placeholder="Например: Casual, Прогулка…"
+                placeholder={t('eventModal.activityPlaceholder')}
                 value={form.activity_type}
                 onChange={(e) => handleChange('activity_type', e.target.value)}
               />
@@ -266,7 +293,7 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
 
           {/* ----Лук */}
           <div className={styles.field}>
-            <label className={styles.label}>Лук</label>
+            <label className={styles.label}>{t('eventModal.look')}</label>
             {!customSelect.isLookIdEditing && (
               <div className={styles.lookFieldRow}>
                 <div className={clsx(styles.selectWrapper, styles.lookSelectWrapper)}>
@@ -276,7 +303,7 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
                     onChange={(e) => hadleLookChange(e.target.value)}
                     required
                   >
-                    <option value="">Выберите лук</option>
+                    <option value="">{t('eventModal.selectLook')}</option>
                     {looks.map((look) => {
                       return (
                         <option key={look.id} value={look.id}>
@@ -284,14 +311,14 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
                         </option>
                       );
                     })}
-                    <option value="create_newLook"> + Создать новый лук</option>
+                    <option value="create_newLook">+ {t('eventModal.createNewLook')}</option>
                   </select>
                 </div>
                 <button
                   type="button"
                   onClick={() => hadleLookChange('create_newLook')}
                   className={styles.createLookBtn}
-                  title="Создать новый лук"
+                  title={t('eventModal.createNewLook')}
                 >
                   <BadgePlus size={20} color="currentColor" />
                 </button>
@@ -306,14 +333,14 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
               disabled={isLoading}
               onClick={onClose}
             >
-              Отмена
+              {t('common.cancel')}
             </button>
             <button
               className={styles.saveBtn}
               type="submit"
               disabled={isLoading || !form.title.trim() || !form.date}
             >
-              {isLoading ? 'Сохранение…' : 'Сохранить'}
+              {isLoading ? `${t('common.save')}...` : t('common.save')}
             </button>
           </div>
         </form>

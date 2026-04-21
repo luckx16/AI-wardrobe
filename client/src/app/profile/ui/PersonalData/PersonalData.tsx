@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import formStyles from '@/shared/styles/form.module.css';
 import { Card } from '@/shared/ui';
@@ -21,27 +22,28 @@ export function PersonalData({
   portraitPhoto,
   onPortraitPhotoChange,
 }: PersonalDataProps): React.JSX.Element {
+  const { t } = useTranslation();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   return (
     <Card
-      title="Личные данные"
-      description="Заполните данные — это поможет точнее подбирать рекомендации."
+      title={t('profile.personal.title')}
+      description={t('profile.personal.description')}
     >
       <div className={styles.grid}>
         <div className={styles.infoCard}>
-          <p className={styles.subTitle}>Основное</p>
+          <p className={styles.subTitle}>{t('profile.personal.basic')}</p>
           <div className={styles.field}>
             <label className={formStyles.label} htmlFor="profile-fullname">
-              Имя и фамилия
+              {t('profile.personal.fullName')}
             </label>
             <input
               id="profile-fullname"
               className={formStyles.input}
               type="text"
               name="fullName"
-              placeholder="Например: Анна Иванова"
+              placeholder={t('profile.personal.fullNamePlaceholder')}
               // Управляемый инпут, чтобы имя сразу отображалось в сайдбаре.
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
@@ -50,14 +52,14 @@ export function PersonalData({
           </div>
           <div className={styles.field}>
             <label className={formStyles.label} htmlFor="profile-age">
-              Возраст
+              {t('profile.personal.age')}
             </label>
             <input
               id="profile-age"
               className={formStyles.input}
               type="number"
               name="age"
-              placeholder="Например: 28"
+              placeholder={t('profile.personal.agePlaceholder')}
               defaultValue=""
               min={0}
               inputMode="numeric"
@@ -66,23 +68,20 @@ export function PersonalData({
         </div>
 
         <div className={styles.photoUpload}>
-          <div className={styles.photoDrop} aria-label="Загрузка портретного фото">
-            <p className={styles.photoTitle}>Портретное фото</p>
+          <div className={styles.photoDrop} aria-label={t('profile.personal.portraitUploadAria')}>
+            <p className={styles.photoTitle}>{t('profile.personal.portraitPhoto')}</p>
             {!portraitPhoto ? (
-              <p className={styles.photoHint}>
-                Вам необходимо сделать фото при естественном освещении (для этого можно встать у окна) без макияжа и
-                других изменений. Рекомендуемые параметры фото: JPG/PNG до 10MB, квадрат
-              </p>
+              <p className={styles.photoHint}>{t('profile.personal.portraitHint')}</p>
             ) : null}
             {portraitPhoto ? (
               <img
                 className={styles.photoPreview}
                 src={resolveAssetUrl(portraitPhoto)}
-                alt="Портретное фото"
+                alt={t('profile.personal.portraitPhoto')}
               />
             ) : null}
             <label className={styles.fileLabel} htmlFor="profile-photo">
-              {isUploading ? 'Загрузка…' : 'Выбрать файл'}
+              {isUploading ? t('profile.personal.uploading') : t('profile.personal.chooseFile')}
             </label>
             <input
               id="profile-photo"
@@ -103,7 +102,7 @@ export function PersonalData({
                   const uploaded = await uploadPortraitPhoto(file);
                   onPortraitPhotoChange(uploaded.url);
                 } catch {
-                  setUploadError('Не удалось загрузить фото');
+                  setUploadError(t('profile.personal.uploadFailed'));
                 } finally {
                   setIsUploading(false);
                   // Позволяем выбрать тот же файл повторно (после ошибки или повторной загрузки).
@@ -112,7 +111,9 @@ export function PersonalData({
               }}
             />
             {uploadError ? <p className={styles.photoHint}>{uploadError}</p> : null}
-            {portraitPhoto && !uploadError ? <p className={styles.photoHint}>Фото загружено</p> : null}
+            {portraitPhoto && !uploadError ? (
+              <p className={styles.photoHint}>{t('profile.personal.photoUploaded')}</p>
+            ) : null}
           </div>
         </div>
       </div>

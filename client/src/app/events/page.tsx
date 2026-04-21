@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { EventModal, EventsCalendar, EventSidebar } from '@/entities/events';
 import { EVENT_MODAL_CONSTANTS, toDateStr } from '@/entities/events';
@@ -8,13 +9,16 @@ import { deleteEventThunk, getAllEventsThunk } from '@/entities/events/api/event
 import { EventDataFromClient, IEvent } from '@/entities/events/model/types';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
+import { useToast } from '@/shared/ui';
 
 import styles from './events.module.css';
 
 export default function EventsPage() {
+  const { t } = useTranslation();
   const today = new Date();
   const todayStr = toDateStr(today);
 
+  const { toast } = useToast();
   const { events, isLoading } = useAppSelector((state) => state.events);
   const dispatch = useAppDispatch();
   const { addQueryParams, deleteQueryParams, searchParams } = useCustomRouter();
@@ -49,8 +53,13 @@ export default function EventsPage() {
 
   const eventsOfSelectedDateArr = eventsByDateObj[selectedDate] ?? [];
 
-  const deleteEventHandler = (eventId: string) => {
-    dispatch(deleteEventThunk(eventId));
+  const deleteEventHandler = async (eventId: string) => {
+    try {
+      await dispatch(deleteEventThunk(eventId)).unwrap();
+      toast({ variant: 'success', title: 'Событие удалено' });
+    } catch {
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить событие' });
+    }
   };
 
   const openUpdateModalHandler = ({ id, title, activity_type, date, look_id }: IEvent) => {
@@ -75,11 +84,11 @@ export default function EventsPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Мои события</h1>
-          <p className={styles.subtitle}>Планируй образы для каждого события</p>
+          <h1 className={styles.title}>{t('events.title')}</h1>
+          <p className={styles.subtitle}>{t('events.subtitle')}</p>
         </div>
         <button className={styles.addButton} onClick={() => setEventModal(true)}>
-          + Новое событие
+          {t('events.new')}
         </button>
       </div>
 

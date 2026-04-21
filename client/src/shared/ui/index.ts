@@ -18,3 +18,5 @@ export type { SegmentedOption } from '@/shared/ui/SegmentedControl/SegmentedCont
 export { SegmentedControl } from '@/shared/ui/SegmentedControl/SegmentedControl';
 export type { SidebarNavItem } from '@/shared/ui/SidebarNav/SidebarNav';
 export { SidebarNav } from '@/shared/ui/SidebarNav/SidebarNav';
+export { useToast } from '@/shared/ui/Toast/Toast';
+export { PageLoader, Spinner } from '@/shared/ui/Spinner/Spinner';

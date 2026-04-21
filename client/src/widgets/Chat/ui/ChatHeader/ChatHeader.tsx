@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
+
 import { HistoryIcon, SettingsIcon, SparklesIcon } from '@/shared/ui';
 
 import styles from './ChatHeader.module.css';
@@ -9,6 +11,8 @@ interface ChatHeaderProps {
 }
 
 export function ChatHeader({ onToggleHistory }: ChatHeaderProps) {
+  const { t } = useTranslation();
+
   return (
     <header className={styles.header}>
       <div className={styles.container}>
@@ -18,20 +22,20 @@ export function ChatHeader({ onToggleHistory }: ChatHeaderProps) {
           </div>
           <div>
             <h1 className={styles.title}>AI Wardrobe</h1>
-            <p className={styles.subtitle}>Персональный стилист</p>
+            <p className={styles.subtitle}>{t('chat.personalStylist')}</p>
           </div>
         </div>
 
         <div className={styles.actions}>
           <button
             className={styles.actionButton}
-            aria-label="История чатов"
+            aria-label={t('chat.history')}
             type="button"
             onClick={onToggleHistory}
           >
             <HistoryIcon className={styles.actionIcon} />
           </button>
-          <button className={styles.actionButton} aria-label="Настройки" type="button">
+          <button className={styles.actionButton} aria-label={t('chat.settings')} type="button">
             <SettingsIcon className={styles.actionIcon} />
           </button>
         </div>

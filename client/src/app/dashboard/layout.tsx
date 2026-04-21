@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Панель управления — AI Wardrobe',
-  description: 'Ваша панель управления гардеробом',
+  title: 'Dashboard — AI Wardrobe',
+  description: 'Your wardrobe dashboard',
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
