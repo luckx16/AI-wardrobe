@@ -51,6 +51,7 @@ module.exports = {
     'спортивная одежда',
     'домашняя одежда',
     'другое',
+    'жакет',
   ],
   SECTIONS: ['headwear', 'top', 'accessory', 'bags', 'bottom', 'shoes', 'other'],
 
@@ -106,5 +107,6 @@ module.exports = {
     'спортивная одежда': 'other',
     'домашняя одежда': 'other',
     другое: 'other',
+    жакет: 'top',
   },
 };
