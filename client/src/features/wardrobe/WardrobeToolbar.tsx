@@ -15,20 +15,15 @@ interface WardrobeToolbarProps {
 }
 
 const seasons: (Season | 'all')[] = ['all', 'зима', 'весна', 'лето', 'осень', 'всесезон'];
-const categories: (Category | 'all')[] = [
-  'all',
-  'футболка',
-  'рубашка',
-  'платье',
-  'брюки',
-  'юбка',
-  'куртка',
-  'свитер',
-  'худи',
-  'шорты',
-  'обувь',
-  'аксессуары',
-  'другое',
+const categoryOptions: Array<{ value: Category | 'all'; label: string }> = [
+  { value: 'all', label: 'Все' },
+  { value: 'headwear', label: 'Головные уборы' },
+  { value: 'top', label: 'Верх' },
+  { value: 'accessory', label: 'Аксессуары' },
+  { value: 'bags', label: 'Сумки' },
+  { value: 'bottom', label: 'Низ' },
+  { value: 'shoes', label: 'Обувь' },
+  { value: 'other', label: 'Другое' },
 ];
 
 const sortOptions: { value: SortField; label: string }[] = [
@@ -104,9 +99,9 @@ const WardrobeToolbar = ({
             onChange={(e) => onFilterCategoryChange(e.target.value as Category | 'all')}
             className={styles.select}
           >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c === 'all' ? 'Все' : c}
+            {categoryOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
