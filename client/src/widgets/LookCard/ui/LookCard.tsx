@@ -80,6 +80,7 @@ type LookCardSavedProps = {
 type LookCardGeneratedProps = {
   generated: GeneratedLook;
   look?: never;
+  onSaved?: (savedLookId: string) => void;
 };
 
 type Props = LookCardSavedProps | LookCardGeneratedProps;
@@ -97,6 +98,7 @@ export const LookCard = (props: Props) => {
   const title = isSaved ? look!.title : generated!.look.title;
   const clothCount = isSaved ? look!.clothes.length : generated!.cloths.length;
   const isFav = isSaved ? Boolean(look!.is_in_favorites) : false;
+  const comment = isSaved ? null : (generated?.comment?.trim() ? generated.comment.trim() : null);
 
   const sorted = useMemo(() => {
     if (isSaved) {
@@ -123,6 +125,9 @@ export const LookCard = (props: Props) => {
       });
       const id = saved?.id != null ? String(saved.id) : 'saved';
       setSavedId(id);
+      if ('onSaved' in props && typeof props.onSaved === 'function') {
+        props.onSaved(id);
+      }
       return id;
     } finally {
       setIsSaving(false);
@@ -180,7 +185,8 @@ export const LookCard = (props: Props) => {
       <div className={styles.bottom}>
         <div className={styles.meta}>
           <h3 className={styles.title}>{title}</h3>
-          <p className={styles.tag}>{t('lookCard.itemsCount', { count: clothCount })}</p>
+          <p className={styles.tag}>{clothCount} вещей</p>
+          {comment && <p className={styles.tag}>{comment}</p>}
         </div>
 
         {isSaved ? (

@@ -3,6 +3,7 @@ const http = require('node:http');
 const serverConfig = require('./config/serverConfig');
 const mainRouter = require('./routes/main.routes');
 const { setupChatWs } = require('./ws/chatWs');
+const { getStyleRagStore } = require('./rag/styleRagStore');
 
 const app = express();
 const BASE_PORT = Number(process.env.PORT ?? 4000);
@@ -12,6 +13,12 @@ serverConfig(app);
 
 // Запуск маршрутизации
 app.use('/', mainRouter);
+
+// Прогреваем RAG-индекс правил на старте (best-effort, без падения сервера).
+getStyleRagStore()
+  .then((h) => h.reload())
+  .then((r) => console.log(`[style-rag] ready: docs=${r.docsCount}`))
+  .catch((e) => console.warn('[style-rag] warmup failed:', e?.message || e));
 
 function listenWithFallback(port, attemptsLeft = 10) {
   const server = http.createServer(app);

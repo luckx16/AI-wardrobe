@@ -6,6 +6,12 @@ function safeJson(v) {
   }
 }
 
+function nonEmpty(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s ? s : null;
+}
+
 function compactItem(i) {
   const meta = i.ai_metadata && typeof i.ai_metadata === 'object' ? i.ai_metadata : {};
   const tags = Array.isArray(meta.tags) ? meta.tags.slice(0, 6) : undefined;
@@ -28,11 +34,24 @@ function compactItem(i) {
   return parts.join(';');
 }
 
+function formatActiveStyleRulesBlock(docs) {
+  const arr = Array.isArray(docs) ? docs : [];
+  const lines = arr
+    .map((d) => (d && typeof d.pageContent === 'string' ? d.pageContent.trim() : ''))
+    .filter(Boolean)
+    .slice(0, 12);
+
+  if (!lines.length) return null;
+
+  return ['## Active Style Rules', ...lines.map((t) => `- ${t}`), ''].join('\n');
+}
+
 function buildStylistPrompt(profile, items, userPrompt, options = {}) {
   const focusIds = Array.isArray(options.focusClothIds)
     ? [...new Set(options.focusClothIds.map(Number).filter(Number.isFinite))]
     : [];
   const weather = options.weather && typeof options.weather === 'object' ? options.weather : null;
+  const activeRulesBlock = formatActiveStyleRulesBlock(options.activeStyleRules);
 
   const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
   const prefs = p && typeof p.prefs === 'object' && p.prefs ? p.prefs : {};
@@ -64,32 +83,47 @@ function buildStylistPrompt(profile, items, userPrompt, options = {}) {
     ? `User request: ${String(userPrompt).trim()}`
     : 'User request: (none)';
 
+  const profileLines = [
+    nonEmpty(p.skin_tone) ? `skin_tone=${nonEmpty(p.skin_tone)}` : null,
+    nonEmpty(p.contrast) ? `contrast=${nonEmpty(p.contrast)}` : null,
+    nonEmpty(p.height) ? `height=${nonEmpty(p.height)}` : null,
+    nonEmpty(p.proportion) ? `proportion=${nonEmpty(p.proportion)}` : null,
+    nonEmpty(p.wishes) ? `wishes=${nonEmpty(p.wishes)}` : null,
+    Object.keys(prefs ?? {}).length ? `prefs=${safeJson(prefs)}` : null,
+    Object.keys(dislikes ?? {}).length ? `dislikes=${safeJson(dislikes)}` : null,
+    nonEmpty(p.additions) ? `additions=${nonEmpty(p.additions)}` : null,
+  ].filter(Boolean);
+
+  const weatherLines = weather
+    ? [
+        nonEmpty(weather.location) ? `location=${nonEmpty(weather.location)}` : null,
+        nonEmpty(weather.temperature) ? `temperature_c=${nonEmpty(weather.temperature)}` : null,
+        nonEmpty(weather.feels_like) ? `feels_like_c=${nonEmpty(weather.feels_like)}` : null,
+        nonEmpty(weather.description) ? `description=${nonEmpty(weather.description)}` : null,
+        nonEmpty(weather.wind_speed) ? `wind_speed_kmh=${nonEmpty(weather.wind_speed)}` : null,
+        nonEmpty(weather.humidity) ? `humidity_percent=${nonEmpty(weather.humidity)}` : null,
+      ].filter(Boolean)
+    : [];
+
   return [
     'You are a professional stylist. Create one cohesive outfit (look) from the given wardrobe items.',
     '',
     '## User profile',
-    `skin_tone=${p.skin_tone ?? ''}; contrast=${p.contrast ?? ''}; height=${p.height ?? ''}; proportion=${p.proportion ?? ''}`,
-    `wishes=${p.wishes ?? ''}`,
-    `prefs=${safeJson(prefs)}`,
-    `dislikes=${safeJson(dislikes)}`,
-    `additions=${p.additions ?? ''}`,
+    ...(profileLines.length ? profileLines : ['(empty)']),
     ...(weather
       ? [
           '',
           '## Weather context (current)',
-          `location=${weather.location ?? ''}`,
-          `temperature_c=${weather.temperature ?? ''}`,
-          `feels_like_c=${weather.feels_like ?? ''}`,
-          `description=${weather.description ?? ''}`,
-          `wind_speed_kmh=${weather.wind_speed ?? ''}`,
-          `humidity_percent=${weather.humidity ?? ''}`,
+          ...(weatherLines.length ? weatherLines : ['(empty)']),
         ]
       : []),
+    ...(activeRulesBlock ? ['', activeRulesBlock.trimEnd()] : []),
     '',
     '## Styling rules',
     '- Use ONLY provided items. Do not invent items.',
     '- Prefer items with processing_status=completed (already filtered).',
     '- Keep the look realistic: compatible seasons, colors, and materials.',
+    '- Bottom must be exactly one item at most (pants/jeans/leggings/skirt/shorts). Do NOT include multiple bottom items.',
     ...(weather
       ? [
           '- Consider Weather context: pick suitable layers/materials/outerwear/shoes for the temperature, wind and precipitation risk implied by the description.',
@@ -118,5 +152,5 @@ function buildStylistPrompt(profile, items, userPrompt, options = {}) {
   ].join('\n');
 }
 
-module.exports = { buildStylistPrompt, compactItem };
+module.exports = { buildStylistPrompt, compactItem, formatActiveStyleRulesBlock };
 

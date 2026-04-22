@@ -1,8 +1,14 @@
 const router = require('express').Router();
 const lookController = require('../controllers/Look.controller');
 const verifyAccessToken = require('../middleware/verifyAccessToken');
+const { createRateLimit } = require('../middleware/rateLimit');
 
-router.post('/generate', verifyAccessToken, lookController.generateLook.bind(lookController));
+router.post(
+  '/generate',
+  verifyAccessToken,
+  createRateLimit({ windowMs: 60_000, max: 6 }),
+  lookController.generateLook.bind(lookController),
+);
 router.post('/generate-title', verifyAccessToken, lookController.generateLookTitle.bind(lookController));
 
 router

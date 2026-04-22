@@ -10,7 +10,7 @@ import { getClothes } from '@/features/cloth/api/clothApi';
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import { getImgSrc } from '@/shared/lib/getImgSrc';
 import type { ServerResponseType } from '@/shared/types';
-import { ArrowUpIcon, ImageIcon, PaperclipIcon } from '@/shared/ui';
+import { ArrowUpIcon, PaperclipIcon } from '@/shared/ui';
 
 import styles from './ChatInput.module.css';
 
@@ -37,7 +37,6 @@ export function ChatInput({
 }: ChatInputProps) {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
-  const [createLook, setCreateLook] = useState(false);
   const [clothOptions, setClothOptions] = useState<
     { id: string; title: string; category: string | null; color: string | null; image: string | null }[]
   >([]);
@@ -48,7 +47,6 @@ export function ChatInput({
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherError, setWeatherError] = useState<string | null>(null);
 
-  const lookId = useId();
   const attachMenuId = useId();
   const attachRootRef = useRef<HTMLDivElement>(null);
 
@@ -178,24 +176,28 @@ export function ChatInput({
     }
   };
 
+  const submit = (createLook: boolean) => {
+    if (!input.trim() || isLoading) return;
+
+    const useWardrobe = createLook || confirmedCloths.length > 0;
+    const clothIds = confirmedCloths.map((c) => Number(c.id)).filter((n) => Number.isFinite(n));
+
+    onSend(input.trim(), {
+      useWardrobe,
+      createLook,
+      clothIds: clothIds.length ? clothIds : undefined,
+      clothPreview: confirmedCloths.length ? confirmedCloths : undefined,
+      weather,
+    });
+    setInput('');
+    setConfirmedCloths([]);
+    setPickerDraftIds([]);
+    setAttachOpen(false);
+  };
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (input.trim() && !isLoading) {
-      const useWardrobe = createLook || confirmedCloths.length > 0;
-      const clothIds = confirmedCloths.map((c) => Number(c.id)).filter((n) => Number.isFinite(n));
-
-      onSend(input.trim(), {
-        useWardrobe,
-        createLook,
-        clothIds: clothIds.length ? clothIds : undefined,
-        clothPreview: confirmedCloths.length ? confirmedCloths : undefined,
-        weather,
-      });
-      setInput('');
-      setConfirmedCloths([]);
-      setPickerDraftIds([]);
-      setAttachOpen(false);
-    }
+    submit(false);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -209,12 +211,58 @@ export function ChatInput({
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.inputWrapper}>
         <div className={styles.attachButtons}>
-          <button type="button" className={styles.attachButton} aria-label={t('chat.attachFile')}>
-            <PaperclipIcon />
-          </button>
-          <button type="button" className={styles.attachButton} aria-label={t('chat.addImage')}>
-            <ImageIcon />
-          </button>
+          <div className={styles.attachWrap} ref={attachRootRef}>
+            <button
+              type="button"
+              className={`${styles.attachButton} ${attachOpen ? styles.attachButtonActive : ''}`}
+              aria-label="Прикрепить вещи"
+              onClick={() => (attachOpen ? setAttachOpen(false) : openAttachPicker())}
+              disabled={isLoading || !wardrobeEnabled || !clothOptions.length}
+              aria-expanded={attachOpen}
+              aria-controls={attachMenuId}
+              title={!wardrobeEnabled ? 'Войдите в аккаунт, чтобы прикреплять вещи' : 'Прикрепить вещи из гардероба'}
+            >
+              <PaperclipIcon />
+            </button>
+
+            {attachOpen ? (
+              <div
+                id={attachMenuId}
+                className={styles.attachDropdown}
+                role="dialog"
+                aria-label="Выбор вещей из гардероба"
+              >
+                <span className={styles.clothPickerLabel}>Гардероб</span>
+                <ul className={styles.clothList}>
+                  {clothOptions.map((c) => (
+                    <li key={c.id}>
+                      <label className={styles.clothRow}>
+                        <input
+                          type="checkbox"
+                          checked={pickerDraftIds.includes(c.id)}
+                          onChange={() => toggleDraft(c.id)}
+                          disabled={isLoading}
+                        />
+                        <span className={styles.clothRowText}>
+                          <span className={styles.clothRowTitle}>{c.title}</span>
+                          {[c.category, c.color].filter(Boolean).length > 0 ? (
+                            <span className={styles.clothRowMeta}>
+                              {[c.category, c.color].filter(Boolean).join(' · ')}
+                            </span>
+                          ) : null}
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+                <div className={styles.attachDropdownFooter}>
+                  <button type="button" className={styles.confirmAttachBtn} onClick={confirmAttach}>
+                    Прикрепить
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
 
         <textarea
@@ -244,17 +292,15 @@ export function ChatInput({
       {wardrobeEnabled ? (
         <div className={styles.wardrobeBlock}>
           <div className={styles.wardrobeRow}>
-            <label htmlFor={lookId} className={styles.optionLabel}>
-              <input
-                id={lookId}
-                type="checkbox"
-                checked={createLook}
-                onChange={(e) => setCreateLook(e.target.checked)}
-                disabled={isLoading}
-                className={styles.optionCheckbox}
-              />
-              {t('chat.createLook')}
-            </label>
+            <button
+              type="button"
+              className={styles.createLookButton}
+              onClick={() => submit(true)}
+              disabled={!input.trim() || isLoading}
+              title="Собрать образ и (при наличии) использовать ваш гардероб"
+            >
+              Создать лук
+            </button>
 
             <button
               type="button"
@@ -272,61 +318,6 @@ export function ChatInput({
                   ? t('chat.weatherEnabled')
                   : t('chat.weather')}
             </button>
-
-            <div className={styles.attachWrap} ref={attachRootRef}>
-              <button
-                type="button"
-                className={`${styles.attachClothesBtn} ${attachOpen ? styles.attachClothesBtnOpen : ''}`}
-                onClick={() => (attachOpen ? setAttachOpen(false) : openAttachPicker())}
-                disabled={isLoading || !clothOptions.length}
-                aria-expanded={attachOpen}
-                aria-controls={attachMenuId}
-              >
-                {t('chat.attachClothes')}
-              </button>
-
-              {attachOpen ? (
-                <div
-                  id={attachMenuId}
-                  className={styles.attachDropdown}
-                  role="dialog"
-                  aria-label={t('chat.selectWardrobeItems')}
-                >
-                  <span className={styles.clothPickerLabel}>{t('chat.wardrobe')}</span>
-                  <ul className={styles.clothList}>
-                    {clothOptions.map((c) => (
-                      <li key={c.id}>
-                        <label className={styles.clothRow}>
-                          <input
-                            type="checkbox"
-                            checked={pickerDraftIds.includes(c.id)}
-                            onChange={() => toggleDraft(c.id)}
-                            disabled={isLoading}
-                          />
-                          <span className={styles.clothRowText}>
-                            <span className={styles.clothRowTitle}>{c.title}</span>
-                            {[c.category, c.color].filter(Boolean).length > 0 ? (
-                              <span className={styles.clothRowMeta}>
-                                {[c.category, c.color].filter(Boolean).join(' · ')}
-                              </span>
-                            ) : null}
-                          </span>
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className={styles.attachDropdownFooter}>
-                    <button
-                      type="button"
-                      className={styles.confirmAttachBtn}
-                      onClick={confirmAttach}
-                    >
-                      {t('chat.attach')}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-            </div>
           </div>
 
           {!clothOptions.length ? (
@@ -382,7 +373,6 @@ export function ChatInput({
         </div>
       ) : null}
 
-      <p className={styles.hint}>{t('chat.hint')}</p>
     </form>
   );
 }
