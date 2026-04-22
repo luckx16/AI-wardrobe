@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 
 import clsx from 'clsx';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { ClothingSection, IClothFromDb } from '@/entities/cloth';
 import { useOutfitBuilder } from '@/features/cloth/model/useOutfitBuilder';
@@ -12,18 +13,8 @@ import { getImgSrc } from '@/shared/lib/getImgSrc';
 
 import styles from './LookBuilder.module.css';
 
-const SECTION_LABELS: Record<'all' | ClothingSection, string> = {
-  all: 'Все',
-  headwear: 'Головные уборы',
-  top: 'Верх',
-  accessory: 'Аксессуары',
-  bags: 'Сумки',
-  bottom: 'Низ',
-  shoes: 'Обувь',
-  other: 'Другое',
-};
-
 export function LookBuilder({ lookId }: { lookId?: string }) {
+  const { t } = useTranslation();
   const {
     filledSectionsState,
     activeFilter,
@@ -41,7 +32,6 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
     setLookName,
     message,
     saveLook,
-    looks,
     editedLook,
   } = useOutfitBuilder(lookId);
 
@@ -49,25 +39,31 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
     () => ['all', ...Object.keys(filledSectionsState)] as ('all' | ClothingSection)[],
     [filledSectionsState],
   );
+
+  const sectionLabels: Record<'all' | ClothingSection, string> = {
+    all: t('lookBuilder.sections.all'),
+    headwear: t('lookBuilder.sections.headwear'),
+    top: t('lookBuilder.sections.top'),
+    accessory: t('lookBuilder.sections.accessory'),
+    bags: t('lookBuilder.sections.bags'),
+    bottom: t('lookBuilder.sections.bottom'),
+    shoes: t('lookBuilder.sections.shoes'),
+    other: t('lookBuilder.sections.other'),
+  };
   return (
     <section className={styles.page}>
       <header className={styles.header}>
-        <p className={styles.eyebrow}>Конструктор образа:</p>
-        <h1 className={styles.title}>
-          {editedLook ? 'Измени' : 'Собери'} образ из вещей гардероба
+        <h1 className={clsx('pageTitle')}>
+          {editedLook ? t('lookBuilder.edit') : t('lookBuilder.build')} {t('lookBuilder.titleTail')}
         </h1>
-        <p className={styles.subtitle}>
-          Слева выбираешь вещи из гардероба, справа сразу видишь, как выглядит комплект в сборке.
-        </p>
+        <p className={clsx('pageSubtitle')}>{t('lookBuilder.subtitle')}</p>
       </header>
 
       <div className={styles.layout}>
         {/* ------------------------ clothes list  ------------------------*/}
         <aside className={styles.panel}>
-          <h2 className={styles.panelTitle}>Список вещей</h2>
-          <p className={styles.panelHint}>
-            Каждую вещь можно добавлять в разные сохранённые образы.
-          </p>
+          <h2 className={styles.panelTitle}>{t('lookBuilder.itemListTitle')}</h2>
+          <p className={styles.panelHint}>{t('lookBuilder.itemListHint')}</p>
           <div className={styles.filterRow}>
             {sectionsIdsArr.map((sectionId) => (
               <button
@@ -77,7 +73,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                 data-active={activeFilter === sectionId}
                 onClick={() => setActiveFilter(sectionId)}
               >
-                {SECTION_LABELS[sectionId] ?? sectionId}
+                {sectionLabels[sectionId] ?? sectionId}
               </button>
             ))}
           </div>
@@ -111,10 +107,11 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                         {item.section}
                       </span>
                     )}
-                    <span className={styles.color} style={{ backgroundColor: item.color }} />
                     <div>
                       <p className={styles.itemName}>{item.title}</p>
-                      <p className={styles.itemMeta}>· В образах: {usedCount}</p>
+                      <p className={styles.itemMeta}>
+                        {t('lookBuilder.inLooks')}: {usedCount}
+                      </p>
                       <p className={styles.itemDescription}>{item.brand}</p>
                     </div>
                   </div>
@@ -124,7 +121,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                     onClick={() => setClothToSelected(item)}
                     aria-pressed={isSelected}
                   >
-                    {isSelected ? 'В образе' : 'Добавить'}
+                    {isSelected ? t('lookBuilder.inLook') : t('lookBuilder.add')}
                   </button>
                 </li>
               );
@@ -134,12 +131,12 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
         {/* ------------------------ mannequin  ------------------------*/}
         <section className={styles.canvasSection}>
           <div className={styles.canvasHeader}>
-            <h2 className={styles.panelTitle}>Холст образа</h2>
-            <p className={styles.panelHint}>Манекен собирает образ по слоям: верх, низ и обувь.</p>
+            <h2 className={styles.panelTitle}>{t('lookBuilder.canvasTitle')}</h2>
+            <p className={styles.panelHint}>{t('lookBuilder.canvasHint')}</p>
           </div>
 
           <div className={styles.mannequin}>
-            <div className={styles.head} />
+            {/* <div className={styles.head} /> */}
             <div className={styles.body}>
               {sectionsIdsArr.map((sectionId) => {
                 if (sectionId === 'all') return null;
@@ -172,7 +169,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                     onDragLeave={() => setActiveDropSlot(null)}
                     onDrop={(event) => handleDropOnSlot(event, sectionId)}
                   >
-                    <span className={styles.slotTag}>{SECTION_LABELS[sectionId] ?? sectionId}</span>
+                    <span className={styles.slotTag}>{sectionLabels[sectionId] ?? sectionId}</span>
                     {clothesInSectionArr.map((clothOfSection) => {
                       const src = getImgSrc(clothOfSection.image);
                       if (!src) return;
@@ -213,41 +210,22 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
 
           <div className={styles.saveBlock}>
             <label className={styles.label} htmlFor="outfit-name">
-              Название образа
+              {t('lookBuilder.lookName')}
             </label>
             <input
               id="outfit-name"
               className={styles.input}
               value={lookName}
               onChange={(event) => setLookName(event.target.value)}
-              placeholder="Например: Деловой кэжуал"
+              placeholder={t('lookBuilder.lookNamePlaceholder')}
             />
             <button type="button" className={styles.saveButton} onClick={saveLook}>
-              {editedLook ? 'Изменить' : 'Сохранить'} образ
+              {editedLook ? t('lookBuilder.update') : t('lookBuilder.save')} {t('lookBuilder.look')}
             </button>
             {message ? <p className={styles.message}>{message}</p> : null}
           </div>
         </section>
       </div>
-
-      <section className={styles.savedSection}>
-        <h2 className={styles.savedTitle}>Сохранённые образы</h2>
-        {looks.length === 0 ? (
-          <p className={styles.savedHint}>Пока пусто. Собери первый образ и сохрани его.</p>
-        ) : (
-          <ul className={styles.savedList}>
-            {looks.map((look) => (
-              <li key={look.id} className={styles.savedCard}>
-                <p className={styles.savedName}>{look.title}</p>
-                <p className={styles.savedMeta}>
-                  {new Date(look.createdAt).toLocaleDateString('ru-RU')} · {look.clothes.length}{' '}
-                  вещей
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </section>
   );
 }

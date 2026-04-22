@@ -1,13 +1,17 @@
 import './globals.css';
 
+import { cookies } from 'next/headers';
+
 import type { Metadata } from 'next';
 
+import { I18nProvider } from '@/app/providers/I18nProvider';
 import { ReduxProvider } from '@/app/providers/ReduxProvider';
+import { type AppLanguage, isSupportedLanguage } from '@/shared/i18n/languages';
 import { Footer, Header } from '@/widgets';
 
 export const metadata: Metadata = {
   title: 'AI Wardrobe',
-  description: 'Персональный AI-стилист для создания идеального гардероба',
+  description: 'Personal AI stylist for your ideal wardrobe',
   icons: [
     {
       rel: 'icon',
@@ -26,17 +30,23 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get('ai-wardrobe-language')?.value;
+  const initialLang: AppLanguage = isSupportedLanguage(langCookie) ? langCookie : 'ru';
+
   return (
-    <html lang="en">
+    <html lang={initialLang}>
       <body>
-        <ReduxProvider>
-          <div className="app-shell">
-            <Header />
-            <main className="app-main">{children}</main>
-            <Footer />
-          </div>
-        </ReduxProvider>
+        <I18nProvider initialLang={initialLang}>
+          <ReduxProvider>
+            <div className="app-shell">
+              <Header />
+              <main className="app-main">{children}</main>
+              <Footer />
+            </div>
+          </ReduxProvider>
+        </I18nProvider>
       </body>
     </html>
   );

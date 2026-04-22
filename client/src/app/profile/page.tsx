@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useAppSelector } from '@/shared/hooks';
 import type { ProfileDto } from '@/shared/lib/profileApi';
 import { getProfile, upsertProfile } from '@/shared/lib/profileApi';
-import { SidebarNav } from '@/shared/ui';
+import { SidebarNav, useToast } from '@/shared/ui';
 
 import styles from './profilePage.module.css';
 import { AppearanceAnalysis } from './ui/AppearanceAnalysis/AppearanceAnalysis';
@@ -88,7 +89,9 @@ function formFromDto(dto: ProfileDto): ProfileFormState {
 }
 
 export default function ProfilePage(): React.JSX.Element {
+  const { t } = useTranslation();
   // Имя берём из стора, но даём редактировать локально (пока без сохранения на сервер).
+  const { toast } = useToast();
   const user = useAppSelector((state) => state.user.user);
   const [displayName, setDisplayName] = useState<string>(user?.name ?? '');
 
@@ -138,7 +141,7 @@ export default function ProfilePage(): React.JSX.Element {
         if (cancelled) return;
         // Если профиля нет — это нормальный сценарий (первый вход).
         const status = (e as { response?: { status?: number } }).response?.status;
-        if (status !== 404) setError('Не удалось загрузить профиль');
+        if (status !== 404) setError(t('profile.errors.loadFailed'));
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -148,32 +151,32 @@ export default function ProfilePage(): React.JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [t, user]);
 
   const navItems = useMemo(
     () => [
       // Якорные ссылки на секции страницы. Подсветка управляется `activeSection`.
       {
         key: 'personal',
-        label: 'Личные данные',
+        label: t('profile.nav.personal'),
         href: '#personal',
         active: activeSection === 'personal',
       },
       {
         key: 'appearance',
-        label: 'Анализ внешности',
+        label: t('profile.nav.appearance'),
         href: '#appearance',
         active: activeSection === 'appearance',
       },
       {
         key: 'measurements',
-        label: 'Измерения',
+        label: t('profile.nav.measurements'),
         href: '#measurements',
         active: activeSection === 'measurements',
       },
-      { key: 'style', label: 'Предпочтения', href: '#style', active: activeSection === 'style' },
+      { key: 'style', label: t('profile.nav.style'), href: '#style', active: activeSection === 'style' },
     ],
-    [activeSection],
+    [activeSection, t],
   );
 
   const canSave = !!user && !isSaving && !isLoading;
@@ -185,28 +188,28 @@ export default function ProfilePage(): React.JSX.Element {
           <div className={styles.sidebarHead}>
             <div className={styles.userAvatar} aria-hidden="true" />
             <div>
-              <p className={styles.userName}>{displayName || 'Пользователь'}</p>
-              <p className={styles.userSub}>Это ваш профиль</p>
+              <p className={styles.userName}>{displayName || t('profile.userDefault')}</p>
+              <p className={styles.userSub}>{t('profile.userSubtitle')}</p>
             </div>
           </div>
 
           <SidebarNav
-            title="Навигация"
+            title={t('profile.navigation')}
             items={navItems}
             // Для якорей используем штатный переход по `href`, а тут — только подсветка активного пункта.
             onItemClick={(key) => setActiveSection(key as typeof activeSection)}
           />
         </aside>
 
-        <section className={styles.main} aria-label="Профиль">
+        <section className={styles.main} aria-label={t('profile.title')}>
           <div className={styles.titleRow}>
-            <h1 className={styles.title}>Профиль</h1>
+            <h1 className={styles.title}>{t('profile.title')}</h1>
           </div>
 
           {error ? <p className={styles.userSub}>{error}</p> : null}
 
           <div className={styles.stack}>
-            <section id="personal" className={styles.anchorSection} aria-label="Личные данные">
+            <section id="personal" className={styles.anchorSection} aria-label={t('profile.nav.personal')}>
               <PersonalData
                 name={displayName}
                 onNameChange={setDisplayName}
@@ -216,7 +219,7 @@ export default function ProfilePage(): React.JSX.Element {
                 }
               />
             </section>
-            <section id="appearance" className={styles.anchorSection} aria-label="Анализ внешности">
+            <section id="appearance" className={styles.anchorSection} aria-label={t('profile.nav.appearance')}>
               <AppearanceAnalysis
                 contrast={form.contrast}
                 undertone={form.undertone}
@@ -224,7 +227,7 @@ export default function ProfilePage(): React.JSX.Element {
                 onUndertoneChange={(next) => setForm((prev) => ({ ...prev, undertone: next }))}
               />
             </section>
-            <section id="measurements" className={styles.anchorSection} aria-label="Измерения">
+            <section id="measurements" className={styles.anchorSection} aria-label={t('profile.nav.measurements')}>
               <Measurements
                 bodyPhoto={form.bodyPhoto}
                 chestCm={form.chestCm}
@@ -249,7 +252,7 @@ export default function ProfilePage(): React.JSX.Element {
                 }
               />
             </section>
-            <section id="style" className={styles.anchorSection} aria-label="Предпочтения">
+            <section id="style" className={styles.anchorSection} aria-label={t('profile.nav.style')}>
               <StylePreferences
                 wishes={form.wishes}
                 prefs={form.prefs}
@@ -274,7 +277,7 @@ export default function ProfilePage(): React.JSX.Element {
                 setError(null);
               }}
             >
-              Отменить
+              {t('common.cancel')}
             </button>
             <button
               type="button"
@@ -304,14 +307,16 @@ export default function ProfilePage(): React.JSX.Element {
                   const next = formFromDto(dto);
                   setForm(next);
                   setLastLoaded(next);
+                  toast({ variant: 'success', title: 'Профиль сохранён' });
                 } catch {
+                  toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось сохранить профиль' });
                   setError('Не удалось сохранить профиль');
                 } finally {
                   setIsSaving(false);
                 }
               }}
             >
-              {isSaving ? 'Сохранение…' : 'Сохранить'}
+              {isSaving ? `${t('common.save')}...` : t('common.save')}
             </button>
           </div>
         </section>

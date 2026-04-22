@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import formStyles from '@/shared/styles/form.module.css';
 import { Card } from '@/shared/ui';
@@ -27,6 +28,7 @@ function MetricItem({
   value,
   onChange,
 }: MetricItemProps): React.JSX.Element {
+  const { t } = useTranslation();
   const isLegRatio = name === 'legRatio';
   return (
     <div className={styles.metric}>
@@ -42,10 +44,10 @@ function MetricItem({
           value={value}
           onChange={(e) => onChange(name, e.target.value)}
         >
-          <option value="">Не выбрано</option>
-          <option value="standard">Стандартные</option>
-          <option value="long">Длинные</option>
-          <option value="short">Короткие</option>
+          <option value="">{t('profile.measurements.notSelected')}</option>
+          <option value="standard">{t('profile.measurements.legRatio.standard')}</option>
+          <option value="long">{t('profile.measurements.legRatio.long')}</option>
+          <option value="short">{t('profile.measurements.legRatio.short')}</option>
         </select>
       ) : (
         <input
@@ -92,16 +94,51 @@ export function Measurements({
   onBodyPhotoChange,
   onFieldChange,
 }: MeasurementsProps): React.JSX.Element {
+  const { t } = useTranslation();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const metrics: Array<Omit<MetricItemProps, 'value' | 'onChange'>> = [
-    { label: 'Обхват груди (см)', name: 'chestCm', placeholder: 'Например: 92', type: 'number', inputMode: 'numeric' },
-    { label: 'Обхват талии (см)', name: 'waistCm', placeholder: 'Например: 74', type: 'number', inputMode: 'numeric' },
-    { label: 'Обхват бёдер (см)', name: 'hipsCm', placeholder: 'Например: 98', type: 'number', inputMode: 'numeric' },
-    { label: 'Рост (см)', name: 'heightCm', placeholder: 'Например: 174', type: 'number', inputMode: 'numeric' },
-    { label: 'Длина стопы (см)', name: 'footCm', placeholder: 'Например: 25.5', type: 'number', inputMode: 'decimal' },
-    { label: 'Пропорции ног', name: 'legRatio', placeholder: 'Например: стандартные' },
+    {
+      label: t('profile.measurements.metrics.chest'),
+      name: 'chestCm',
+      placeholder: t('profile.measurements.placeholders.chest'),
+      type: 'number',
+      inputMode: 'numeric',
+    },
+    {
+      label: t('profile.measurements.metrics.waist'),
+      name: 'waistCm',
+      placeholder: t('profile.measurements.placeholders.waist'),
+      type: 'number',
+      inputMode: 'numeric',
+    },
+    {
+      label: t('profile.measurements.metrics.hips'),
+      name: 'hipsCm',
+      placeholder: t('profile.measurements.placeholders.hips'),
+      type: 'number',
+      inputMode: 'numeric',
+    },
+    {
+      label: t('profile.measurements.metrics.height'),
+      name: 'heightCm',
+      placeholder: t('profile.measurements.placeholders.height'),
+      type: 'number',
+      inputMode: 'numeric',
+    },
+    {
+      label: t('profile.measurements.metrics.foot'),
+      name: 'footCm',
+      placeholder: t('profile.measurements.placeholders.foot'),
+      type: 'number',
+      inputMode: 'decimal',
+    },
+    {
+      label: t('profile.measurements.metrics.legRatio'),
+      name: 'legRatio',
+      placeholder: t('profile.measurements.placeholders.legRatio'),
+    },
   ];
 
   const valuesByName: Record<string, string> = {
@@ -114,28 +151,29 @@ export function Measurements({
   };
 
   return (
-    <Card title="Измерения" description="Замеры и пропорции для более точных рекомендаций.">
+    <Card
+      title={t('profile.measurements.title')}
+      description={t('profile.measurements.description')}
+    >
       <div className={styles.layout}>
-        <div className={styles.photoCard} aria-label="Фото в полный рост">
+        <div className={styles.photoCard} aria-label={t('profile.measurements.fullBodyPhoto')}>
           {bodyPhoto ? (
             <img
               className={styles.photoPreview}
               src={resolveAssetUrl(bodyPhoto)}
-              alt="Фото в полный рост"
+              alt={t('profile.measurements.fullBodyPhoto')}
             />
           ) : (
             <div className={styles.photoIcon} aria-hidden="true" />
           )}
           <div className={styles.photoText}>
-            <p className={styles.photoTitle}>Фото в полный рост</p>
+            <p className={styles.photoTitle}>{t('profile.measurements.fullBodyPhoto')}</p>
             {!bodyPhoto ? (
-              <p className={styles.photoHint}>
-                Сделайте фото в полный рост в облегающей одежде. Рекомендуемые параметры фото: JPG/PNG до 10MB
-              </p>
+              <p className={styles.photoHint}>{t('profile.measurements.photoHint')}</p>
             ) : null}
           </div>
           <label className={styles.uploadBtn} htmlFor="profile-fullbody-photo">
-            {isUploading ? 'Загрузка…' : 'Загрузить'}
+            {isUploading ? t('profile.measurements.uploading') : t('profile.measurements.upload')}
           </label>
           <input
             id="profile-fullbody-photo"
@@ -156,7 +194,7 @@ export function Measurements({
                 const uploaded = await uploadBodyPhoto(file);
                 onBodyPhotoChange(uploaded.url);
               } catch {
-                setUploadError('Не удалось загрузить фото');
+                setUploadError(t('profile.measurements.uploadFailed'));
               } finally {
                 setIsUploading(false);
                 e.target.value = '';
@@ -170,7 +208,7 @@ export function Measurements({
           ) : null}
           {bodyPhoto && !uploadError ? (
             <div className={styles.photoText}>
-              <p className={styles.photoHint}>Фото загружено</p>
+              <p className={styles.photoHint}>{t('profile.measurements.photoUploaded')}</p>
             </div>
           ) : null}
         </div>

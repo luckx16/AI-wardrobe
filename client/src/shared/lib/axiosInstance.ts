@@ -22,7 +22,7 @@ let accessToken = '';
 
 export function setAccessToken(token: string): void {
   accessToken = token;
-  console.log('Access token updated:', accessToken);
+  // console.log('Access token updated:', accessToken);
 }
 
 export function getAccessToken(): string {

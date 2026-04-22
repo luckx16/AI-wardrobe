@@ -45,18 +45,9 @@
   color: white;
 }
 
-.title {
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
-  margin: 0;
-}
-
+.title,
 .subtitle {
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin: 0;
+  display: inline;
 }
 
 .modelSelector {
@@ -87,7 +78,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

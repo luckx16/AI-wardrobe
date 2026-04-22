@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { type Message, MessageBubble } from '@/entities/message';
 import {
@@ -16,27 +17,20 @@ import { ChatInput, type ChatSendOptions } from '@/features/send-message';
 import { useAppSelector } from '@/shared/hooks';
 import { getAccessToken } from '@/shared/lib/axiosInstance';
 import { makeUniqueTitle } from '@/shared/lib/makeUniqueTitle';
-import { TrashIcon } from '@/shared/ui';
+import { TrashIcon, useToast } from '@/shared/ui';
 import { ChatHeader } from '@/widgets';
 import { LookCard } from '@/widgets/LookCard';
 
 import styles from './ChatWidget.module.css';
 
-const INITIAL_MESSAGES: Message[] = [
-  {
-    id: '1',
-    role: 'assistant',
-    content:
-      'Привет! Я ваш персональный AI-стилист. Расскажите о вашем стиле, предстоящем мероприятии или покажите фото гардероба — помогу создать идеальный образ!',
-  },
-];
+const INITIAL_MESSAGES: Message[] = [{ id: '1', role: 'assistant', content: '' }];
 
 function formatChatName(chat: ClientChat, index: number) {
   if (chat.title?.trim()) {
     return chat.title.trim();
   }
 
-  return `Чат ${index + 1}`;
+  return `Chat ${index + 1}`;
 }
 
 function buildChatNameFromMessage(text: string) {
@@ -51,10 +45,11 @@ function buildChatNameFromMessage(text: string) {
 
 function isTemporaryChatTitle(title: string | null | undefined) {
   const value = title?.trim().toLowerCase() ?? '';
-  return !value || value === 'ai wardrobe' || value.startsWith('новый чат');
+  return !value || value === 'ai wardrobe' || value.startsWith('new chat') || value.startsWith('новый чат');
 }
 
 function formatChatListDate(chat: ClientChat, index: number) {
+  const locale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
   const raw = chat.updatedAt ?? chat.createdAt;
   if (!raw) {
     return `#${index + 1}`;
@@ -63,12 +58,16 @@ function formatChatListDate(chat: ClientChat, index: number) {
   if (Number.isNaN(d.getTime())) {
     return `#${index + 1}`;
   }
-  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+  return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' });
 }
 
 export function ChatWidget() {
+  const { toast } = useToast();
+  const { t, i18n } = useTranslation();
   const { user } = useAppSelector((state) => state.user);
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>([
+    { ...INITIAL_MESSAGES[0], content: t('chat.welcomeMessage') },
+  ]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
@@ -245,6 +244,18 @@ export function ChatWidget() {
     scrollToBottom();
   }, [messages]);
 
+  const initialMessages: Message[] = [{ ...INITIAL_MESSAGES[0], content: t('chat.welcomeMessage') }];
+
+  useEffect(() => {
+    // Keep default greeting in sync with selected language
+    // when chat has no loaded history yet.
+    setMessages((prev) => {
+      if (prev.length !== 1) return prev;
+      if (prev[0]?.role !== 'assistant') return prev;
+      return [{ ...prev[0], content: t('chat.welcomeMessage') }];
+    });
+  }, [t, i18n.language]);
+
   const loadChatMessages = async (nextChatId: string) => {
     const history = await getChatMessages(nextChatId, 50);
 
@@ -291,7 +302,7 @@ export function ChatWidget() {
               } satisfies Message;
             });
           })()
-        : INITIAL_MESSAGES,
+        : initialMessages,
     );
   };
 
@@ -369,6 +380,7 @@ export function ChatWidget() {
       setIsSidebarOpen(false);
     } catch (error) {
       console.error('Failed to load selected chat', error);
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось загрузить чат' });
     } finally {
       setIsBootstrapping(false);
     }
@@ -381,7 +393,7 @@ export function ChatWidget() {
       setIsBootstrapping(true);
 
       const now = new Date();
-      const chatTitle = `Новый чат ${now.toLocaleDateString('ru-RU', {
+      const chatTitle = `${t('chat.newChat')} ${now.toLocaleDateString(i18n.language, {
         day: '2-digit',
         month: '2-digit',
       })}`;
@@ -396,11 +408,12 @@ export function ChatWidget() {
 
       setChats((prev) => [newChat, ...prev]);
       setChatId(newChatId);
-      setMessages(INITIAL_MESSAGES);
+      setMessages(initialMessages);
       setIsSidebarOpen(false);
       setChatPendingDeleteId(null);
     } catch (error) {
       console.error('Failed to create chat', error);
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось создать чат' });
     } finally {
       setIsBootstrapping(false);
     }
@@ -431,10 +444,11 @@ export function ChatWidget() {
         await loadChatMessages(nextActiveChat.id);
       } else {
         setChatId(null);
-        setMessages(INITIAL_MESSAGES);
+        setMessages(initialMessages);
       }
     } catch (error) {
       console.error('Failed to delete chat', error);
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить чат' });
     } finally {
       setIsBootstrapping(false);
     }
@@ -454,7 +468,7 @@ export function ChatWidget() {
         {
           id: Date.now().toString(),
           role: 'assistant',
-          content: 'Чтобы пользоваться AI-чатом, сначала войдите в аккаунт.',
+          content: t('chat.signInRequired'),
         },
       ]);
       return;
@@ -492,7 +506,7 @@ export function ChatWidget() {
         {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: `Ошибка: ${errText}`,
+          content: `${t('chat.errorPrefix')}: ${errText}`,
         },
       ]);
       setIsAssistantTyping(false);
@@ -509,17 +523,17 @@ export function ChatWidget() {
       <div className={styles.layout}>
         <aside
           className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ''}`}
-          aria-label="История чатов"
+          aria-label={t('chat.history')}
         >
           <div className={styles.sidebarHeader}>
-            <h2 className={styles.sidebarTitle}>История</h2>
+            <h2 className={styles.sidebarTitle}>{t('chat.history')}</h2>
             <button
               type="button"
               className={styles.newChatButton}
               onClick={() => void handleCreateNewChat()}
               disabled={!user || isBootstrapping || isLoading}
             >
-              Новый чат
+              {t('chat.newChat')}
             </button>
           </div>
 
@@ -545,21 +559,21 @@ export function ChatWidget() {
                         className={styles.confirmDeleteButton}
                         onClick={() => void handleDeleteChat(chat.id)}
                       >
-                        Удалить?
+                        {t('chat.deleteQuestion')}
                       </button>
                       <button
                         type="button"
                         className={styles.cancelDeleteButton}
                         onClick={() => setChatPendingDeleteId(null)}
                       >
-                        Отмена
+                        {t('common.cancel')}
                       </button>
                     </div>
                   ) : (
                     <button
                       type="button"
                       className={styles.deleteChatButton}
-                      aria-label="Удалить чат"
+                      aria-label={t('chat.deleteChat')}
                       onClick={() => handleRequestDeleteChat(chat.id)}
                     >
                       <TrashIcon className={styles.deleteChatIcon} />
@@ -568,7 +582,7 @@ export function ChatWidget() {
                 </div>
               ))
             ) : (
-              <p className={styles.emptyState}>История появится после первого диалога с AI.</p>
+              <p className={styles.emptyState}>{t('chat.historyEmpty')}</p>
             )}
           </div>
         </aside>

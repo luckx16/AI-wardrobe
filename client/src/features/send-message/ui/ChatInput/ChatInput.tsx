@@ -2,6 +2,7 @@
 
 import { type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
 
 import type { MessageClothChip } from '@/entities/message';
 import type { ClientWeather } from '@/features/chat/api/chatApi';
@@ -32,8 +33,9 @@ export function ChatInput({
   onSend,
   isLoading,
   wardrobeEnabled = false,
-  placeholder = 'Спросите о стиле, гардеробе или модных трендах...',
+  placeholder,
 }: ChatInputProps) {
+  const { t } = useTranslation();
   const [input, setInput] = useState('');
   const [clothOptions, setClothOptions] = useState<
     { id: string; title: string; category: string | null; color: string | null; image: string | null }[]
@@ -152,7 +154,7 @@ export function ChatInput({
           setWeather(w);
           return;
         }
-        throw new Error('Геолокация недоступна в браузере');
+        throw new Error(t('chat.geolocationUnavailable'));
       }
 
       const coords = await new Promise<{ lat: number; lon: number }>((resolve, reject) => {
@@ -166,7 +168,7 @@ export function ChatInput({
       const w = await fetchWeatherByCoords(coords.lat, coords.lon);
       setWeather(w);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Не удалось получить погоду';
+      const msg = e instanceof Error ? e.message : t('chat.weatherFailed');
       setWeather(null);
       setWeatherError(msg);
     } finally {
@@ -267,7 +269,7 @@ export function ChatInput({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t('chat.inputPlaceholder')}
           rows={1}
           className={styles.textarea}
           disabled={isLoading}
@@ -280,7 +282,7 @@ export function ChatInput({
             className={`${styles.submitButton} ${
               input.trim() && !isLoading ? styles.submitButtonActive : styles.submitButtonDisabled
             }`}
-            aria-label="Отправить сообщение"
+            aria-label={t('chat.send')}
           >
             <ArrowUpIcon />
           </button>
@@ -306,28 +308,41 @@ export function ChatInput({
               onClick={() => void toggleWeather()}
               disabled={isLoading || weatherLoading}
               aria-pressed={Boolean(weather)}
-              title={weather ? 'Погода будет убрана из запроса' : 'Добавить текущую погоду в запрос'}
+              title={
+                weather ? t('chat.weatherWillBeRemoved') : t('chat.addCurrentWeather')
+              }
             >
-              {weatherLoading ? 'Погода…' : weather ? 'Учёт погоды включён' : 'Учёт погоды'}
+              {weatherLoading
+                ? t('chat.weatherLoading')
+                : weather
+                  ? t('chat.weatherEnabled')
+                  : t('chat.weather')}
             </button>
           </div>
 
           {!clothOptions.length ? (
-            <p className={styles.hintMuted}>В гардеробе пока нет обработанных вещей.</p>
+            <p className={styles.hintMuted}>{t('chat.noProcessedItems')}</p>
           ) : null}
 
           {weather ? (
             <p className={styles.weatherMeta}>
-              Сейчас: {weather.temperature}° (ощущается {weather.feels_like}°), {weather.description},{' '}
-              ветер {weather.wind_speed} км/ч, влажн. {weather.humidity}%.
+              {t('chat.weatherNow', {
+                temperature: weather.temperature,
+                feelsLike: weather.feels_like,
+                description: weather.description,
+                windSpeed: weather.wind_speed,
+                humidity: weather.humidity,
+              })}
             </p>
           ) : weatherError ? (
-            <p className={styles.weatherMeta}>Погода недоступна: {weatherError}</p>
+            <p className={styles.weatherMeta}>
+              {t('chat.weatherUnavailable')}: {weatherError}
+            </p>
           ) : null}
 
           {confirmedCloths.length > 0 ? (
             <div className={styles.pendingStrip}>
-              <span className={styles.pendingStripLabel}>Прикреплённые вещи:</span>
+              <span className={styles.pendingStripLabel}>{t('chat.attachedItems')}:</span>
               <ul className={styles.pendingList}>
                 {confirmedCloths.map((c) => (
                   <li key={c.id} className={styles.pendingChip}>
@@ -351,7 +366,7 @@ export function ChatInput({
                 onClick={clearAttachments}
                 disabled={isLoading}
               >
-                Сбросить
+                {t('chat.reset')}
               </button>
             </div>
           ) : null}

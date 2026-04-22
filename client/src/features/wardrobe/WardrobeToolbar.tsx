@@ -1,3 +1,8 @@
+import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
+
+import { getSeasonLabel } from '@/shared/lib/wardrobeI18n';
+
 import type { Category, Season } from '../../app/wardrobe/types';
 import styles from './WardrobeToolbar.module.css';
 
@@ -15,27 +20,22 @@ interface WardrobeToolbarProps {
 }
 
 const seasons: (Season | 'all')[] = ['all', 'зима', 'весна', 'лето', 'осень', 'всесезон'];
-const categories: (Category | 'all')[] = [
-  'all',
-  'футболка',
-  'рубашка',
-  'платье',
-  'брюки',
-  'юбка',
-  'куртка',
-  'свитер',
-  'худи',
-  'шорты',
-  'обувь',
-  'аксессуары',
-  'другое',
+const categoryOptions: Array<{ value: Category | 'all'; label: string }> = [
+  { value: 'all', label: 'Все' },
+  { value: 'headwear', label: 'Головные уборы' },
+  { value: 'top', label: 'Верх' },
+  { value: 'accessory', label: 'Аксессуары' },
+  { value: 'bags', label: 'Сумки' },
+  { value: 'bottom', label: 'Низ' },
+  { value: 'shoes', label: 'Обувь' },
+  { value: 'other', label: 'Другое' },
 ];
 
-const sortOptions: { value: SortField; label: string }[] = [
-  { value: 'title', label: 'По названию' },
-  { value: 'season', label: 'По сезону' },
-  { value: 'category', label: 'По категории' },
-  { value: 'createdAt', label: 'По дате' },
+const sortOptions: { value: SortField }[] = [
+  { value: 'title' },
+  { value: 'season' },
+  { value: 'category' },
+  { value: 'createdAt' },
 ];
 
 const cx = (...classNames: Array<string | false | null | undefined>) =>
@@ -51,21 +51,21 @@ const WardrobeToolbar = ({
   totalCount,
   addButton,
 }: WardrobeToolbarProps) => {
+  const { t } = useTranslation();
+
   return (
     <div className={styles.root}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Мой гардероб</h1>
-          <p className={styles.count}>
-            {totalCount} {totalCount === 1 ? 'предмет' : 'предметов'}
-          </p>
+          <h1 className={clsx('pageTitle')}>{t('wardrobe.title')}</h1>
+          <p className={clsx('pageSubtitle')}>{t('wardrobe.itemsCount', { count: totalCount })}</p>
         </div>
         {addButton}
       </div>
 
       <div className={styles.controls}>
         <div className={styles.group}>
-          <span className={styles.label}>Сортировка</span>
+          <span className={styles.label}>{t('wardrobe.sort.label')}</span>
           <div className={styles.sortList}>
             {sortOptions.map((opt) => (
               <button
@@ -74,7 +74,7 @@ const WardrobeToolbar = ({
                 type="button"
                 className={cx(styles.sortButton, sortBy === opt.value && styles.sortButtonActive)}
               >
-                {opt.label}
+                {t(`wardrobe.sort.${opt.value}`)}
               </button>
             ))}
           </div>
@@ -83,7 +83,7 @@ const WardrobeToolbar = ({
         <div className={styles.divider} />
 
         <div className={styles.group}>
-          <span className={styles.label}>Сезон</span>
+          <span className={styles.label}>{t('wardrobe.season')}</span>
           <select
             value={filterSeason}
             onChange={(e) => onFilterSeasonChange(e.target.value as Season | 'all')}
@@ -91,22 +91,22 @@ const WardrobeToolbar = ({
           >
             {seasons.map((s) => (
               <option key={s} value={s}>
-                {s === 'all' ? 'Все' : s}
+                {s === 'all' ? t('wardrobe.all') : getSeasonLabel(s, t)}
               </option>
             ))}
           </select>
         </div>
 
         <div className={styles.group}>
-          <span className={styles.label}>Категория</span>
+          <span className={styles.label}>{t('wardrobe.category')}</span>
           <select
             value={filterCategory}
             onChange={(e) => onFilterCategoryChange(e.target.value as Category | 'all')}
             className={styles.select}
           >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c === 'all' ? 'Все' : c}
+            {categoryOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>

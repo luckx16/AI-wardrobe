@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ClothingSection, getAllClothesThunk, IClothFromDb } from '@/entities/cloth';
 import { getAllLooksThunk } from '@/entities/look';
@@ -11,6 +12,7 @@ import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 import { makeUniqueTitle } from '@/shared/lib/makeUniqueTitle';
+import { useToast } from '@/shared/ui';
 
 const INITIAL_FILLEDSECTIONS_STATE: Record<ClothingSection, Set<string>> = {
   headwear: new Set(),
@@ -25,7 +27,15 @@ const INITIAL_FILLEDSECTIONS_STATE: Record<ClothingSection, Set<string>> = {
 const REQUIRED_SECTIONS = ['top', 'shoes'] satisfies ClothingSection[];
 
 export const useOutfitBuilder = (editedLookId: string | undefined) => {
+  const { t } = useTranslation();
   const { router, addQueryParams, deleteQueryParams } = useCustomRouter();
+  const { toast } = useToast();
+
+  const getSectionLabel = (sectionId: ClothingSection) => {
+    return t(`lookBuilder.sections.${sectionId}`);
+  };
+
+
   const [filledSectionsState, setFilledSectionsState] = useState<
     Record<ClothingSection, Set<string>>
   >(INITIAL_FILLEDSECTIONS_STATE);
@@ -102,7 +112,7 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
       return;
     }
     if (clothIds.length < 2) {
-      setLookNameRaw(makeUniqueTitle('Образ', existingLookTitles));
+      setLookNameRaw(makeUniqueTitle(t('lookBuilder.defaultTitle'), existingLookTitles));
       return;
     }
 
@@ -115,12 +125,12 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
       try {
         const res = await generateLookTitle({ clothIds });
         if (reqId !== lastTitleReqIdRef.current) return;
-        const unique = makeUniqueTitle(res.title || 'Образ', existingLookTitles);
+        const unique = makeUniqueTitle(res.title || t('lookBuilder.defaultTitle'), existingLookTitles);
         setLookNameRaw(unique);
       } catch {
         if (reqId !== lastTitleReqIdRef.current) return;
         // если AI недоступен/упал — всё равно подставим осмысленный дефолт
-        setLookNameRaw(makeUniqueTitle('Образ', existingLookTitles));
+        setLookNameRaw(makeUniqueTitle(t('lookBuilder.defaultTitle'), existingLookTitles));
       }
     }, 700);
   };
@@ -170,13 +180,18 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
 
   const saveLook = async () => {
     if (!requiredSectionsFilled) {
-      setMessage('Заполни обязательные слоты: верх и обувь.');
+      setMessage(
+        t('lookBuilder.errors.requiredSlots', {
+          top: t('lookBuilder.sections.top'),
+          shoes: t('lookBuilder.sections.shoes'),
+        }),
+      );
       return;
     }
 
     const trimmedLookName = lookName.trim();
     if (!trimmedLookName) {
-      setMessage('Добавь название образа, чтобы сохранить его.');
+      setMessage(t('lookBuilder.errors.addName'));
       return;
     }
 
@@ -205,8 +220,9 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
 
       setLookName('');
       setIsLookNameDirty(false);
-      setMessage('Образ сохранён в базе данных.');
+      setMessage(null);
       setFilledSectionsState(INITIAL_FILLEDSECTIONS_STATE);
+      toast({ variant: 'success', title: 'Образ сохранён' });
 
       // передаем в query-params id созданного лука и перенаправляем обратно на events
       if (searchParams.has('date') && searchParams.has('look_id')) {
@@ -221,7 +237,8 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
       router.push(CLIENT_ROUTES.LOOK_BUILDER());
     } catch (error) {
       console.error('Failed to save look', error);
-      setMessage('Не удалось сохранить образ в базу.');
+      setMessage(null);
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось сохранить образ' });
     }
   };
 
@@ -255,14 +272,24 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
         return;
       }
       if (item.section !== slotSection) {
-        setMessage(`Нельзя положить "${item.title}" в слот "${slotSection}".`);
+        setMessage(
+          t('lookBuilder.errors.invalidSlot', {
+            title: item.title,
+            slot: getSectionLabel(slotSection),
+          }),
+        );
         return;
       }
 
       setClothToSelected(item);
-      setMessage(`"${item.title}" добавлен в слот " ${slotSection}".`);
+      setMessage(
+        t('lookBuilder.success.addedToSlot', {
+          title: item.title,
+          slot: getSectionLabel(slotSection),
+        }),
+      );
     } catch {
-      setMessage('Не удалось перетащить вещь. Попробуй ещё раз.');
+      setMessage(t('lookBuilder.errors.dragFailed'));
     }
   };
 

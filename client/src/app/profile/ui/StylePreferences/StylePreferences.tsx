@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import formStyles from '@/shared/styles/form.module.css';
 import { Card } from '@/shared/ui';
@@ -42,6 +43,7 @@ function ChipInput({
   onRemove,
   inputId,
 }: ChipInputProps): React.JSX.Element {
+  const { t } = useTranslation();
   // Блокируем добавление, если поле пустое/из пробелов.
   const canAdd = !!normalizeChipText(value);
 
@@ -71,7 +73,7 @@ function ChipInput({
           onClick={onAdd}
           disabled={!canAdd}
         >
-          Добавить
+          {t('profile.style.add')}
         </button>
       </div>
 
@@ -83,7 +85,7 @@ function ChipInput({
               <button
                 type="button"
                 className={styles.chipRemove}
-                aria-label="Удалить"
+                aria-label={t('profile.style.remove')}
                 onClick={() => onRemove(it.id)}
               >
                 ×
@@ -117,6 +119,7 @@ export function StylePreferences({
   onDislikesChange,
   onAdditionsChange,
 }: StylePreferencesProps): React.JSX.Element {
+  const { t } = useTranslation();
   // Инпуты добавления — локальный стейт, а сами значения профиля храним в родителе.
   const [essentialsValue, setEssentialsValue] = useState('');
   const [noGoValue, setNoGoValue] = useState('');
@@ -149,19 +152,19 @@ export function StylePreferences({
 
   return (
     <Card
-      title="Предпочтения"
-      description="Заполните предпочтения — так AI-помощник сможет предложить более подходящие образы."
+      title={t('profile.style.title')}
+      description={t('profile.style.description')}
     >
       <div className={styles.wrap}>
         <div className={styles.note}>
           <label className={styles.noteTitle} htmlFor="profile-style-notes">
-            Что в своей внешности вам хотелось бы подчеркнуть, а что, наоборот, скрыть?
+            {t('profile.style.wishesLabel')}
           </label>
           <textarea
             id="profile-style-notes"
             name="styleNotes"
             className={`${formStyles.textarea} ${styles.textarea}`}
-            placeholder="Например: подчеркнуть ноги, скрыть живот, выглядеть выше"
+            placeholder={t('profile.style.wishesPlaceholder')}
             value={wishes}
             onChange={(e) => onWishesChange(e.target.value)}
           />
@@ -170,8 +173,8 @@ export function StylePreferences({
         <div className={styles.grid}>
           <ChipInput
             inputId="profile-style-essentials"
-            label="База (что нравится)"
-            placeholder="Например: спорт-шик"
+            label={t('profile.style.base')}
+            placeholder={t('profile.style.basePlaceholder')}
             value={essentialsValue}
             items={prefs}
             onValueChange={setEssentialsValue}
@@ -180,8 +183,8 @@ export function StylePreferences({
           />
           <ChipInput
             inputId="profile-style-nogo"
-            label="Никогда не предлагать"
-            placeholder="Например: жёлтый цвет"
+            label={t('profile.style.neverSuggest')}
+            placeholder={t('profile.style.neverSuggestPlaceholder')}
             tone="danger"
             value={noGoValue}
             items={dislikes}
@@ -193,7 +196,7 @@ export function StylePreferences({
 
         <div className={styles.constraints}>
           <label className={styles.constraintsTitle} htmlFor="profile-style-constraints">
-            Дополнительные пожелания и индивидуальные особенности
+            {t('profile.style.additional')}
           </label>
 
           <div className={styles.addRow}>
@@ -201,7 +204,7 @@ export function StylePreferences({
               id="profile-style-constraints"
               className={`${formStyles.input} ${styles.addInput}`}
               type="text"
-              placeholder="Передвигаюсь на машине, поэтому почти не ношу тёплую одежду"
+              placeholder={t('profile.style.additionalPlaceholder')}
               value={constraintsValue}
               onChange={(e) => setConstraintsValue(e.target.value)}
               onKeyDown={(e) => {
@@ -217,19 +220,19 @@ export function StylePreferences({
               onClick={addConstraint}
               disabled={!canAddConstraints}
             >
-              Добавить
+              {t('profile.style.add')}
             </button>
           </div>
 
           {additions.length ? (
-            <div className={styles.chips} aria-label="Дополнительные пожелания">
+            <div className={styles.chips} aria-label={t('profile.style.additional')}>
               {additions.map((it) => (
                 <span key={it.id} className={styles.chip}>
                   <span className={styles.chipText}>{it.text}</span>
                   <button
                     type="button"
                     className={styles.chipRemove}
-                    aria-label="Удалить"
+                    aria-label={t('profile.style.remove')}
                     onClick={() => onAdditionsChange(additions.filter((x) => x.id !== it.id))}
                   >
                     ×

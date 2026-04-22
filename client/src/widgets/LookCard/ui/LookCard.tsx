@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 
 import clsx from 'clsx';
 import { Heart, HeartPlus, Pencil, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { IClothFromDb } from '@/entities/cloth';
 import type { GeneratedLook, ILook } from '@/entities/look';
@@ -14,36 +15,53 @@ import { getImgSrc } from '@/shared/lib/getImgSrc';
 
 import styles from './looks.module.css';
 
-const CATEGORY_PRIORITY: Partial<Record<IClothFromDb['category'], number>> = {
-  куртка: 0,
-  худи: 0,
-  платье: 1,
-  свитер: 1,
-  футболка: 2,
-  рубашка: 2,
-  брюки: 3,
-  юбка: 3,
-  шорты: 3,
-  обувь: 4,
-  аксессуары: 5,
-  другое: 6,
+const CATEGORY_PRIORITY: Partial<Record<IClothFromDb['section'], number>> = {
+  top: 0,
+  bottom: 1,
+  bags: 2,
+  accessory: 3,
+  headwear: 4,
+  other: 5,
+  shoes: 6,
 };
+// const CATEGORY_PRIORITY: Partial<Record<IClothFromDb['category'], number>> = {
+//   куртка: 0,
+//   худи: 0,
+//   платье: 1,
+//   свитер: 1,
+//   футболка: 2,
+//   рубашка: 2,
+//   брюки: 3,
+//   юбка: 3,
+//   шорты: 3,
+//   обувь: 4,
+//   аксессуары: 5,
+//   другое: 6,
+// };
 
 const ITEM_POSITIONS: React.CSSProperties[] = [
   { top: '6%', left: '5%', width: '60%', transform: 'rotate(-4deg)', zIndex: 3 },
   { top: '2%', right: '1%', width: '54%', transform: 'rotate(6deg)', zIndex: 2 },
   { bottom: '4%', right: '2%', width: '44%', transform: 'rotate(2deg)', zIndex: 1 },
   { bottom: '2%', left: '3%', width: '36%', transform: 'rotate(-7deg)', zIndex: 2 },
+  { bottom: '24%', left: '35%', width: '28%', transform: 'rotate(-3deg)', zIndex: 2 },
+  { bottom: '18%', left: '5%', width: '32%', transform: 'rotate(5deg)', zIndex: 1 },
+  { top: '18%', right: '4%', width: '30%', transform: 'rotate(-8deg)', zIndex: 3 },
   { top: '2%', left: '46%', width: '20%', transform: 'rotate(10deg)', zIndex: 4 },
-  { bottom: '24%', left: '26%', width: '28%', transform: 'rotate(-3deg)', zIndex: 2 },
+  { bottom: '8%', left: '38%', width: '26%', transform: 'rotate(4deg)', zIndex: 2 },
+  { top: '50%', left: '2%', width: '24%', transform: 'rotate(-5deg)', zIndex: 1 },
+  { bottom: '14%', right: '6%', width: '22%', transform: 'rotate(7deg)', zIndex: 2 },
+  { top: '40%', right: '18%', width: '20%', transform: 'rotate(-2deg)', zIndex: 3 },
 ];
 
-type WithCategory = { category?: string | null };
+type WithCategory = { section?: string | null };
 
 export function sortByPriority<T extends WithCategory>(clothes: T[]): T[] {
   return [...clothes].sort((a, b) => {
-    const pa = a.category != null ? (CATEGORY_PRIORITY[a.category as IClothFromDb['category']] ?? 6) : 6;
-    const pb = b.category != null ? (CATEGORY_PRIORITY[b.category as IClothFromDb['category']] ?? 6) : 6;
+    const pa =
+      a.section != null ? (CATEGORY_PRIORITY[a.section as IClothFromDb['section']] ?? 12) : 12;
+    const pb =
+      b.section != null ? (CATEGORY_PRIORITY[b.section as IClothFromDb['section']] ?? 12) : 12;
     return pa - pb;
   });
 }
@@ -68,6 +86,7 @@ type LookCardGeneratedProps = {
 type Props = LookCardSavedProps | LookCardGeneratedProps;
 
 export const LookCard = (props: Props) => {
+  const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const router = useRouter();
@@ -85,16 +104,15 @@ export const LookCard = (props: Props) => {
     if (isSaved) {
       return sortByPriority(
         look!.clothes.filter((c) => c.image && c.processing_status === 'completed'),
-      ).slice(0, 6);
+      );
     }
-    return sortByPriority(generated!.cloths).filter((c) => c.image).slice(0, 6);
+    return sortByPriority(generated!.cloths).filter((c) => c.image);
   }, [generated, isSaved, look]);
+  console.log('sorted', sorted);
 
   const clothIdsForSave = useMemo(() => {
     if (isSaved) return [];
-    return generated!.cloths
-      .map((c) => Number(c.id))
-      .filter((n) => Number.isFinite(n) && n > 0);
+    return generated!.cloths.map((c) => Number(c.id)).filter((n) => Number.isFinite(n) && n > 0);
   }, [generated, isSaved]);
 
   const handleSave = async () => {
@@ -143,18 +161,21 @@ export const LookCard = (props: Props) => {
               src={src}
               alt={cloth.title}
               className={styles.flatlayItem}
-              style={ITEM_POSITIONS[index]}
+              style={{
+                ...ITEM_POSITIONS[index],
+                scale: cloth.section === 'top' || cloth.section === 'bottom' ? 1.3 : 1,
+              }}
             />
           );
         })}
 
-        {sorted.length === 0 && <div className={styles.flatlayEmpty}>Нет фото</div>}
+        {sorted.length === 0 && <div className={styles.flatlayEmpty}>{t('lookCard.noPhoto')}</div>}
 
         {isSaved && savedProps?.toggleFav && (
           <button
             className={`${styles.favBtn} ${isFav ? styles.favActive : ''}`}
             onClick={() => savedProps.toggleFav?.(look!.id)}
-            aria-label={isFav ? 'Удалить из избранного' : 'Добавить в избранное'}
+            aria-label={isFav ? t('lookCard.removeFromFavorites') : t('lookCard.addToFavorites')}
           >
             {isFav ? <Heart size={16} /> : <HeartPlus size={16} color="#a8896e" />}
           </button>
@@ -175,7 +196,7 @@ export const LookCard = (props: Props) => {
                 <button
                   className={clsx(styles.btn, styles.editBtn)}
                   onClick={() => savedProps.onEdit?.(look!.id.toString())}
-                  title="Редактировать"
+                  title={t('lookCard.edit')}
                   type="button"
                 >
                   <Pencil size={16} />
@@ -185,7 +206,7 @@ export const LookCard = (props: Props) => {
                 <button
                   className={clsx(styles.btn, styles.deleteBtn)}
                   onClick={() => savedProps.onDelete?.(look!.id)}
-                  title="Удалить"
+                  title={t('lookCard.delete')}
                   type="button"
                 >
                   <Trash2 size={16} />
@@ -198,8 +219,8 @@ export const LookCard = (props: Props) => {
             <button
               className={clsx(styles.btn, styles.editBtn)}
               onClick={() => void handleEditGenerated()}
-              title="Редактировать"
-              aria-label="Редактировать"
+              title={t('lookCard.edit')}
+              aria-label={t('lookCard.edit')}
               type="button"
               disabled={isSaving}
             >
@@ -212,7 +233,7 @@ export const LookCard = (props: Props) => {
               type="button"
               disabled={isSaving || !!savedId || clothIdsForSave.length === 0}
             >
-              {savedId ? 'Сохранено' : isSaving ? 'Сохранение...' : 'Сохранить'}
+              {savedId ? t('lookCard.saved') : isSaving ? t('lookCard.saving') : t('lookCard.save')}
             </button>
           </div>
         )}
