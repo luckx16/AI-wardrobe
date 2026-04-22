@@ -6,11 +6,12 @@ import { getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 import type { Category, Season } from '../../app/wardrobe/types';
 import styles from './WardrobeToolbar.module.css';
 
-type SortField = 'title' | 'season' | 'createdAt' | 'category';
+type SortField = 'createdAt';
+type SortDirection = 'asc' | 'desc';
 
 interface WardrobeToolbarProps {
-  sortBy: SortField;
-  onSortChange: (field: SortField) => void;
+  sortDirection: SortDirection;
+  onSortDirectionChange: (direction: SortDirection) => void;
   filterSeason: Season | 'all';
   onFilterSeasonChange: (season: Season | 'all') => void;
   filterCategory: Category | 'all';
@@ -31,19 +32,14 @@ const categoryOptions: Array<{ value: Category | 'all'; label: string }> = [
   { value: 'other', label: 'Другое' },
 ];
 
-const sortOptions: { value: SortField }[] = [
-  { value: 'title' },
-  { value: 'season' },
-  { value: 'category' },
-  { value: 'createdAt' },
-];
+const sortOptions: { value: SortField }[] = [{ value: 'createdAt' }];
 
 const cx = (...classNames: Array<string | false | null | undefined>) =>
   classNames.filter(Boolean).join(' ');
 
 const WardrobeToolbar = ({
-  sortBy,
-  onSortChange,
+  sortDirection,
+  onSortDirectionChange,
   filterSeason,
   onFilterSeasonChange,
   filterCategory,
@@ -66,18 +62,14 @@ const WardrobeToolbar = ({
       <div className={styles.controls}>
         <div className={styles.group}>
           <span className={styles.label}>{t('wardrobe.sort.label')}</span>
-          <div className={styles.sortList}>
-            {sortOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => onSortChange(opt.value)}
-                type="button"
-                className={cx(styles.sortButton, sortBy === opt.value && styles.sortButtonActive)}
-              >
-                {t(`wardrobe.sort.${opt.value}`)}
-              </button>
-            ))}
-          </div>
+          <select
+            value={sortDirection}
+            onChange={(e) => onSortDirectionChange(e.target.value as SortDirection)}
+            className={styles.select}
+          >
+            <option value="desc">Новые</option>
+            <option value="asc">Старые</option>
+          </select>
         </div>
 
         <div className={styles.divider} />
