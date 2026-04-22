@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-import { LocateFixed } from 'lucide-react';
+import { LocateFixed, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { refreshTokensThunk } from '@/entities/user/api/apiUserThunk';
@@ -12,6 +12,7 @@ import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { AppLanguage, supportedLngs } from '@/shared/i18n/config';
 import {
   requestAndStoreUserLocation,
+  searchCities,
   setAndStoreUserCity,
   userLocationStorage,
 } from '@/shared/lib/userLocation';
@@ -28,6 +29,9 @@ export function Header() {
   const [isSavingCity, setIsSavingCity] = useState(false);
   const [isRefreshingLocation, setIsRefreshingLocation] = useState(false);
   const [cityError, setCityError] = useState<string | null>(null);
+  const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
+  const [isLoadingCitySuggestions, setIsLoadingCitySuggestions] = useState(false);
+  const [hasCityInputChanged, setHasCityInputChanged] = useState(false);
 
   useEffect(() => {
     // На старте приложения пробуем обновить токены (если есть refresh-cookie).
@@ -35,6 +39,24 @@ export function Header() {
       .unwrap()
       .catch(() => undefined);
   }, [dispatch]);
+
+  useEffect(() => {
+    if (!isCityModalOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeCityModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isCityModalOpen]);
 
   useEffect(() => {
     const savedCity = userLocationStorage.getCity();
@@ -60,6 +82,8 @@ export function Header() {
 
   const openCityModal = () => {
     setCityInput(city ?? '');
+    setHasCityInputChanged(false);
+    setCitySuggestions([]);
     setCityError(null);
     setIsCityModalOpen(true);
   };
@@ -67,6 +91,8 @@ export function Header() {
   const closeCityModal = () => {
     setIsCityModalOpen(false);
     setCityError(null);
+    setCitySuggestions([]);
+    setIsLoadingCitySuggestions(false);
   };
 
   const saveCityHandler = async () => {
@@ -88,6 +114,43 @@ export function Header() {
       setIsSavingCity(false);
     }
   };
+
+  useEffect(() => {
+    if (!isCityModalOpen || !hasCityInputChanged) {
+      setCitySuggestions([]);
+      setIsLoadingCitySuggestions(false);
+      return;
+    }
+
+    const query = cityInput.trim();
+    if (query.length < 2) {
+      setCitySuggestions([]);
+      setIsLoadingCitySuggestions(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => {
+      setIsLoadingCitySuggestions(true);
+
+      void searchCities(query, 5, controller.signal)
+        .then((suggestions) => {
+          if (!controller.signal.aborted) {
+            setCitySuggestions(suggestions);
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setIsLoadingCitySuggestions(false);
+          }
+        });
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [cityInput, hasCityInputChanged, isCityModalOpen]);
 
   const refreshUserLocationHandler = async () => {
     setIsRefreshingLocation(true);
@@ -225,7 +288,7 @@ export function Header() {
       </div>
       {cityError && !isCityModalOpen ? <p className={styles.inlineCityError}>{cityError}</p> : null}
       {isCityModalOpen ? (
-        <div className={styles.cityModalOverlay} role="presentation" onClick={closeCityModal}>
+        <div className={styles.cityModalOverlay} role="presentation">
           <div
             className={styles.cityModal}
             role="dialog"
@@ -233,17 +296,54 @@ export function Header() {
             aria-labelledby="city-modal-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3 id="city-modal-title" className={styles.cityModalTitle}>
-              {t('header.editCity')}
-            </h3>
+            <div className={styles.cityModalHeader}>
+              <h3 id="city-modal-title" className={styles.cityModalTitle}>
+                {t('header.editCity')}
+              </h3>
+              <button
+                type="button"
+                className={styles.cityModalCloseButton}
+                onClick={closeCityModal}
+                aria-label={t('header.closeCityModal')}
+              >
+                <X size={16} aria-hidden />
+              </button>
+            </div>
             <input
               type="text"
               className={styles.cityInput}
               value={cityInput}
-              onChange={(event) => setCityInput(event.target.value)}
+              onChange={(event) => {
+                setCityInput(event.target.value);
+                setHasCityInputChanged(true);
+                setCityError(null);
+              }}
               placeholder={t('header.enterCity')}
               autoFocus
             />
+            {isLoadingCitySuggestions ? (
+              <p className={styles.citySuggestionsHint}>{t('header.citySuggestionsLoading')}</p>
+            ) : null}
+            {citySuggestions.length > 0 ? (
+              <ul className={styles.citySuggestionsList} role="listbox" aria-label={t('header.citySuggestions')}>
+                {citySuggestions.map((suggestion) => (
+                  <li key={suggestion}>
+                    <button
+                      type="button"
+                      className={styles.citySuggestionButton}
+                      onClick={() => {
+                        setCityInput(suggestion);
+                        setHasCityInputChanged(false);
+                        setCityError(null);
+                        setCitySuggestions([]);
+                      }}
+                    >
+                      {suggestion}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
             {cityError ? <p className={styles.cityError}>{cityError}</p> : null}
             <div className={styles.cityModalActions}>
               <button

@@ -80,6 +80,33 @@ function resolveCityFromSearchResult(searchResult: NominatimSearchResult): strin
   return null;
 }
 
+export async function searchCities(
+  query: string,
+  limit = 5,
+  signal?: AbortSignal,
+): Promise<string[]> {
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery) {
+    return [];
+  }
+
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=${limit}&addressdetails=1&q=${encodeURIComponent(normalizedQuery)}`,
+      { signal },
+    );
+    const data = (await response.json()) as NominatimSearchResult[];
+
+    const suggestions = data
+      .map((result) => resolveCityFromSearchResult(result))
+      .filter((city): city is string => Boolean(city));
+
+    return Array.from(new Set(suggestions)).slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
 export const userLocationStorage = {
   getCity(): string | null {
     if (typeof window === 'undefined') {

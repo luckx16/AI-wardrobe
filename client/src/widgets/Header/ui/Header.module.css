@@ -141,10 +141,39 @@
   padding: 1rem;
 }
 
+.cityModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
 .cityModalTitle {
-  margin: 0 0 0.75rem;
+  margin: 0;
   font-size: 1rem;
   color: #251b10;
+}
+
+.cityModalCloseButton {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border: 1px solid #d8c8b3;
+  border-radius: 9999px;
+  background: #fff;
+  color: #4f3b28;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cityModalCloseButton:hover,
+.cityModalCloseButton:focus-visible {
+  border-color: #cba883;
+  background: #f6efe6;
+  outline: none;
 }
 
 .cityInput {
@@ -158,6 +187,46 @@
 .cityInput:focus-visible {
   outline: 2px solid #cba883;
   outline-offset: 1px;
+}
+
+.citySuggestionsHint {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  color: #8f7a63;
+}
+
+.citySuggestionsList {
+  margin: 0.45rem 0 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid #e6d8c6;
+  border-radius: 0.55rem;
+  background: #fff;
+  max-height: 11rem;
+  overflow-y: auto;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.citySuggestionsList li + li {
+  border-top: 1px solid #f0e6da;
+}
+
+.citySuggestionButton {
+  width: 100%;
+  padding: 0.58rem 0.7rem;
+  border: 0;
+  background: transparent;
+  color: #4f3b28;
+  text-align: left;
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.citySuggestionButton:hover,
+.citySuggestionButton:focus-visible {
+  background: #f6efe6;
+  outline: none;
 }
 
 .cityError {
