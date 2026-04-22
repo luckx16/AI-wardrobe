@@ -8,7 +8,7 @@ import styles from './EventSidebar.module.css';
 interface EventSidebarProps {
   selectedDate: string;
   eventsOfSelectedDateArr: IEvent[];
-  deleteEventHandler: (id: string) => void;
+  deleteEventHandler: (eventObj: IEvent) => void;
   openUpdateModalHandler: (eventObj: IEvent) => void;
   isLoading: boolean;
 }
@@ -58,7 +58,7 @@ export function EventSidebar({
                   className={clsx(styles.btn, styles.deleteBtn)}
                   onClick={(e) => {
                     e.stopPropagation();
-                    deleteEventHandler(ev.id);
+                    deleteEventHandler(ev);
                   }}
                   title={t('events.delete')}
                 >

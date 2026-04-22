@@ -74,11 +74,19 @@ export default function DashboardPage() {
     addQueryParams(
       {
         title,
-        date,
+        date: date.slice(0, 10),
         activity_type,
         look_id,
         [EVENT_MODAL_CONSTANTS.IS_OPEN]: 'true',
         [EVENT_MODAL_CONSTANTS.IN_EDIT_MODE_EVENT_ID]: id,
+      },
+      CLIENT_ROUTES.EVENTS,
+    );
+  };
+  const navigateToEventsWithCreateModal = () => {
+    addQueryParams(
+      {
+        [EVENT_MODAL_CONSTANTS.IS_OPEN]: 'true',
       },
       CLIENT_ROUTES.EVENTS,
     );
@@ -243,6 +251,7 @@ export default function DashboardPage() {
           <CalendarPlans
             plans={events}
             onAllPlans={navigateToEventsPageHandler}
+            onCreatePlan={navigateToEventsWithCreateModal}
             onPlanClick={navigateToEventEditingEventsPageHandler}
           />
         </div>

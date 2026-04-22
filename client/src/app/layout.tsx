@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 
 import { I18nProvider } from '@/app/providers/I18nProvider';
 import { ReduxProvider } from '@/app/providers/ReduxProvider';
+import { ConfirmProvider } from '@/shared/hooks/useConfirmContext';
 import { type AppLanguage, isSupportedLanguage } from '@/shared/i18n/languages';
 import { Footer, Header } from '@/widgets';
 
@@ -40,11 +41,13 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body>
         <I18nProvider initialLang={initialLang}>
           <ReduxProvider>
-            <div className="app-shell">
-              <Header />
-              <main className="app-main">{children}</main>
-              <Footer />
-            </div>
+            <ConfirmProvider>
+              <div className="app-shell">
+                <Header />
+                <main className="app-main">{children}</main>
+                <Footer />
+              </div>
+            </ConfirmProvider>
           </ReduxProvider>
         </I18nProvider>
       </body>
