@@ -24,12 +24,12 @@ export type ClientChatMessage = {
 };
 
 export type ClientWeather = {
-  temperature: string;
-  feels_like: string;
-  description: string;
-  humidity: string;
-  wind_speed: string;
-  location: string;
+  temperature?: string | null;
+  feels_like?: string | null;
+  description?: string | null;
+  humidity?: string | null;
+  wind_speed?: string | null;
+  location?: string | null;
 };
 
 type CreateChatData = {
@@ -50,7 +50,8 @@ export type ClientChat = {
 type SendMessageData = {
   chatId: string;
   userMessage: ClientChatMessage;
-  assistantMessage: ClientChatMessage;
+  assistantMessage?: ClientChatMessage;
+  assistantMessages?: ClientChatMessage[];
 };
 
 export async function createChat(title = 'AI Wardrobe'): Promise<string> {
@@ -108,7 +109,46 @@ export async function sendChatMessage(
     },
   );
 
-  return data.data.assistantMessage;
+  const payload = data.data;
+  if (payload.assistantMessage) return payload.assistantMessage;
+  if (Array.isArray(payload.assistantMessages) && payload.assistantMessages.length) {
+    // Совместимость: если сервер отдаёт несколько сообщений — вернём первое,
+    // а компонент чата может отдельно использовать assistantMessages через расширение ниже.
+    return payload.assistantMessages[0];
+  }
+  throw new Error('Invalid chat response: missing assistantMessage');
+}
+
+export async function sendChatMessages(
+  chatId: string,
+  text: string,
+  options?: {
+    createLook?: boolean;
+    useWardrobe?: boolean;
+    clothIds?: number[];
+    weather?: ClientWeather | null;
+  },
+): Promise<ClientChatMessage[]> {
+  const createLook = Boolean(options?.createLook);
+  const useWardrobe =
+    Boolean(options?.useWardrobe) || createLook || Boolean(options?.clothIds?.length);
+  const { data } = await axiosInstance.post<ServerResponseType<SendMessageData>>(
+    CHAT_API_ROUTES.CHAT_MESSAGES(chatId),
+    {
+      text,
+      createLook,
+      useWardrobe,
+      clothIds: useWardrobe && options?.clothIds?.length ? options.clothIds : undefined,
+      weather: options?.weather ?? undefined,
+    },
+  );
+
+  const payload = data.data;
+  if (Array.isArray(payload.assistantMessages) && payload.assistantMessages.length) {
+    return payload.assistantMessages;
+  }
+  if (payload.assistantMessage) return [payload.assistantMessage];
+  throw new Error('Invalid chat response: missing assistant message(s)');
 }
 
 export async function getChatMessages(chatId: string, limit = 20): Promise<ClientChatMessage[]> {
@@ -117,5 +157,17 @@ export async function getChatMessages(chatId: string, limit = 20): Promise<Clien
     { params: { limit } },
   );
 
+  return data.data;
+}
+
+export async function setSuggestedLookId(
+  chatId: string,
+  messageId: string,
+  suggestedLookId: string,
+): Promise<ClientChatMessage> {
+  const { data } = await axiosInstance.patch<ServerResponseType<ClientChatMessage>>(
+    CHAT_API_ROUTES.CHAT_MESSAGE(chatId, messageId),
+    { suggestedLookId },
+  );
   return data.data;
 }

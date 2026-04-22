@@ -22,7 +22,7 @@ export function ChatHeader({ onToggleHistory }: ChatHeaderProps) {
           </div>
         </div>
 
-        <div className={styles.actions}>
+        {/* <div className={styles.actions}>
           <button
             className={styles.actionButton}
             aria-label="История чатов"
@@ -34,7 +34,7 @@ export function ChatHeader({ onToggleHistory }: ChatHeaderProps) {
           <button className={styles.actionButton} aria-label="Настройки" type="button">
             <SettingsIcon className={styles.actionIcon} />
           </button>
-        </div>
+        </div> */}
       </div>
     </header>
   );

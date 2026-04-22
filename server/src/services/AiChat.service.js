@@ -1,9 +1,75 @@
 const { getGigaChatClient } = require('./GigaChat.service');
+const { chatAiResponseSchema } = require('../schemas/chatAiResponseSchema');
+const { createStyleRulesRetriever } = require('../rag/styleRulesRetriever');
+const db = require('../db/models');
+const { analyzeWardrobeForChat } = require('./WardrobeAnalyze.service');
 
 const HISTORY_LIMIT = 20;
 
 // userId -> [{ role, content }]
 const histories = new Map();
+
+function nonEmpty(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s ? s : null;
+}
+
+function normalizeWeatherForPrompt(weather) {
+  if (!weather || typeof weather !== 'object') return null;
+  const normalized = {
+    location: nonEmpty(weather.location),
+    temperature: nonEmpty(weather.temperature),
+    feels_like: nonEmpty(weather.feels_like),
+    description: nonEmpty(weather.description),
+    wind_speed: nonEmpty(weather.wind_speed),
+    humidity: nonEmpty(weather.humidity),
+  };
+  const hasAny = Object.values(normalized).some(Boolean);
+  return hasAny ? normalized : null;
+}
+
+function mapProfileAndWeatherToMetadataFilters(profile, weather) {
+  const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
+  const filters = {};
+  const knownProfileFields = ['skin_tone', 'proportion', 'contrast', 'height'];
+  for (const k of knownProfileFields) {
+    if (p && typeof p[k] === 'string' && p[k].trim()) filters[k] = p[k].trim();
+  }
+  if (weather && typeof weather === 'object') {
+    if (typeof weather.description === 'string' && weather.description.trim()) {
+      filters.weather_description = weather.description.trim();
+    }
+    if (typeof weather.temperature === 'string' && weather.temperature.trim()) {
+      filters.temperature_c = weather.temperature.trim();
+    }
+  }
+  return filters;
+}
+
+function buildStyleRulesQuery(profile, userPrompt, weather) {
+  const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
+  const parts = [
+    typeof userPrompt === 'string' ? userPrompt.trim() : '',
+    typeof p?.wishes === 'string' ? p.wishes.trim() : '',
+    typeof weather?.description === 'string' ? weather.description.trim() : '',
+    typeof weather?.temperature === 'string' ? `temperature ${weather.temperature}` : '',
+  ].filter(Boolean);
+  return parts.join('\n');
+}
+
+function formatActiveStyleRules(docs) {
+  const list = Array.isArray(docs) ? docs : [];
+  const lines = [];
+  for (let i = 0; i < list.length; i += 1) {
+    const doc = list[i];
+    const text = typeof doc?.pageContent === 'string' ? doc.pageContent.trim() : '';
+    if (!text) continue;
+    lines.push(`${i + 1}. ${text}`);
+  }
+  if (!lines.length) return null;
+  return ['## Active Style Rules', ...lines].join('\n');
+}
 
 function pushHistory(userId, message) {
   const prev = histories.get(userId) ?? [];
@@ -44,18 +110,30 @@ function extractJsonPayload(answer, wardrobeOptions) {
   const candidate = cleaned.slice(start, end + 1);
   try {
     const parsed = JSON.parse(candidate);
-    if (typeof parsed?.replyText === 'string') {
-      const base = {
-        replyText: parsed.replyText.trim(),
-        imagePrompt: typeof parsed.imagePrompt === 'string' ? parsed.imagePrompt.trim() : null,
-        referencedClothIds: [],
-      };
-      if (allowedSet) {
-        const ids = normalizeReferencedIds(parsed.referenced_cloth_ids ?? parsed.referencedClothIds, allowedSet);
-        base.referencedClothIds = ids;
-      }
-      return base;
+
+    // Нормализуем возможные имена поля referenced ids (snake/camel)
+    const normalizedForSchema =
+      parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? {
+            ...parsed,
+            referenced_cloth_ids:
+              parsed.referenced_cloth_ids ?? parsed.referencedClothIds ?? parsed.referencedClothIDs,
+          }
+        : parsed;
+
+    const validated = chatAiResponseSchema.safeParse(normalizedForSchema);
+    if (!validated.success) return fallback;
+
+    const data = validated.data;
+    const base = {
+      replyText: data.replyText,
+      imagePrompt: data.imagePrompt ?? null,
+      referencedClothIds: [],
+    };
+    if (allowedSet) {
+      base.referencedClothIds = normalizeReferencedIds(data.referenced_cloth_ids, allowedSet);
     }
+    return base;
   } catch {
     // ignore
   }
@@ -65,18 +143,19 @@ function extractJsonPayload(answer, wardrobeOptions) {
 
 function buildWardrobeSystemExtension(wardrobeOptions) {
   const allowed = wardrobeOptions.allowedClothIds ?? [];
+  const weather = normalizeWeatherForPrompt(wardrobeOptions.weather);
   const lines = [
     'Ты AI Wardrobe, дружелюбный персональный стилист. Всегда отвечай на русском языке.',
-    ...(wardrobeOptions.weather
+    ...(weather
       ? [
           '',
           '## Погода сейчас (контекст)',
-          `location=${wardrobeOptions.weather.location ?? ''}`,
-          `temperature=${wardrobeOptions.weather.temperature ?? ''}`,
-          `feels_like=${wardrobeOptions.weather.feels_like ?? ''}`,
-          `description=${wardrobeOptions.weather.description ?? ''}`,
-          `wind_speed_kmh=${wardrobeOptions.weather.wind_speed ?? ''}`,
-          `humidity_percent=${wardrobeOptions.weather.humidity ?? ''}`,
+          ...(weather.location ? [`location=${weather.location}`] : []),
+          ...(weather.temperature ? [`temperature=${weather.temperature}`] : []),
+          ...(weather.feels_like ? [`feels_like=${weather.feels_like}`] : []),
+          ...(weather.description ? [`description=${weather.description}`] : []),
+          ...(weather.wind_speed ? [`wind_speed_kmh=${weather.wind_speed}`] : []),
+          ...(weather.humidity ? [`humidity_percent=${weather.humidity}`] : []),
           'Учитывай погоду при выборе материалов/слоёв/верхней одежды и обуви.',
         ]
       : []),
@@ -89,6 +168,12 @@ function buildWardrobeSystemExtension(wardrobeOptions) {
     '## Каталог гардероба',
     wardrobeOptions.wardrobeSnippet || '(пусто)',
   ];
+  if (typeof wardrobeOptions.activeStyleRulesBlock === 'string' && wardrobeOptions.activeStyleRulesBlock.trim()) {
+    lines.push('', wardrobeOptions.activeStyleRulesBlock.trim());
+  }
+  if (typeof wardrobeOptions.analyzerNotesBlock === 'string' && wardrobeOptions.analyzerNotesBlock.trim()) {
+    lines.push('', wardrobeOptions.analyzerNotesBlock.trim());
+  }
   if (wardrobeOptions.attachedSnippet?.trim()) {
     lines.push('', '## Прикреплено к этому сообщению', wardrobeOptions.attachedSnippet.trim());
   }
@@ -117,13 +202,51 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
     ? new Set(wardrobeOptions.allowedClothIds.map(Number).filter(Number.isFinite))
     : null;
 
+  // RAG-правила — best-effort: не ломаем чат, если RAG недоступен.
+  let activeStyleRulesBlock = null;
+  let analyzerNotesBlock = null;
+  let analyzerReferencedClothIds = [];
+  try {
+    const profile = await db.Profile.findOne({ where: { user_id: userId } });
+    const filters = mapProfileAndWeatherToMetadataFilters(profile, weather);
+    const retriever = await createStyleRulesRetriever({ filters, k: 4 });
+    const query = buildStyleRulesQuery(profile, text, weather) || 'styling rules';
+    const docs = await retriever.getRelevantDocuments(query);
+    activeStyleRulesBlock = formatActiveStyleRules(docs);
+  } catch {
+    activeStyleRulesBlock = null;
+  }
+
+  // OpenAI-анализатор — только при useWardrobe. Best-effort.
+  if (useWardrobe && allowedClothIdSet) {
+    try {
+      const analysis = await analyzeWardrobeForChat({
+        text,
+        wardrobeSnippet: wardrobeOptions.wardrobeSnippet,
+        attachedSnippet: wardrobeOptions.attachedSnippet,
+        allowedClothIdSet,
+        weather: normalizeWeatherForPrompt(weather),
+        activeStyleRulesBlock,
+      });
+      analyzerReferencedClothIds = Array.isArray(analysis?.referencedClothIds) ? analysis.referencedClothIds : [];
+      if (analysis?.notesForWriter?.trim()) {
+        analyzerNotesBlock = `## Wardrobe Analysis Notes\n${analysis.notesForWriter.trim()}`;
+      }
+    } catch {
+      analyzerNotesBlock = null;
+      analyzerReferencedClothIds = [];
+    }
+  }
+
   const system = useWardrobe
     ? {
         role: 'system',
         content: buildWardrobeSystemExtension({
           ...wardrobeOptions,
           allowedClothIds: wardrobeOptions.allowedClothIds,
-          weather: weather && typeof weather === 'object' ? weather : null,
+          weather: normalizeWeatherForPrompt(weather),
+          activeStyleRulesBlock,
+          ...(analyzerNotesBlock ? { analyzerNotesBlock } : {}),
         }),
       }
     : {
@@ -131,18 +254,37 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
         content:
           'Ты AI Wardrobe, дружелюбный персональный стилист. Всегда отвечай на русском языке.\n' +
           'Помогай пользователю собирать образы, сочетать вещи, подбирать стили под событие, погоду, сезон, настроение и особенности фигуры.\n' +
-          (weather && typeof weather === 'object'
+          (normalizeWeatherForPrompt(weather)
             ? '\n' +
               'Погода сейчас (контекст):\n' +
-              `location=${weather.location ?? ''}; temperature=${weather.temperature ?? ''}; feels_like=${weather.feels_like ?? ''}; description=${weather.description ?? ''}; wind_speed_kmh=${weather.wind_speed ?? ''}; humidity_percent=${weather.humidity ?? ''}\n` +
+              (() => {
+                const w = normalizeWeatherForPrompt(weather);
+                const parts = [
+                  w?.location ? `location=${w.location}` : null,
+                  w?.temperature ? `temperature=${w.temperature}` : null,
+                  w?.feels_like ? `feels_like=${w.feels_like}` : null,
+                  w?.description ? `description=${w.description}` : null,
+                  w?.wind_speed ? `wind_speed_kmh=${w.wind_speed}` : null,
+                  w?.humidity ? `humidity_percent=${w.humidity}` : null,
+                ].filter(Boolean);
+                return parts.join('; ');
+              })() +
+              '\n' +
               'Учитывай погоду при рекомендациях (слои, материалы, верхняя одежда, обувь).\n'
             : '') +
+          (activeStyleRulesBlock ? `\n${activeStyleRulesBlock}\n` : '') +
           'Если данных мало, сначала задай 1-2 коротких уточняющих вопроса. Если данных достаточно, предложи конкретный образ.\n' +
           'Ответ должен быть практичным: можно перечислять верх, низ, обувь, верхнюю одежду, аксессуары, цвета и объяснение, почему это сочетается.\n' +
           'Не выдумывай, что ты видишь фото или гардероб пользователя, если он этого не присылал. Сейчас работаем только с текстом, поэтому imagePrompt всегда возвращай null.\n\n' +
           'Верни результат СТРОГО в формате JSON без markdown и без комментариев по следующей схеме:\n' +
           '{"replyText":"...текст ответа...","imagePrompt":null}',
       };
+
+  // Для режима с гардеробом вставляем правила отдельным system message перед основным system.
+  const systemMessages =
+    useWardrobe && activeStyleRulesBlock
+      ? [{ role: 'system', content: activeStyleRulesBlock }, system]
+      : [system];
 
   const userMsg = { role: 'user', content: `${userName}: ${text}` };
   let messages;
@@ -151,9 +293,9 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
       .filter((m) => m && typeof m.role === 'string' && typeof m.content === 'string')
       .slice(-HISTORY_LIMIT)
       .map((m) => ({ role: m.role, content: m.content }));
-    messages = [system, ...safeHistory, userMsg];
+    messages = [...systemMessages, ...safeHistory, userMsg];
   } else {
-    messages = [system, ...pushHistory(userId, userMsg)];
+    messages = [...systemMessages, ...pushHistory(userId, userMsg)];
   }
 
   if (typeof client.updateToken === 'function') {
@@ -171,7 +313,10 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
   return {
     replyText: payload.replyText,
     imagePrompt: payload.imagePrompt,
-    referencedClothIds: payload.referencedClothIds ?? [],
+    referencedClothIds:
+      useWardrobe && analyzerReferencedClothIds.length
+        ? analyzerReferencedClothIds
+        : (payload.referencedClothIds ?? []),
   };
 }
 

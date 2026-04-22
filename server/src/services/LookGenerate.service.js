@@ -4,6 +4,8 @@ const { buildStylistPrompt } = require('../utils/stylistPrompt');
 const { compactItem } = require('../utils/stylistPrompt');
 const { generatedLookSchema, geminiGeneratedLookJsonSchema } = require('../schemas/lookSchema');
 const { geminiClient, openaiClient } = require('../config/aiConfig');
+const { createStyleRulesRetriever } = require('../rag/styleRulesRetriever');
+const { CATEGORY_TO_SECTION } = require('../db/utlis/category');
 
 const db = require('../db/models');
 
@@ -44,6 +46,11 @@ function pickClothFields(cloth) {
     image: cloth.image,
     ai_metadata: cloth.ai_metadata,
   };
+}
+
+function clothSectionFromCategory(category) {
+  const key = typeof category === 'string' ? category.trim().toLowerCase() : '';
+  return (CATEGORY_TO_SECTION && key && CATEGORY_TO_SECTION[key]) || 'other';
 }
 
 function buildFallbackLookTitleFromItems(items) {
@@ -128,6 +135,72 @@ function httpError(status, body) {
   e.status = status;
   e.body = body;
   return e;
+}
+
+function nonEmpty(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s ? s : null;
+}
+
+function mapProfileAndWeatherToMetadataFilters(profile, weather) {
+  const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
+  const filters = {};
+
+  const knownProfileFields = ['skin_tone', 'proportion', 'contrast', 'height'];
+  for (const k of knownProfileFields) {
+    if (p && typeof p[k] === 'string' && p[k].trim()) filters[k] = p[k].trim();
+  }
+
+  if (weather && typeof weather === 'object') {
+    if (typeof weather.description === 'string' && weather.description.trim()) {
+      filters.weather_description = weather.description.trim();
+    }
+    if (typeof weather.temperature === 'string' && weather.temperature.trim()) {
+      filters.temperature_c = weather.temperature.trim();
+    }
+  }
+
+  return filters;
+}
+
+function buildStyleRulesQuery(profile, userPrompt, weather) {
+  const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
+  const parts = [
+    typeof userPrompt === 'string' ? userPrompt.trim() : '',
+    typeof p?.wishes === 'string' ? p.wishes.trim() : '',
+    typeof weather?.description === 'string' ? weather.description.trim() : '',
+    typeof weather?.temperature === 'string' ? `temperature ${weather.temperature}` : '',
+  ].filter(Boolean);
+  return parts.join('\n');
+}
+
+function buildConsiderationsComment(profile, weather, activeStyleRules) {
+  const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
+  const chunks = [];
+  if (nonEmpty(p.skin_tone)) chunks.push(`подтон кожи: ${nonEmpty(p.skin_tone)}`);
+  if (nonEmpty(p.proportion)) chunks.push(`пропорции: ${nonEmpty(p.proportion)}`);
+  if (nonEmpty(p.contrast)) chunks.push(`контраст: ${nonEmpty(p.contrast)}`);
+  if (nonEmpty(p.height)) chunks.push(`рост: ${nonEmpty(p.height)}`);
+  if (weather && typeof weather === 'object') {
+    const t = nonEmpty(weather.temperature);
+    const d = nonEmpty(weather.description);
+    if (t || d) chunks.push(`погода: ${[t ? `${t}°C` : null, d].filter(Boolean).join(', ')}`);
+  }
+  const rulesCount = Array.isArray(activeStyleRules) ? activeStyleRules.length : 0;
+  if (rulesCount) chunks.push(`учтено правил: ${rulesCount}`);
+  if (!chunks.length) return null;
+  return `Учтено: ${chunks.join(' • ')}`;
+}
+
+function variantInstruction(index, total) {
+  if (!Number.isFinite(index) || !Number.isFinite(total) || total <= 1) return '';
+  const i = index + 1;
+  return [
+    '',
+    `Additional constraint: produce variant ${i} of ${total}.`,
+    'Make it meaningfully different in style/mood/layering/colors if possible, but still realistic and using ONLY provided items.',
+  ].join('\n');
 }
 
 async function generateLookTitle({ user_id, attachedClothIds }) {
@@ -302,9 +375,24 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
   }
 
   stage = 'build_prompt';
+  let activeStyleRules = [];
+  try {
+    const filters = mapProfileAndWeatherToMetadataFilters(profile, weather);
+    const retriever = await createStyleRulesRetriever({ filters, k: 4 });
+    const query = buildStyleRulesQuery(profile, userPrompt, weather) || 'styling rules';
+    activeStyleRules = await retriever.getRelevantDocuments(query);
+  } catch (e) {
+    // RAG должен быть "best-effort": не валим генерацию лука из-за правил.
+    activeStyleRules = [];
+    if (isDev) {
+      console.warn('[style-rag] failed:', e?.message || e);
+    }
+  }
+  const comment = buildConsiderationsComment(profile, weather, activeStyleRules);
   const prompt = buildStylistPrompt(profile, cloths.map(pickClothFields), userPrompt, {
     focusClothIds: attachedIds,
     weather,
+    activeStyleRules,
   });
 
   stage = 'ai_gemini';
@@ -356,7 +444,21 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
       });
     }
   }
-  const finalItems = Array.from(dedup.values());
+  let finalItems = Array.from(dedup.values());
+
+  // Enforce: only one "bottom" item in a look (pants/jeans/skirt/shorts etc).
+  // AI иногда возвращает несколько "низов" — отбрасываем лишнее детерминированно.
+  const bottomItems = finalItems.filter((i) => {
+    const c = allowed.get(Number(i.cloth_id));
+    const plain = c && typeof c.toJSON === 'function' ? c.toJSON() : c;
+    return clothSectionFromCategory(plain?.category) === 'bottom';
+  });
+  if (bottomItems.length > 1) {
+    const byId = new Map(bottomItems.map((i) => [Number(i.cloth_id), i]));
+    const preferredIdFromAnchored = attachedIds.find((id) => byId.has(Number(id)));
+    const keepId = preferredIdFromAnchored != null ? Number(preferredIdFromAnchored) : Number(bottomItems[0].cloth_id);
+    finalItems = finalItems.filter((i) => !(byId.has(Number(i.cloth_id)) && Number(i.cloth_id) !== keepId));
+  }
   if (!finalItems.length) {
     throw httpError(422, {
       error: 'AI returned items not in wardrobe',
@@ -373,6 +475,7 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
         metadata: {
           occasion: validated.occasion,
           item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
+          ...(comment ? { comment } : {}),
         },
       },
       { transaction: t },
@@ -412,8 +515,16 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
   return { response, fromCache: false };
 }
 
+async function generateLookVariant({ user_id, userPrompt, attachedClothIds, weather, variantIndex, variantsTotal }) {
+  // Ровно тот же пайплайн, но добавляем instruction в userPrompt.
+  const extra = variantInstruction(variantIndex, variantsTotal);
+  const enrichedPrompt = [String(userPrompt ?? '').trim(), extra].filter(Boolean).join('\n');
+  return generateLook({ user_id, userPrompt: enrichedPrompt, attachedClothIds, weather });
+}
+
 module.exports = {
   generateLook,
+  generateLookVariant,
   generateLookTitle,
   formatZodError,
   buildAiPreview,

@@ -1,11 +1,17 @@
 const path = require('path');
 const { Profile } = require('../db/models');
 const { fileService } = require('../services/File.service');
+const ImageProcessingService = require('../services/ImageProcessing.service');
 const formatResponse = require('../utils/formatResponse');
 
 function getUserId(req, res) {
   const id = req.user?.id ?? res.locals.user?.id;
   return id ?? null;
+}
+
+function mergePrefs(profile, patch) {
+  const base = profile?.prefs && typeof profile.prefs === 'object' ? profile.prefs : {};
+  return { ...base, ...patch };
 }
 
 class UploadController {
@@ -28,18 +34,22 @@ class UploadController {
 
       const uploadedFile = fileService.saveFile(req.file);
 
-      if (profile.portrait_photo) {
-        const oldFilename = path.basename(profile.portrait_photo);
-        fileService.deleteFile(oldFilename);
-      }
+      const meta = await ImageProcessingService.extractImageMetadata(uploadedFile.path);
+
+      // Удаляем оригинал после извлечения метаданных (храним только биометрию/атрибуты).
+      fileService.deleteFile(uploadedFile.filename);
 
       await profile.update({
-        portrait_photo: uploadedFile.url,
+        portrait_photo: null,
+        prefs: mergePrefs(profile, {
+          portrait_image_metadata: meta,
+          portrait_image_uploaded_at: new Date().toISOString(),
+        }),
       });
 
       return res.json(
         formatResponse(200, 'Portrait uploaded', {
-          url: uploadedFile.url,
+          metadata: meta,
           field: 'portrait_photo',
         }),
       );
@@ -70,18 +80,22 @@ class UploadController {
 
       const uploadedFile = fileService.saveFile(req.file);
 
-      if (profile.body_photo) {
-        const oldFilename = path.basename(profile.body_photo);
-        fileService.deleteFile(oldFilename);
-      }
+      const meta = await ImageProcessingService.extractImageMetadata(uploadedFile.path);
+
+      // Удаляем оригинал после извлечения метаданных (храним только биометрию/атрибуты).
+      fileService.deleteFile(uploadedFile.filename);
 
       await profile.update({
-        body_photo: uploadedFile.url,
+        body_photo: null,
+        prefs: mergePrefs(profile, {
+          body_image_metadata: meta,
+          body_image_uploaded_at: new Date().toISOString(),
+        }),
       });
 
       return res.json(
         formatResponse(200, 'Body photo uploaded', {
-          url: uploadedFile.url,
+          metadata: meta,
           field: 'body_photo',
         }),
       );
