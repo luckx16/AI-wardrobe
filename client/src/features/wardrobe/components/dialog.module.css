@@ -25,6 +25,7 @@
   box-shadow: 0 24px 64px -28px rgb(0 0 0 / 0.45);
   transform: translate(-50%, -50%);
   animation: contentIn 0.2s ease;
+  justify-items: center;
 }
 
 .content[data-state="closed"] {

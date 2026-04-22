@@ -15,6 +15,7 @@ class ClothController {
 
       // 2. Получаем текстовые поля из формы
       const { title, brand, material, color, category, season } = req.body;
+
       const section = getSectionFromCategory(category);
       // 3. Проверяем, что файл был загружен
       if (!req.file) {
@@ -23,8 +24,10 @@ class ClothController {
 
       // 4. Пути к файлам
       const tempImagePath = req.file.path; // uploads/temp/имя_файла
+      console.log(tempImagePath, '<========================');
       const processedImageName = `processed-${Date.now()}-${req.file.filename}`;
-      const processedImagePath = path.join(__dirname, '..', 'uploads', 'processed');
+      const processedImagePath = path.join(__dirname, '..',  'public', 'uploads', 'processed');
+      // await fs.copyFile(tempImagePath, path.join(processedImagePath, processedImageName));
 
       // 5. Создаем запись в БД со статусом 'pending'
       const clothData = {
@@ -164,7 +167,7 @@ class ClothController {
 
       const tempImagePath = req.file.path;
       const processedImageName = `processed-${Date.now()}-${req.file.filename}.png`;
-      const processedImagePath = path.join(__dirname, '..', 'uploads', 'processed');
+      const processedImagePath = path.join(__dirname, '..',  'public', 'uploads', 'processed');
 
       const resultPath = await ImageProcessingService.removeBackgroundAndOptimize(
         tempImagePath,
@@ -175,7 +178,7 @@ class ClothController {
 
       return res.json(
         formatResponse(200, 'Background removed', {
-          url: `/uploads/processed/${path.basename(resultPath)}`,
+          url: `public/uploads/processed/${path.basename(resultPath)}`,
         }),
       );
     } catch (error) {
@@ -240,7 +243,7 @@ class ClothController {
 
       const existing = await ClothService.getClothById(id);
 
-      if (!existing || existing.user_id !== user.id) {
+      if (!existing || Number(existing.user_id) !== Number(user.id)) {
         return res.status(404).json(formatResponse(404, 'Cloth not found'));
       }
 
@@ -280,8 +283,8 @@ class ClothController {
 
       // удаляем файл изображения (если есть)
       if (cloth.image) {
-        const filePath = path.join(__dirname, '..', 'uploads', 'processed', cloth.image);
-
+        const imageName = path.basename(cloth.image);
+        const filePath = path.join(__dirname, '..', 'public', 'uploads', 'processed', imageName);
         await fs.unlink(filePath).catch(() => {});
       }
 

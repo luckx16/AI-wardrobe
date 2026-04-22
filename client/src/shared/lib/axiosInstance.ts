@@ -22,6 +22,7 @@ let accessToken = '';
 
 export function setAccessToken(token: string): void {
   accessToken = token;
+  // console.log('Access token updated:', accessToken);
 }
 
 axiosInstance.interceptors.request.use(

@@ -32,6 +32,7 @@ function buildStylistPrompt(profile, items, userPrompt, options = {}) {
   const focusIds = Array.isArray(options.focusClothIds)
     ? [...new Set(options.focusClothIds.map(Number).filter(Number.isFinite))]
     : [];
+  const weather = options.weather && typeof options.weather === 'object' ? options.weather : null;
 
   const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
   const prefs = p && typeof p.prefs === 'object' && p.prefs ? p.prefs : {};
@@ -72,11 +73,28 @@ function buildStylistPrompt(profile, items, userPrompt, options = {}) {
     `prefs=${safeJson(prefs)}`,
     `dislikes=${safeJson(dislikes)}`,
     `additions=${p.additions ?? ''}`,
+    ...(weather
+      ? [
+          '',
+          '## Weather context (current)',
+          `location=${weather.location ?? ''}`,
+          `temperature_c=${weather.temperature ?? ''}`,
+          `feels_like_c=${weather.feels_like ?? ''}`,
+          `description=${weather.description ?? ''}`,
+          `wind_speed_kmh=${weather.wind_speed ?? ''}`,
+          `humidity_percent=${weather.humidity ?? ''}`,
+        ]
+      : []),
     '',
     '## Styling rules',
     '- Use ONLY provided items. Do not invent items.',
     '- Prefer items with processing_status=completed (already filtered).',
     '- Keep the look realistic: compatible seasons, colors, and materials.',
+    ...(weather
+      ? [
+          '- Consider Weather context: pick suitable layers/materials/outerwear/shoes for the temperature, wind and precipitation risk implied by the description.',
+        ]
+      : []),
     '- Aim for a complete outfit: base + top + outerwear (if relevant) + shoes (if available) + accessory (optional).',
     '- If wardrobe lacks something, still produce the best possible look from available items.',
     '- Roles must be short and clear (e.g., "top", "bottom", "outerwear", "shoes", "accessory").',

@@ -1,26 +1,52 @@
 import './globals.css';
 
+import { cookies } from 'next/headers';
+
 import type { Metadata } from 'next';
 
+import { I18nProvider } from '@/app/providers/I18nProvider';
 import { ReduxProvider } from '@/app/providers/ReduxProvider';
+import { type AppLanguage, isSupportedLanguage } from '@/shared/i18n/languages';
 import { Footer, Header } from '@/widgets';
 
 export const metadata: Metadata = {
-  title: 'Next.js Blog',
-  description: 'Next.js Blog',
+  title: 'AI Wardrobe',
+  description: 'Personal AI stylist for your ideal wardrobe',
+  icons: [
+    {
+      rel: 'icon',
+      url: '/favicon/favicon.png',
+      type: 'image/png',
+    },
+    {
+      rel: 'shortcut icon',
+      url: '/favicon/favicon.png',
+      type: 'image/png',
+    },
+    {
+      rel: 'apple-touch-icon',
+      url: '/favicon/favicon.png',
+    },
+  ],
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get('ai-wardrobe-language')?.value;
+  const initialLang: AppLanguage = isSupportedLanguage(langCookie) ? langCookie : 'ru';
+
   return (
-    <html lang="en">
+    <html lang={initialLang}>
       <body>
-        <ReduxProvider>
-          <div className="app-shell">
-            <Header />
-            <main className="app-main">{children}</main>
-            <Footer />
-          </div>
-        </ReduxProvider>
+        <I18nProvider initialLang={initialLang}>
+          <ReduxProvider>
+            <div className="app-shell">
+              <Header />
+              <main className="app-main">{children}</main>
+              <Footer />
+            </div>
+          </ReduxProvider>
+        </I18nProvider>
       </body>
     </html>
   );

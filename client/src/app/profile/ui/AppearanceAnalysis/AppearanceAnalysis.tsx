@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Card, SegmentedControl } from '@/shared/ui';
 
@@ -22,39 +23,40 @@ export function AppearanceAnalysis({
   onContrastChange,
   onUndertoneChange,
 }: AppearanceAnalysisProps): React.JSX.Element {
+  const { t } = useTranslation();
   const contrastOptions = useMemo(
     () =>
       [
-        { value: 'low', label: 'Низкий' },
-        { value: 'medium', label: 'Средний' },
-        { value: 'high', label: 'Высокий' },
+        { value: 'low', label: t('profile.appearance.contrast.low') },
+        { value: 'medium', label: t('profile.appearance.contrast.medium') },
+        { value: 'high', label: t('profile.appearance.contrast.high') },
       ] as const,
-    [],
+    [t],
   );
 
   const undertoneOptions = useMemo(
     () =>
       [
-        { value: 'cool', label: 'Холодный' },
-        { value: 'warm', label: 'Тёплый' },
-        { value: 'neutral', label: 'Нейтральный' },
+        { value: 'cool', label: t('profile.appearance.undertone.cool') },
+        { value: 'warm', label: t('profile.appearance.undertone.warm') },
+        { value: 'neutral', label: t('profile.appearance.undertone.neutral') },
       ] as const,
-    [],
+    [t],
   );
 
   return (
     <Card
-      title="Анализ внешности"
-      description="Установите параметры — они помогут подобрать более гармоничные образы."
+      title={t('profile.appearance.title')}
+      description={t('profile.appearance.description')}
     >
       <div className={styles.grid}>
         <div className={styles.row}>
           <div className={styles.meta}>
-            <p className={styles.label}>Уровень контраста</p>
+            <p className={styles.label}>{t('profile.appearance.contrastLabel')}</p>
           </div>
           {/* Линейный выбор с движимой плашкой (segmented control). */}
           <SegmentedControl
-            ariaLabel="Уровень контраста"
+            ariaLabel={t('profile.appearance.contrastLabel')}
             value={contrast ?? 'medium'}
             options={contrastOptions}
             onChange={onContrastChange}
@@ -64,11 +66,11 @@ export function AppearanceAnalysis({
 
         <div className={styles.row}>
           <div className={styles.meta}>
-            <p className={styles.label}>Подтон кожи</p>
+            <p className={styles.label}>{t('profile.appearance.undertoneLabel')}</p>
           </div>
           {/* Линейный выбор с движимой плашкой (segmented control). */}
           <SegmentedControl
-            ariaLabel="Подтон кожи"
+            ariaLabel={t('profile.appearance.undertoneLabel')}
             value={undertone ?? 'neutral'}
             options={undertoneOptions}
             onChange={onUndertoneChange}

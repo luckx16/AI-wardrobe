@@ -34,8 +34,9 @@ class ImageProcessingService {
       // Оптимизируем через Jimp
       const image = await Jimp.read(resultBuffer);
       console.log('Image width:', image.width, 'height:', image.height);
-      image.resize({ w: 800 });
-      const outputPath = path.join(outputDir, path.basename(inputPath))
+      image.resize({ w: 1000 });
+      const baseName = path.basename(inputPath, path.extname(inputPath)) + '.png';
+      const outputPath = path.join(outputDir, baseName);
       await image.write(outputPath);
 
       console.log(`✅ Image processed: ${path.basename(outputDir)}`);
@@ -43,7 +44,7 @@ class ImageProcessingService {
     } catch (error) {
       console.error('Background removal failed:', error.message);
       console.log('Falling back to original image...');
-      const outputPath = path.join(outputDir, path.basename(inputPath))
+      const outputPath = path.join(outputDir, path.basename(inputPath));
       await fs.copyFile(inputPath, outputPath);
       return outputPath;
     }

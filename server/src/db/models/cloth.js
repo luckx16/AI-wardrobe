@@ -55,7 +55,7 @@ module.exports = (sequelize, DataTypes) => {
       color: DataTypes.TEXT,
       category: {
         type: DataTypes.ENUM(...CATEGORIES),
-        allowNull: true,
+        allowNull: false,
       },
       section: {
         type: DataTypes.ENUM(...SECTIONS),

@@ -19,13 +19,19 @@ export async function generateLook(payload: { userId: number; userPrompt?: strin
   return data.data;
 }
 
+export async function generateLookTitle(payload: { clothIds: number[] }) {
+  const { data } = await axiosInstance.post<ServerResponseType<{ title: string }>>(
+    '/looks/generate-title',
+    payload,
+  );
+  return data.data;
+}
+
 export async function saveLook(payload: { title: string; cloth_ids: number[] }) {
   const { data } = await axiosInstance.post<ServerResponseType<SavedLook>>('/looks', payload);
   return data.data;
 }
 export async function getLook(lookId: string) {
-  const { data } = await axiosInstance.get<ServerResponseType<ILook>>(
-    LOOK_API_ROUTES.LOOK(+lookId),
-  );
+  const { data } = await axiosInstance.get<ServerResponseType<ILook>>(LOOK_API_ROUTES.LOOK(lookId));
   return data.data;
 }
