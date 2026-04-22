@@ -74,7 +74,7 @@ export function CalendarPlans({
                 </div>
                 <div className={styles.planMeta}>
                   <span className={styles.planDate}>{localeDate}</span>
-                  <span className={styles.planOutfit}>{plan.look.title}</span>
+                  <span className={styles.planOutfit}>{plan.look?.title}</span>
                 </div>
               </div>
             </div>

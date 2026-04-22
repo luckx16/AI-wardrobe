@@ -14,6 +14,8 @@ import {
 } from '@/entities/dashboard';
 import { EVENT_MODAL_CONSTANTS, IEvent } from '@/entities/events';
 import { getAllEventsThunk } from '@/entities/events/api/eventsThunk';
+import type { GeneratedLook } from '@/entities/look';
+import { generateLookPreview } from '@/entities/look/api/lookApi';
 import { fetchWeatherApi } from '@/entities/weather';
 import type { WeatherByCoordsResponse } from '@/entities/weather/model/types';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
@@ -23,8 +25,6 @@ import { USER_LOCATION_UPDATED_EVENT, userLocationStorage } from '@/shared/lib/u
 import { StatsCard } from '@/shared/ui';
 import { CalendarPlans, OutfitOfTheDay } from '@/widgets';
 import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
-import { generateLookPreview } from '@/entities/look/api/lookApi';
-import type { GeneratedLook } from '@/entities/look';
 
 import styles from './dashboard.module.css';
 
@@ -159,10 +159,16 @@ export default function DashboardPage() {
         userPrompt: prompt,
         weather: weatherData,
       });
+      console.log('generated', generated);
+
       setOutfitGenerated(generated ?? null);
       const exp =
         (generated?.comment?.trim() ? generated.comment.trim() : null) ??
-        (typeof (generated?.look?.metadata as any)?.why === 'string' ? String((generated?.look?.metadata as any).why).trim() : null);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (typeof (generated?.look?.metadata as any)?.why === 'string'
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            String((generated?.look?.metadata as any).why).trim()
+          : null);
       setOutfitExplanation(exp && String(exp).trim() ? String(exp).trim() : null);
     } catch (e) {
       console.error('Failed to generate outfit of the day', e);
@@ -179,7 +185,13 @@ export default function DashboardPage() {
     if (!weatherData) return;
     void refreshOutfitOfTheDay();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, weatherData?.temperature, weatherData?.description, weatherData?.feels_like, weatherData?.location]);
+  }, [
+    user?.id,
+    weatherData?.temperature,
+    weatherData?.description,
+    weatherData?.feels_like,
+    weatherData?.location,
+  ]);
 
   const { events } = useAppSelector((s) => s.events);
   const dispatch = useAppDispatch();
@@ -222,6 +234,7 @@ export default function DashboardPage() {
     ],
     [dashboardNumbers],
   );
+  console.log('outfitGenerated', outfitGenerated);
 
   return (
     <div className={styles.page}>
@@ -244,7 +257,7 @@ export default function DashboardPage() {
             tip={weatherTip}
             explanation={outfitExplanation}
             isLoading={outfitGenerating}
-            onRefresh={() => void refreshOutfitOfTheDay()}
+            onRefresh={refreshOutfitOfTheDay}
           />
         </div>
         <div className={styles.widgetItem}>

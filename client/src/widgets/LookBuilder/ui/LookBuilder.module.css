@@ -30,7 +30,7 @@
 .canvasSection {
   background: linear-gradient(180deg, var(--surface) 0%, var(--surface-elevated) 100%);
   position: sticky;
-  top: 4rem;
+  top: calc(var(--header-h) - 0.85rem);
   align-self: start;
 }
 
@@ -53,7 +53,7 @@
   gap: 0.4rem;
   padding-block: 0.85rem;
   position: sticky;
-  top: 3.2rem;
+  top: calc(var(--header-h) - 0.325rem);
   background-color: inherit;
 }
 
@@ -187,8 +187,8 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   background: radial-gradient(circle at top, #fff 0%, var(--surface-elevated) 75%);
-  padding: 1rem 1rem 1.1rem;
-  margin-bottom: 0.85rem;
+  padding: 1rem 1rem 0.5rem;
+  margin-bottom: 0;
 
   position: relative;
 }
@@ -229,8 +229,7 @@
   flex-direction: column;
 
   left: 4px;
-  top: 30%;
-  translate: 0 -50%;
+  top: 15%;
 
   scale: 0.7;
 }
@@ -238,11 +237,31 @@
 .rightSlot {
   position: absolute;
   flex-direction: column;
-  right: 4px;
+  right: 2px;
   top: 55%;
   translate: 0 -50%;
 
   scale: 0.9;
+}
+
+.leftBottomSlot {
+  position: absolute;
+  flex-direction: column;
+
+  left: 8px;
+  bottom: 10%;
+  translate: 0 -50%;
+
+  scale: 0.9;
+}
+
+.headwearSlot {
+  margin-top: -15px;
+  scale: 0.8;
+}
+.shoesSlot {
+  scale: 0.8;
+  margin-top: -10px;
 }
 
 .mannequinSlot[data-active-drop='true'] {
@@ -323,8 +342,6 @@
 }
 
 .saveBlock {
-  margin-top: 0.95rem;
-  border-top: 1px solid var(--border);
   padding-top: 0.95rem;
   display: grid;
   gap: 0.45rem;

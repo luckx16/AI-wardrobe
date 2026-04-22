@@ -67,15 +67,20 @@ export function OutfitOfTheDay({
       )}
 
       {!isLoading && (look || generated) && (
-        <div className={styles.list}>
-          {look ? <LookCard look={look} /> : generated ? <LookCard generated={generated} /> : null}
-        </div>
-      )}
-
-      {explanation?.trim() && (
-        <div className={styles.explanation}>
-          <p className={styles.explanationText}>{explanation.trim()}</p>
-        </div>
+        <>
+          <div className={styles.list}>
+            {look ? (
+              <LookCard look={look} />
+            ) : generated ? (
+              <LookCard generated={generated} />
+            ) : null}
+          </div>
+          {explanation?.trim() && (
+            <div className={styles.explanation}>
+              <p className={styles.explanationText}>{explanation.trim()}</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

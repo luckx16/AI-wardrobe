@@ -159,7 +159,10 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                       styles.mannequinSlot,
                       slotClassName,
                       sectionId === 'accessory' && styles.leftSlot,
+                      sectionId === 'headwear' && styles.headwearSlot,
                       sectionId === 'bags' && styles.rightSlot,
+                      sectionId === 'other' && styles.leftBottomSlot,
+                      sectionId === 'shoes' && styles.shoesSlot,
                     )}
                     data-active-drop={activeDropSlot === sectionId}
                     onDragOver={(event) => {
