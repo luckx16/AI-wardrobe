@@ -9,6 +9,23 @@ const HISTORY_LIMIT = 20;
 // userId -> [{ role, content }]
 const histories = new Map();
 
+function detectReplyLanguage(text) {
+  const s = String(text ?? '');
+  const han = (s.match(/[\u3400-\u4DBF\u4E00-\u9FFF]/g) ?? []).length; // Chinese Han ideographs
+  const cyr = (s.match(/[А-Яа-яЁё]/g) ?? []).length;
+  const latin = (s.match(/[A-Za-z]/g) ?? []).length;
+  if (han > 0 && han >= cyr && han >= latin) return { code: 'zh', label: 'китайском' };
+  if (cyr > latin) return { code: 'ru', label: 'русском' };
+  if (latin > cyr) {
+    // Fast heuristics for DE/FR/ES based on common diacritics/punctuation.
+    if (/[äöüßÄÖÜ]/.test(s)) return { code: 'de', label: 'немецком' };
+    if (/[ñÑ¿¡áéíóúüÁÉÍÓÚÜ]/.test(s)) return { code: 'es', label: 'испанском' };
+    if (/[àâæçèéêëîïôœùûüÿÀÂÆÇÈÉÊËÎÏÔŒÙÛÜŸ]/.test(s)) return { code: 'fr', label: 'французском' };
+    return { code: 'en', label: 'английском' };
+  }
+  return { code: 'ru', label: 'русском' };
+}
+
 function nonEmpty(v) {
   if (v == null) return null;
   const s = String(v).trim();
@@ -32,9 +49,20 @@ function normalizeWeatherForPrompt(weather) {
 function mapProfileAndWeatherToMetadataFilters(profile, weather) {
   const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
   const filters = {};
-  const knownProfileFields = ['skin_tone', 'proportion', 'contrast', 'height'];
+  const knownProfileFields = ['skin_tone', 'proportion', 'contrast', 'height', 'wishes', 'additions'];
   for (const k of knownProfileFields) {
     if (p && typeof p[k] === 'string' && p[k].trim()) filters[k] = p[k].trim();
+  }
+  // dislikes в профиле могут быть объектом/списком — кладём JSON (ограничиваем длину, чтобы не раздувать метаданные).
+  if (p && typeof p.dislikes === 'object' && p.dislikes) {
+    try {
+      const json = JSON.stringify(p.dislikes);
+      if (json && json !== '{}' && json !== '[]') {
+        filters.dislikes = json.slice(0, 600);
+      }
+    } catch {
+      // ignore
+    }
   }
   if (weather && typeof weather === 'object') {
     if (typeof weather.description === 'string' && weather.description.trim()) {
@@ -49,9 +77,15 @@ function mapProfileAndWeatherToMetadataFilters(profile, weather) {
 
 function buildStyleRulesQuery(profile, userPrompt, weather) {
   const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
+  const dislikes =
+    p && typeof p.dislikes === 'object' && p.dislikes && Object.keys(p.dislikes).length
+      ? JSON.stringify(p.dislikes)
+      : '';
   const parts = [
     typeof userPrompt === 'string' ? userPrompt.trim() : '',
     typeof p?.wishes === 'string' ? p.wishes.trim() : '',
+    typeof p?.additions === 'string' ? p.additions.trim() : '',
+    dislikes,
     typeof weather?.description === 'string' ? weather.description.trim() : '',
     typeof weather?.temperature === 'string' ? `temperature ${weather.temperature}` : '',
   ].filter(Boolean);
@@ -86,7 +120,7 @@ function normalizeReferencedIds(raw, allowedSet) {
     if (!Number.isFinite(n) || !allowedSet.has(n)) continue;
     if (!out.includes(n)) out.push(n);
   }
-  return out;
+  return out.slice(0, 3);
 }
 
 function extractJsonPayload(answer, wardrobeOptions) {
@@ -141,11 +175,49 @@ function extractJsonPayload(answer, wardrobeOptions) {
   return fallback;
 }
 
+function pickWardrobeLinesByIds(snippet, ids) {
+  const lines = String(snippet ?? '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (!lines.length) return '';
+  const wanted = new Set((ids ?? []).map(Number).filter(Number.isFinite));
+  if (!wanted.size) return '';
+  const out = [];
+  for (const line of lines) {
+    const m = line.match(/\bid=(\d+)\b/);
+    if (!m) continue;
+    const id = Number(m[1]);
+    if (wanted.has(id)) out.push(line);
+  }
+  return out.join('\n');
+}
+
 function buildWardrobeSystemExtension(wardrobeOptions) {
+  const lang = wardrobeOptions?.replyLanguage ?? { code: 'ru', label: 'русском' };
   const allowed = wardrobeOptions.allowedClothIds ?? [];
   const weather = normalizeWeatherForPrompt(wardrobeOptions.weather);
+  const profile =
+    wardrobeOptions?.profile && typeof wardrobeOptions.profile.toJSON === 'function'
+      ? wardrobeOptions.profile.toJSON()
+      : (wardrobeOptions?.profile ?? {});
   const lines = [
-    'Ты AI Wardrobe, дружелюбный персональный стилист. Всегда отвечай на русском языке.',
+    `Ты AI Wardrobe, дружелюбный персональный стилист. Отвечай на ${lang.label} языке (языке запроса пользователя).`,
+    ...(profile && typeof profile === 'object'
+      ? [
+          '',
+          '## Профиль пользователя (учитывай в подборе)',
+          ...(nonEmpty(profile.skin_tone) ? [`skin_tone=${nonEmpty(profile.skin_tone)}`] : []),
+          ...(nonEmpty(profile.contrast) ? [`contrast=${nonEmpty(profile.contrast)}`] : []),
+          ...(nonEmpty(profile.height) ? [`height=${nonEmpty(profile.height)}`] : []),
+          ...(nonEmpty(profile.proportion) ? [`proportion=${nonEmpty(profile.proportion)}`] : []),
+          ...(nonEmpty(profile.wishes) ? [`wishes=${nonEmpty(profile.wishes)}`] : []),
+          ...(profile.dislikes && typeof profile.dislikes === 'object' && Object.keys(profile.dislikes).length
+            ? [`dislikes=${JSON.stringify(profile.dislikes)}`]
+            : []),
+          ...(nonEmpty(profile.additions) ? [`additions=${nonEmpty(profile.additions)}`] : []),
+        ]
+      : []),
     ...(weather
       ? [
           '',
@@ -162,8 +234,12 @@ function buildWardrobeSystemExtension(wardrobeOptions) {
     'Ниже передан каталог вещей из гардероба пользователя (каждая строка — одна вещь, у каждой есть числовой id=...).',
     'Пользователь может спрашивать, что из гардероба сочетается с чем-то — отвечай конкретно, но НЕ вставляй id и числа в текст ответа.',
     'ВАЖНО: в replyText никогда не используй шаблоны вида "id=123" и вообще не упоминай числовые id. Ссылайся по названию/категории/цвету/бренду.',
+    'ВАЖНО: в replyText НИКОГДА не упоминай бренды. Даже если бренд есть в данных — опускай его. Пиши только тип/цвет/материал/фасон.',
+    'ВАЖНО: в одном ответе можно упомянуть максимум 3 конкретные вещи из гардероба.',
     'Если прикреплены вещи к сообщению — учитывай их в первую очередь.',
     'Не выдумывай id: используй только id из каталога или из списка разрешённых id.',
+    'КРИТИЧЕСКОЕ ОГРАНИЧЕНИЕ: если ты предлагаешь КОНКРЕТНУЮ вещь (бренд/модель/точное название), она должна быть из блока "Выбранные вещи для ответа".',
+    'Если подходящих вещей нет — не называй конкретные вещи, а дай общую рекомендацию по категориям/цветам/материалам.',
     '',
     '## Каталог гардероба',
     wardrobeOptions.wardrobeSnippet || '(пусто)',
@@ -174,6 +250,14 @@ function buildWardrobeSystemExtension(wardrobeOptions) {
   if (typeof wardrobeOptions.analyzerNotesBlock === 'string' && wardrobeOptions.analyzerNotesBlock.trim()) {
     lines.push('', wardrobeOptions.analyzerNotesBlock.trim());
   }
+  if (typeof wardrobeOptions.selectedItemsBlock === 'string' && wardrobeOptions.selectedItemsBlock.trim()) {
+    lines.push('', wardrobeOptions.selectedItemsBlock.trim());
+    lines.push(
+      '',
+      'ПРАВИЛО СООТВЕТСТВИЯ: в replyText ты ОБЯЗАН(А) упомянуть каждую вещь из блока "Выбранные вещи для ответа" (по названию/описанию БЕЗ бренда) и НЕ ИМЕЕШЬ ПРАВА упоминать какие-либо другие конкретные вещи.',
+      'Если хочется предложить что-то ещё — формулируй это общими словами (категория/цвет/материал) без конкретных названий.',
+    );
+  }
   if (wardrobeOptions.attachedSnippet?.trim()) {
     lines.push('', '## Прикреплено к этому сообщению', wardrobeOptions.attachedSnippet.trim());
   }
@@ -181,7 +265,9 @@ function buildWardrobeSystemExtension(wardrobeOptions) {
     '',
     'Верни результат СТРОГО в формате JSON без markdown и без комментариев:',
     '{"replyText":"...","imagePrompt":null,"referenced_cloth_ids":[числа]}',
-    'referenced_cloth_ids — массив id вещей из каталога, которые ты рекомендуешь или упоминаешь как конкретный выбор (может быть пустым []).',
+    'referenced_cloth_ids — массив id вещей из каталога, которые ты УПОМИНАЕШЬ как конкретные вещи в replyText.',
+    'СТРОГОЕ ПРАВИЛО: referenced_cloth_ids должен соответствовать конкретным вещам, которые реально упомянуты в replyText. Если id в массиве — вещь должна быть упомянута. Если вещь упомянута — её id должен быть в массиве.',
+    'ЛИМИТ: referenced_cloth_ids длиной максимум 3.',
     `Разрешённые id (только из этого набора): ${allowed.join(',')}`,
   );
   return lines.join('\n');
@@ -197,17 +283,25 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
     };
   }
 
+  const replyLanguage = detectReplyLanguage(text);
   const useWardrobe = Boolean(wardrobeOptions?.wardrobeSnippet && wardrobeOptions?.allowedClothIds?.length);
   const allowedClothIdSet = useWardrobe
     ? new Set(wardrobeOptions.allowedClothIds.map(Number).filter(Number.isFinite))
     : null;
+
+  // Профиль — используем и для RAG-фильтров/запроса, и для явного контекста в system prompt.
+  let profile = null;
+  try {
+    profile = await db.Profile.findOne({ where: { user_id: userId } });
+  } catch {
+    profile = null;
+  }
 
   // RAG-правила — best-effort: не ломаем чат, если RAG недоступен.
   let activeStyleRulesBlock = null;
   let analyzerNotesBlock = null;
   let analyzerReferencedClothIds = [];
   try {
-    const profile = await db.Profile.findOne({ where: { user_id: userId } });
     const filters = mapProfileAndWeatherToMetadataFilters(profile, weather);
     const retriever = await createStyleRulesRetriever({ filters, k: 4 });
     const query = buildStyleRulesQuery(profile, text, weather) || 'styling rules';
@@ -218,6 +312,8 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
   }
 
   // OpenAI-анализатор — только при useWardrobe. Best-effort.
+  let selectedItemsBlock = null;
+  let allowedClothIdsForReply = wardrobeOptions?.allowedClothIds ?? [];
   if (useWardrobe && allowedClothIdSet) {
     try {
       const analysis = await analyzeWardrobeForChat({
@@ -232,9 +328,24 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
       if (analysis?.notesForWriter?.trim()) {
         analyzerNotesBlock = `## Wardrobe Analysis Notes\n${analysis.notesForWriter.trim()}`;
       }
+      if (analyzerReferencedClothIds.length) {
+        allowedClothIdsForReply = analyzerReferencedClothIds.slice();
+        const selectedLines = pickWardrobeLinesByIds(
+          [wardrobeOptions.wardrobeSnippet, wardrobeOptions.attachedSnippet].filter(Boolean).join('\n'),
+          analyzerReferencedClothIds,
+        );
+        if (selectedLines.trim()) {
+          selectedItemsBlock = [
+            '## Выбранные вещи для ответа (ТОЛЬКО их можно упоминать как конкретные вещи)',
+            selectedLines.trim(),
+          ].join('\n');
+        }
+      }
     } catch {
       analyzerNotesBlock = null;
       analyzerReferencedClothIds = [];
+      selectedItemsBlock = null;
+      allowedClothIdsForReply = wardrobeOptions?.allowedClothIds ?? [];
     }
   }
 
@@ -243,17 +354,43 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
         role: 'system',
         content: buildWardrobeSystemExtension({
           ...wardrobeOptions,
-          allowedClothIds: wardrobeOptions.allowedClothIds,
+          profile,
+          replyLanguage,
+          allowedClothIds: allowedClothIdsForReply,
           weather: normalizeWeatherForPrompt(weather),
           activeStyleRulesBlock,
           ...(analyzerNotesBlock ? { analyzerNotesBlock } : {}),
+          ...(selectedItemsBlock ? { selectedItemsBlock } : {}),
         }),
       }
     : {
         role: 'system',
         content:
-          'Ты AI Wardrobe, дружелюбный персональный стилист. Всегда отвечай на русском языке.\n' +
+          `Ты AI Wardrobe, дружелюбный персональный стилист. Отвечай на ${replyLanguage.label} языке (языке запроса пользователя).\n` +
           'Помогай пользователю собирать образы, сочетать вещи, подбирать стили под событие, погоду, сезон, настроение и особенности фигуры.\n' +
+          'ВАЖНО: никогда не упоминай бренды в ответе. Используй только тип/цвет/материал/фасон.\n' +
+          (profile
+            ? '\n' +
+              'Профиль пользователя (учитывай в подборе):\n' +
+              (() => {
+                const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
+                const dislikes =
+                  p && typeof p.dislikes === 'object' && p.dislikes && Object.keys(p.dislikes).length
+                    ? JSON.stringify(p.dislikes)
+                    : '';
+                const parts = [
+                  nonEmpty(p?.skin_tone) ? `skin_tone=${nonEmpty(p.skin_tone)}` : null,
+                  nonEmpty(p?.contrast) ? `contrast=${nonEmpty(p.contrast)}` : null,
+                  nonEmpty(p?.height) ? `height=${nonEmpty(p.height)}` : null,
+                  nonEmpty(p?.proportion) ? `proportion=${nonEmpty(p.proportion)}` : null,
+                  nonEmpty(p?.wishes) ? `wishes=${nonEmpty(p.wishes)}` : null,
+                  dislikes ? `dislikes=${dislikes}` : null,
+                  nonEmpty(p?.additions) ? `additions=${nonEmpty(p.additions)}` : null,
+                ].filter(Boolean);
+                return parts.join('; ');
+              })() +
+              '\n'
+            : '') +
           (normalizeWeatherForPrompt(weather)
             ? '\n' +
               'Погода сейчас (контекст):\n' +

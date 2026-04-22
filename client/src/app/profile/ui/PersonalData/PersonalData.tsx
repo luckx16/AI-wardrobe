@@ -12,6 +12,8 @@ import styles from './PersonalData.module.css';
 type PersonalDataProps = {
   name: string;
   onNameChange: (next: string) => void;
+  age: string;
+  onAgeChange: (next: string) => void;
   portraitPhoto: string | null;
   onPortraitPhotoChange: (next: string | null) => void;
 };
@@ -19,6 +21,8 @@ type PersonalDataProps = {
 export function PersonalData({
   name,
   onNameChange,
+  age,
+  onAgeChange,
   portraitPhoto,
   onPortraitPhotoChange,
 }: PersonalDataProps): React.JSX.Element {
@@ -60,7 +64,8 @@ export function PersonalData({
               type="number"
               name="age"
               placeholder={t('profile.personal.agePlaceholder')}
-              defaultValue=""
+              value={age}
+              onChange={(e) => onAgeChange(e.target.value)}
               min={0}
               inputMode="numeric"
             />
@@ -111,9 +116,6 @@ export function PersonalData({
               }}
             />
             {uploadError ? <p className={styles.photoHint}>{uploadError}</p> : null}
-            {portraitPhoto && !uploadError ? (
-              <p className={styles.photoHint}>{t('profile.personal.photoUploaded')}</p>
-            ) : null}
           </div>
         </div>
       </div>

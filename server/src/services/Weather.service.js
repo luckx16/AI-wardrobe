@@ -1,44 +1,51 @@
 const axios = require('axios');
 
 const WEATHER_CODE_DESCRIPTIONS = {
-  0: 'Clear',
-  1: 'Mainly clear',
-  2: 'Partly cloudy',
-  3: 'Overcast',
-  45: 'Fog',
-  48: 'Depositing rime fog',
-  51: 'Light drizzle',
-  53: 'Moderate drizzle',
-  55: 'Dense drizzle',
-  56: 'Light freezing drizzle',
-  57: 'Dense freezing drizzle',
-  61: 'Light rain',
-  63: 'Moderate rain',
-  65: 'Heavy rain',
-  66: 'Light freezing rain',
-  67: 'Heavy freezing rain',
-  71: 'Light snow',
-  73: 'Moderate snow',
-  75: 'Heavy snow',
-  77: 'Snow grains',
-  80: 'Light rain showers',
-  81: 'Moderate rain showers',
-  82: 'Violent rain showers',
-  85: 'Light snow showers',
-  86: 'Heavy snow showers',
-  95: 'Thunderstorm',
-  96: 'Thunderstorm with light hail',
-  99: 'Thunderstorm with heavy hail',
+  0: 'Ясно',
+  1: 'В основном ясно',
+  2: 'Переменная облачность',
+  3: 'Пасмурно',
+  45: 'Туман',
+  48: 'Туман с изморозью',
+  51: 'Лёгкая морось',
+  53: 'Умеренная морось',
+  55: 'Сильная морось',
+  56: 'Лёгкая ледяная морось',
+  57: 'Сильная ледяная морось',
+  61: 'Небольшой дождь',
+  63: 'Умеренный дождь',
+  65: 'Сильный дождь',
+  66: 'Небольшой ледяной дождь',
+  67: 'Сильный ледяной дождь',
+  71: 'Небольшой снег',
+  73: 'Умеренный снег',
+  75: 'Сильный снег',
+  77: 'Снежная крупа',
+  80: 'Небольшие ливни',
+  81: 'Умеренные ливни',
+  82: 'Сильные ливни',
+  85: 'Небольшие снегопады',
+  86: 'Сильные снегопады',
+  95: 'Гроза',
+  96: 'Гроза с небольшим градом',
+  99: 'Гроза с сильным градом',
 };
 
 function resolveWeatherDescription(code) {
-  return WEATHER_CODE_DESCRIPTIONS[code] || 'Unknown';
+  return WEATHER_CODE_DESCRIPTIONS[code] || 'Неизвестно';
 }
 
 function nonEmpty(v) {
   if (v == null) return null;
   const s = String(v).trim();
   return s ? s : null;
+}
+
+function roundToIntString(v) {
+  if (v == null) return null;
+  const n = Number(v);
+  if (!Number.isFinite(n)) return nonEmpty(v);
+  return String(Math.round(n));
 }
 
 function normalizeWeather(weather) {
@@ -57,8 +64,8 @@ function normalizeWeather(weather) {
 
 function mapCurrentWeatherResponse(current, location) {
   return normalizeWeather({
-    temperature: String(current.temperature_2m),
-    feels_like: String(current.apparent_temperature),
+    temperature: roundToIntString(current.temperature_2m),
+    feels_like: roundToIntString(current.apparent_temperature),
     description: resolveWeatherDescription(current.weather_code),
     humidity: String(current.relative_humidity_2m),
     wind_speed: String(current.wind_speed_10m),

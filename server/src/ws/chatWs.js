@@ -346,24 +346,38 @@ function setupChatWs(httpServer) {
             userPrompt: text,
             attachedClothIds: validatedClothIds,
             weather,
+            persist: false,
           });
-          assistantMessage = await ChatMessage.create({
+          const keyArgs =
+            generatedLookResult?.response?.comment ??
+            generatedLookResult?.response?.look?.metadata?.why ??
+            null;
+
+          assistantMessages = [];
+          if (keyArgs && String(keyArgs).trim()) {
+            const commentMsg = await ChatMessage.create({
+              chat_id: chatId,
+              role: 'assistant',
+              content: { text: String(keyArgs).trim() },
+            });
+            assistantMessages.push(commentMsg);
+          }
+
+          const { comment: _comment, ...lookPayload } = generatedLookResult.response ?? {};
+          const lookMsg = await ChatMessage.create({
             chat_id: chatId,
             role: 'assistant',
-            content: {
-              text: generatedLookResult.response?.look?.metadata?.comment ?? 'Образ собран',
-              look: {
-                ...generatedLookResult.response,
-                comment: generatedLookResult.response?.look?.metadata?.comment ?? undefined,
-              },
-            },
+            content: { text: 'Образ:', look: { ...lookPayload } },
           });
+          assistantMessages.push(lookMsg);
+          assistantMessage = lookMsg;
+
           const lookClothIds = (generatedLookResult?.response?.cloths ?? [])
             .map((c) => Number(c.id))
             .filter(Number.isFinite);
           if (lookClothIds.length) {
             await MessageCloth.bulkCreate(
-              lookClothIds.map((cloth_id) => ({ message_id: assistantMessage.id, cloth_id })),
+              lookClothIds.map((cloth_id) => ({ message_id: lookMsg.id, cloth_id })),
               { ignoreDuplicates: true },
             );
           }
@@ -378,6 +392,7 @@ function setupChatWs(httpServer) {
               weather,
               variantIndex: i,
               variantsTotal: variantsCount,
+              persist: false,
             });
             results.push(r.response);
           }
@@ -394,15 +409,26 @@ function setupChatWs(httpServer) {
             assistantMessages.push(info);
           }
           for (const r of results) {
+            const keyArgs = r?.comment ?? r?.look?.metadata?.why ?? null;
+            if (keyArgs && String(keyArgs).trim()) {
+              // eslint-disable-next-line no-await-in-loop
+              const commentMsg = await ChatMessage.create({
+                chat_id: chatId,
+                role: 'assistant',
+                content: { text: String(keyArgs).trim() },
+              });
+              assistantMessages.push(commentMsg);
+            }
+
+            const { comment: _comment, ...lookPayload } = r ?? {};
             // eslint-disable-next-line no-await-in-loop
             const msg = await ChatMessage.create({
               chat_id: chatId,
               role: 'assistant',
               content: {
-                text: r?.look?.metadata?.comment ?? 'Образ собран',
+                text: 'Образ:',
                 look: {
-                  ...r,
-                  comment: r?.look?.metadata?.comment ?? undefined,
+                  ...lookPayload,
                 },
               },
             });

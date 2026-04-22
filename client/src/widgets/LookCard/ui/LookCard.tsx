@@ -98,7 +98,6 @@ export const LookCard = (props: Props) => {
   const title = isSaved ? look!.title : generated!.look.title;
   const clothCount = isSaved ? look!.clothes.length : generated!.cloths.length;
   const isFav = isSaved ? Boolean(look!.is_in_favorites) : false;
-  const comment = isSaved ? null : (generated?.comment?.trim() ? generated.comment.trim() : null);
 
   const sorted = useMemo(() => {
     if (isSaved) {
@@ -186,7 +185,6 @@ export const LookCard = (props: Props) => {
         <div className={styles.meta}>
           <h3 className={styles.title}>{title}</h3>
           <p className={styles.tag}>{clothCount} вещей</p>
-          {comment && <p className={styles.tag}>{comment}</p>}
         </div>
 
         {isSaved ? (

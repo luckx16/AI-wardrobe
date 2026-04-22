@@ -2,29 +2,35 @@
 
 import { useTranslation } from 'react-i18next';
 
+import type { GeneratedLook, ILook } from '@/entities/look';
+import { Spinner } from '@/shared/ui';
+import { LookCard } from '@/widgets/LookCard';
+
 import styles from './OutfitOfTheDay.module.css';
 
-type OutfitItem = {
-  id: string | number;
-  emoji: string;
-  name: string;
-  category: string;
-};
-
-type Outfit = {
-  weather: string;
-  items: OutfitItem[];
-  tip: string;
-};
-
 type OutfitOfTheDayProps = {
-  outfit: Outfit;
+  look?: ILook | null;
+  generated?: GeneratedLook | null;
+  weather: string;
+  tip: string;
+  explanation?: string | null;
+  isLoading?: boolean;
   onRefresh?: () => void;
   weatherIcon?: React.ReactNode;
   sparkleIcon?: React.ReactNode;
 };
 
-export function OutfitOfTheDay({ outfit, onRefresh, weatherIcon, sparkleIcon }: OutfitOfTheDayProps) {
+export function OutfitOfTheDay({
+  look,
+  generated,
+  weather,
+  tip,
+  explanation,
+  isLoading,
+  onRefresh,
+  weatherIcon,
+  sparkleIcon,
+}: OutfitOfTheDayProps) {
   const { t } = useTranslation();
 
   return (
@@ -36,29 +42,41 @@ export function OutfitOfTheDay({ outfit, onRefresh, weatherIcon, sparkleIcon }: 
           </div>
           <h3 className={styles.title}>{t('dashboard.outfit.title')}</h3>
         </div>
-        <button className={styles.refreshBtn} onClick={onRefresh} type="button">
+        <button
+          className={styles.refreshBtn}
+          onClick={onRefresh}
+          type="button"
+          disabled={Boolean(isLoading)}
+        >
           {t('dashboard.outfit.refresh')}
         </button>
       </div>
 
       <div className={styles.weather}>
         {weatherIcon && <span className={styles.weatherIcon}>{weatherIcon}</span>}
-        <span className={styles.weatherText}>{outfit.weather}</span>
+        <span className={styles.weatherText}>{weather}</span>
       </div>
 
-      <div className={styles.list}>
-        {outfit.items.map((item) => (
-          <div key={item.id} className={styles.item}>
-            <span className={styles.itemEmoji}>{item.emoji}</span>
-            <div className={styles.itemInfo}>
-              <p className={styles.itemName}>{item.name}</p>
-              <p className={styles.itemCategory}>{item.category}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      {tip?.trim() && <p className={styles.weatherTip}>{tip.trim()}</p>}
 
-      <p className={styles.tip}>{outfit.tip}</p>
+      {isLoading && (
+        <div className={styles.loader}>
+          <Spinner size="md" color="muted" />
+          <span>Подбираем лук...</span>
+        </div>
+      )}
+
+      {!isLoading && (look || generated) && (
+        <div className={styles.list}>
+          {look ? <LookCard look={look} /> : generated ? <LookCard generated={generated} /> : null}
+        </div>
+      )}
+
+      {explanation?.trim() && (
+        <div className={styles.explanation}>
+          <p className={styles.explanationText}>{explanation.trim()}</p>
+        </div>
+      )}
     </div>
   );
 }
