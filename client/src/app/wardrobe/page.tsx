@@ -19,7 +19,7 @@ import WardrobeToolbar from '../../features/wardrobe/WardrobeToolbar';
 import { type Category, type Season, type WardrobeItem } from './types';
 import styles from './WardrobePage.module.css';
 
-type SortField = 'title' | 'season' | 'createdAt' | 'category';
+type SortDirection = 'asc' | 'desc';
 
 const categoryAliasToSection: Record<string, Category> = {
   футболка: 'top',
@@ -98,7 +98,7 @@ const WardrobePage = () => {
   const { t } = useTranslation();
   const [items, setItems] = useState<WardrobeItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<SortField>('title');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [filterSeason, setFilterSeason] = useState<Season | 'all'>('all');
   const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all');
   const [selectedItem, setSelectedItem] = useState<WardrobeItem | null>(null);
@@ -218,22 +218,21 @@ const WardrobePage = () => {
       result = result.filter((i) => normalizeItemCategory(i) === filterCategory);
     }
 
-    result.sort((a: WardrobeItem, b: WardrobeItem) => {
-      if (sortBy === 'title') return a.title.localeCompare(b.title, 'ru');
-      if (sortBy === 'season') return a.season.localeCompare(b.season, 'ru');
-      if (sortBy === 'category') return a.category.localeCompare(b.category, 'ru');
-      if (sortBy === 'createdAt') return a.createdAt.localeCompare(b.createdAt, 'ru');
-      return 0;
+    const sorted = [...result].sort((a: WardrobeItem, b: WardrobeItem) => {
+      // Сортируем по id (новые = больший id)
+      const idA = Number(a.id);
+      const idB = Number(b.id);
+      return sortDirection === 'asc' ? idA - idB : idB - idA;
     });
 
-    return result;
-  }, [items, sortBy, filterSeason, filterCategory]);
+    return sorted;
+  }, [items, sortDirection, filterSeason, filterCategory]);
 
   return (
     <div className={styles.page}>
       <WardrobeToolbar
-        sortBy={sortBy}
-        onSortChange={setSortBy}
+        sortDirection={sortDirection}
+        onSortDirectionChange={setSortDirection}
         filterSeason={filterSeason}
         onFilterSeasonChange={setFilterSeason}
         filterCategory={filterCategory}
