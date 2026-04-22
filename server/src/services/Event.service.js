@@ -24,7 +24,10 @@ class EventService {
   }
 
   async createEvent(userId, { activityType, ...data }) {
-    return await Event.create({ user_id: userId, ...data });
+    const created = (await Event.create({ user_id: userId, ...data })).get();
+    const lookOfCreated = (await Look.findByPk(created.look_id)).get();
+
+    return { ...created, look: lookOfCreated };
   }
 
   async updateEvent(eventId, userId, data) {

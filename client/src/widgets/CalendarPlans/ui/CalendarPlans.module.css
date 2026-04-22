@@ -66,6 +66,20 @@
   background: rgba(138, 106, 74, 0.07);
 }
 
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  row-gap: 50px;
+
+  color: var(--muted, #737373);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.createNewEventBtn {
+  margin-inline: auto;
+}
+
 /* Plans list */
 .list {
   display: flex;

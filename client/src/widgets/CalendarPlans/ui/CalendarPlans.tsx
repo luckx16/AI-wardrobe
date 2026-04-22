@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 
 import { IEvent } from '@/entities/events';
@@ -11,6 +12,7 @@ type CalendarPlansProps = {
   onAllPlans: () => void;
   onCardClick?: () => void;
   onPlanClick?: (plan: IEvent) => void;
+  onCreatePlan?: () => void;
   calendarIcon?: React.ReactNode;
   chevronIcon?: React.ReactNode;
 };
@@ -19,6 +21,7 @@ export function CalendarPlans({
   plans,
   onAllPlans,
   onPlanClick,
+  onCreatePlan,
   calendarIcon,
   chevronIcon,
 }: CalendarPlansProps) {
@@ -33,12 +36,25 @@ export function CalendarPlans({
           </div>
           <h3 className={styles.title}>{t('dashboard.plans.title')}</h3>
         </div>
-        <button className={styles.allBtn} onClick={() => onAllPlans()} type="button">
-          {t('dashboard.plans.all')}
-        </button>
+        {plans.length !== 0 && (
+          <button className={styles.allBtn} onClick={() => onAllPlans()} type="button">
+            {t('dashboard.plans.all')}
+          </button>
+        )}
       </div>
 
       <div className={styles.list}>
+        {plans.length === 0 && (
+          <div className={styles.emptyContainer}>
+            <p>Событий пока нет. Можете создать новое, нажав на кнопку ниже</p>
+            <button
+              className={clsx(styles.allBtn, styles.createNewEventBtn)}
+              onClick={onCreatePlan}
+            >
+              Добавить событие
+            </button>
+          </div>
+        )}
         {plans.map((plan, ind) => {
           const localeDate = new Date(plan.date).toLocaleDateString(i18n.language, {
             day: 'numeric',
