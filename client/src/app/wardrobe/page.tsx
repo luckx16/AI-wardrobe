@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useTranslation } from 'react-i18next';
 
+import { useConfirm } from '@/shared/hooks/useConfirmContext';
 import { PageLoader, useToast } from '@/shared/ui';
 
 import AddItemDialog from '../../features/wardrobe/AddItemDialog';
@@ -159,20 +160,31 @@ const WardrobePage = () => {
   const handleAddItem = useCallback((item: WardrobeItem) => {
     setItems((prev) => [item, ...prev]);
   }, []);
+  const { openConfirmDialog } = useConfirm();
 
   const handleDeleteItem = useCallback(
-    async (id: string) => {
-      try {
-        await removeClothesItem(id);
+    async (itemForDelete: WardrobeItem) => {
+      openConfirmDialog({
+        title: 'Удалить позицию?',
+        description: `${itemForDelete.title} ${itemForDelete.brand} будет удалена из вашего гардероба.`,
+        onConfirm: async () => {
+          try {
+            await removeClothesItem(itemForDelete.id);
 
-        setItems((prev) => prev.filter((item) => item.id !== id));
-        toast({ variant: 'success', title: 'Удалено', description: 'Вещь удалена из гардероба' });
-      } catch (e) {
-        console.error(e);
-        toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить вещь' });
-      }
+            setItems((prev) => prev.filter((item) => item.id !== itemForDelete.id));
+            toast({
+              variant: 'success',
+              title: 'Удалено',
+              description: 'Вещь удалена из гардероба',
+            });
+          } catch (e) {
+            console.error(e);
+            toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить вещь' });
+          }
+        },
+      });
     },
-    [toast],
+    [openConfirmDialog, toast],
   );
 
   const handleEditItem = useCallback(

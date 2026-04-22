@@ -19,7 +19,7 @@ export const ConfirmDialog = ({
   isOpen,
   onClose,
   onConfirm,
-  title = 'Вы уверены?',
+  title = 'Удалить ?',
   description,
   cancelText = 'Отмена',
   confirmText = 'Удалить',
@@ -75,6 +75,8 @@ export const ConfirmDialog = ({
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
+    console.log('e.target', e.target);
+
     if (e.target === dialogRef.current && !isLoading) {
       handleCloseWithAnimation();
     }
@@ -94,27 +96,29 @@ export const ConfirmDialog = ({
       onClick={handleBackdropClick}
       onAnimationEnd={onAnimationEnd}
     >
-      <span className={styles.title}>{title}</span>
+      <div className={styles.dialogInner}>
+        <span className={styles.title}>{title}</span>
 
-      {description && <p className={styles.description}>{description}</p>}
+        {description && <p className={styles.description}>{description}</p>}
 
-      <div className={styles.actions}>
-        <button
-          type="button"
-          className={`${styles.button} ${styles.buttonCancel}`}
-          onClick={handleCloseWithAnimation}
-          disabled={isLoading}
-        >
-          {cancelText}
-        </button>
-        <button
-          type="button"
-          className={`${styles.button} ${styles.buttonConfirm}`}
-          onClick={onConfirm}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Удаление...' : confirmText}
-        </button>
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={`${styles.button} ${styles.buttonCancel}`}
+            onClick={handleCloseWithAnimation}
+            disabled={isLoading}
+          >
+            {cancelText}
+          </button>
+          <button
+            type="button"
+            className={`${styles.button} ${styles.buttonConfirm}`}
+            onClick={onConfirm}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Удаление...' : confirmText}
+          </button>
+        </div>
       </div>
     </dialog>
   );

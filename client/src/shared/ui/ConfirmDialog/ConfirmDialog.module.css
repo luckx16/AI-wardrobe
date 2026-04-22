@@ -13,7 +13,6 @@
   border-radius: var(--radius);
   background: var(--card);
   color: var(--card-foreground);
-  padding: 1.5rem;
   width: 90vw;
   max-width: 400px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -32,6 +31,9 @@
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+}
+.dialogInner {
+  padding: 1.5rem;
 }
 
 .title {

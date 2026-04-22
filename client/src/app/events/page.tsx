@@ -59,8 +59,8 @@ export default function EventsPage() {
 
   const deleteEventHandler = async (event: IEvent) => {
     openConfirmDialog({
-      title: 'Удалить',
-      description: `Удалить событие "${event.title}"?`,
+      title: 'Удалить событие?',
+      description: `Событие ${event.title} будет удалено из календаря.`,
       onConfirm: async () => {
         try {
           await dispatch(deleteEventThunk(event.id)).unwrap();

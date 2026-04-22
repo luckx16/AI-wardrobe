@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 
 import { ConfirmDialog } from '../ui';
 
@@ -34,13 +34,14 @@ export const ConfirmProvider = ({ children }: { children: React.ReactNode }) => 
     }, 300);
   };
 
-  const openConfirmDialog: ConfirmContextType['openConfirmDialog'] = (info) => {
+  const openConfirmDialog: ConfirmContextType['openConfirmDialog'] = useCallback((info) => {
     setState({ ...info, isOpen: true });
-  };
-  const onConfirmWrapperHandler = async () => {
+  }, []);
+
+  const onConfirmWrapperHandler = useCallback(async () => {
     await state.onConfirm?.();
     onClose();
-  };
+  }, [state]);
 
   return (
     <ConfirmContext.Provider
