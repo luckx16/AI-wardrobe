@@ -18,7 +18,6 @@ import { useAppSelector } from '@/shared/hooks';
 import { getAccessToken } from '@/shared/lib/axiosInstance';
 import { makeUniqueTitle } from '@/shared/lib/makeUniqueTitle';
 import { TrashIcon, useToast } from '@/shared/ui';
-import { ChatHeader } from '@/widgets';
 import { LookCard } from '@/widgets/LookCard';
 
 import styles from './ChatWidget.module.css';
@@ -518,8 +517,6 @@ export function ChatWidget() {
 
   return (
     <div className={styles.container}>
-      <ChatHeader onToggleHistory={() => setIsSidebarOpen((prev) => !prev)} />
-
       <div className={styles.layout}>
         <aside
           className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ''}`}

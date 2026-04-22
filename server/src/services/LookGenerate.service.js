@@ -193,6 +193,55 @@ function buildConsiderationsComment(profile, weather, activeStyleRules) {
   return `Учтено: ${chunks.join(' • ')}`;
 }
 
+function isMostlyLatin(text) {
+  const s = String(text ?? '').trim();
+  if (!s) return false;
+  const latin = (s.match(/[A-Za-z]/g) ?? []).length;
+  const cyr = (s.match(/[А-Яа-яЁё]/g) ?? []).length;
+  return latin > cyr;
+}
+
+function isMostlyCyrillic(text) {
+  const s = String(text ?? '').trim();
+  if (!s) return false;
+  const latin = (s.match(/[A-Za-z]/g) ?? []).length;
+  const cyr = (s.match(/[А-Яа-яЁё]/g) ?? []).length;
+  return cyr > latin;
+}
+
+function detectUserLangFromPrompt(userPrompt) {
+  const s = String(userPrompt ?? '');
+  if (isMostlyCyrillic(s)) return 'ru';
+  if (isMostlyLatin(s)) return 'en';
+  return 'ru';
+}
+
+function buildWhyThisLookComment({ userPrompt, weather, items, allowedById }) {
+  const w = weather && typeof weather === 'object' ? weather : null;
+  const t = nonEmpty(w?.temperature);
+  const d = nonEmpty(w?.description);
+  const weatherPart =
+    t || d ? `учитывает погоду` : null;
+
+  const roles = Array.isArray(items) ? items.map((it) => String(it.role ?? '').trim()).filter(Boolean) : [];
+  const uniqRoles = Array.from(new Set(roles));
+  const hasShoes = uniqRoles.some((r) => /shoe|обув/i.test(r));
+  const hasOuter = uniqRoles.some((r) => /outer|верх/i.test(r));
+  const structurePart = hasShoes || hasOuter ? 'получился собранный комплект по слоям' : 'получился цельный комплект';
+
+  const reasons = (Array.isArray(items) ? items : [])
+    .map((it) => (typeof it?.reason === 'string' ? it.reason.trim() : ''))
+    .filter(Boolean)
+    .slice(0, 3);
+  const reasonPart = reasons.length ? `${reasons.join(' • ')}` : null;
+
+  const lines = [
+    [structurePart, weatherPart].filter(Boolean).join('; ') + '.',
+    reasonPart,
+  ].filter(Boolean);
+  return lines.join('\n');
+}
+
 function variantInstruction(index, total) {
   if (!Number.isFinite(index) || !Number.isFinite(total) || total <= 1) return '';
   const i = index + 1;
@@ -295,7 +344,7 @@ async function generateLookTitle({ user_id, attachedClothIds }) {
  * AI-генерация лука: кэш, Gemini → fallback GPT, Zod, транзакция Look + LookCloth.
  * @returns {{ response: object, fromCache: boolean }}
  */
-async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) {
+async function generateLook({ user_id, userPrompt, attachedClothIds, weather, persist = true }) {
   const isDev = String(process.env.NODE_ENV || '').toLowerCase() !== 'production';
   let stage = 'init';
   let lastAiJson = null;
@@ -369,9 +418,13 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
       JSON.stringify(prefs) +
       JSON.stringify(attachedIds.slice().sort((a, b) => a - b)),
   );
-  const cached = getCache(cacheKey);
-  if (cached) {
-    return { response: cached, fromCache: true };
+  // Preview-генерацию не кэшируем, чтобы гарантировать отсутствие побочных эффектов
+  // (и чтобы случайно не вернуть ранее сохранённый look payload).
+  if (persist) {
+    const cached = getCache(cacheKey);
+    if (cached) {
+      return { response: cached, fromCache: true };
+    }
   }
 
   stage = 'build_prompt';
@@ -466,40 +519,78 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
     });
   }
 
-  stage = 'db_transaction_save';
-  const saved = await db.sequelize.transaction(async (t) => {
-    const look = await db.Look.create(
-      {
-        user_id,
-        title: validated.look_name,
-        metadata: {
-          occasion: validated.occasion,
-          item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
-          ...(comment ? { comment } : {}),
-        },
-      },
-      { transaction: t },
+  // Название лука: в промте просим на языке запроса, но страхуемся, если пришло пусто.
+  // Для русских запросов дополнительно страхуемся от "латиницы".
+  // Уникальность для отображения в чате решается на клиенте (makeUniqueTitle).
+  const userLang = detectUserLangFromPrompt(userPrompt);
+  let finalLookTitle = String(validated.look_name ?? '').trim();
+  if (!finalLookTitle || (userLang === 'ru' && isMostlyLatin(finalLookTitle))) {
+    finalLookTitle = buildFallbackLookTitleFromItems(
+      finalItems.map((i) => allowed.get(Number(i.cloth_id))).filter(Boolean),
     );
+  }
 
-    await db.LookCloth.bulkCreate(
-      finalItems.map((i) => ({ look_id: look.id, cloth_id: i.cloth_id })),
-      { transaction: t, ignoreDuplicates: true },
-    );
-
-    return look;
+  // Комментарий-пояснение (почему этот образ подходит под запрос/погоду).
+  const whyComment = buildWhyThisLookComment({
+    userPrompt,
+    weather,
+    items: finalItems,
+    allowedById: allowed,
   });
+  const combinedWhyComment = [whyComment, comment].filter(Boolean).join('\n');
 
-  stage = 'format_response';
-  const itemRoleById = new Map(finalItems.map((i) => [Number(i.cloth_id), i.role]));
-  const response = {
-    look: {
+  stage = persist ? 'db_transaction_save' : 'format_preview_response';
+
+  let lookPayload;
+  if (persist) {
+    const saved = await db.sequelize.transaction(async (t) => {
+      const look = await db.Look.create(
+        {
+          user_id,
+          title: finalLookTitle,
+          metadata: {
+            occasion: validated.occasion,
+            item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
+            ...(comment ? { comment } : {}),
+            ...(combinedWhyComment ? { why: combinedWhyComment } : {}),
+          },
+        },
+        { transaction: t },
+      );
+
+      await db.LookCloth.bulkCreate(
+        finalItems.map((i) => ({ look_id: look.id, cloth_id: i.cloth_id })),
+        { transaction: t, ignoreDuplicates: true },
+      );
+
+      return look;
+    });
+    lookPayload = {
       id: saved.id,
       user_id: saved.user_id,
       title: saved.title,
       metadata: saved.metadata,
       createdAt: saved.createdAt,
       updatedAt: saved.updatedAt,
-    },
+    };
+  } else {
+    lookPayload = {
+      id: 'preview',
+      user_id,
+      title: finalLookTitle,
+      metadata: {
+        occasion: validated.occasion,
+        item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
+        ...(comment ? { comment } : {}),
+        ...(combinedWhyComment ? { why: combinedWhyComment } : {}),
+      },
+    };
+  }
+
+  stage = 'format_response';
+  const itemRoleById = new Map(finalItems.map((i) => [Number(i.cloth_id), i.role]));
+  const response = {
+    look: lookPayload,
     cloths: finalItems.map((i) => {
       const c = allowed.get(Number(i.cloth_id));
       const plain = c && typeof c.toJSON === 'function' ? c.toJSON() : c;
@@ -509,17 +600,26 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
         reason: i.reason,
       };
     }),
+    comment: combinedWhyComment || null,
   };
 
-  setCache(cacheKey, response);
-  return { response, fromCache: false };
+  if (persist) setCache(cacheKey, response);
+  return { response, fromCache: false, isPreview: !persist };
 }
 
-async function generateLookVariant({ user_id, userPrompt, attachedClothIds, weather, variantIndex, variantsTotal }) {
+async function generateLookVariant({
+  user_id,
+  userPrompt,
+  attachedClothIds,
+  weather,
+  variantIndex,
+  variantsTotal,
+  persist = true,
+}) {
   // Ровно тот же пайплайн, но добавляем instruction в userPrompt.
   const extra = variantInstruction(variantIndex, variantsTotal);
   const enrichedPrompt = [String(userPrompt ?? '').trim(), extra].filter(Boolean).join('\n');
-  return generateLook({ user_id, userPrompt: enrichedPrompt, attachedClothIds, weather });
+  return generateLook({ user_id, userPrompt: enrichedPrompt, attachedClothIds, weather, persist });
 }
 
 module.exports = {

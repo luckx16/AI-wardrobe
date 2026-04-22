@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Создаем директорию для загрузок, если не существует
-const uploadDir = path.join(__dirname, '../uploads/profiles');
+const uploadDir = path.join(__dirname, '../public/uploads/profile');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

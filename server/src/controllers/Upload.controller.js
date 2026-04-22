@@ -36,19 +36,24 @@ class UploadController {
 
       const meta = await ImageProcessingService.extractImageMetadata(uploadedFile.path);
 
-      // Удаляем оригинал после извлечения метаданных (храним только биометрию/атрибуты).
-      fileService.deleteFile(uploadedFile.filename);
+      // Если ранее фото было загружено — удаляем старый файл, чтобы не копить мусор.
+      if (profile.portrait_photo) {
+        const oldFilename = path.basename(profile.portrait_photo);
+        fileService.deleteFile(oldFilename);
+      }
 
       await profile.update({
-        portrait_photo: null,
+        portrait_photo: uploadedFile.url,
         prefs: mergePrefs(profile, {
           portrait_image_metadata: meta,
           portrait_image_uploaded_at: new Date().toISOString(),
         }),
       });
 
-      return res.json(
-        formatResponse(200, 'Portrait uploaded', {
+      return res.status(201).json(
+        formatResponse(201, 'Portrait uploaded', {
+          url: uploadedFile.url,
+          filename: uploadedFile.filename,
           metadata: meta,
           field: 'portrait_photo',
         }),
@@ -82,19 +87,24 @@ class UploadController {
 
       const meta = await ImageProcessingService.extractImageMetadata(uploadedFile.path);
 
-      // Удаляем оригинал после извлечения метаданных (храним только биометрию/атрибуты).
-      fileService.deleteFile(uploadedFile.filename);
+      // Если ранее фото было загружено — удаляем старый файл, чтобы не копить мусор.
+      if (profile.body_photo) {
+        const oldFilename = path.basename(profile.body_photo);
+        fileService.deleteFile(oldFilename);
+      }
 
       await profile.update({
-        body_photo: null,
+        body_photo: uploadedFile.url,
         prefs: mergePrefs(profile, {
           body_image_metadata: meta,
           body_image_uploaded_at: new Date().toISOString(),
         }),
       });
 
-      return res.json(
-        formatResponse(200, 'Body photo uploaded', {
+      return res.status(201).json(
+        formatResponse(201, 'Body photo uploaded', {
+          url: uploadedFile.url,
+          filename: uploadedFile.filename,
           metadata: meta,
           field: 'body_photo',
         }),

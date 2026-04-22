@@ -9,6 +9,12 @@ router.post(
   createRateLimit({ windowMs: 60_000, max: 6 }),
   lookController.generateLook.bind(lookController),
 );
+router.post(
+  '/generate-preview',
+  verifyAccessToken,
+  createRateLimit({ windowMs: 60_000, max: 6 }),
+  lookController.generateLookPreview.bind(lookController),
+);
 router.post('/generate-title', verifyAccessToken, lookController.generateLookTitle.bind(lookController));
 
 router
