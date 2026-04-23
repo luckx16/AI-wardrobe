@@ -8,6 +8,26 @@ const { getStyleRagStore } = require('./rag/styleRagStore');
 const app = express();
 const BASE_PORT = Number(process.env.PORT ?? 4000);
 
+function ensureNoProxyForGigachat() {
+  const hasProxy = Boolean(process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy);
+  if (!hasProxy) return;
+
+  const hosts = ['ngw.devices.sberbank.ru', 'gigachat.devices.sberbank.ru'];
+  const cur = String(process.env.NO_PROXY || process.env.no_proxy || '');
+  const parts = cur
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const set = new Set(parts);
+  for (const h of hosts) set.add(h);
+
+  const next = Array.from(set).join(',');
+  process.env.NO_PROXY = next;
+  process.env.no_proxy = next;
+}
+
+ensureNoProxyForGigachat();
+
 // Запуск конфигурации сервера
 serverConfig(app);
 
