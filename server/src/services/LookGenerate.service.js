@@ -12,6 +12,14 @@ const db = require('../db/models');
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const cache = new Map();
 
+function shuffleInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function md5(s) {
   return crypto.createHash('md5').update(String(s)).digest('hex');
 }
@@ -370,6 +378,16 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
     cloths = [...orderedExtra, ...cloths];
   }
 
+  // Сильно повышаем разнообразие для "preview" (чат/варианты): перетасовываем вход.
+  // Иначе при стабильном порядке гардероба модель часто "залипает" на одном и том же наборе.
+  if (!persist && cloths.length > 1) {
+    const anchored = new Set(attachedIds.map(Number).filter(Number.isFinite));
+    const anchoredItems = cloths.filter((c) => anchored.has(Number(c.id)));
+    const rest = cloths.filter((c) => !anchored.has(Number(c.id)));
+    shuffleInPlace(rest);
+    cloths = [...anchoredItems, ...rest];
+  }
+
   if (!cloths?.length) {
     throw httpError(400, {
       error: 'Wardrobe is empty (no completed items)',
@@ -412,6 +430,7 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
     focusClothIds: attachedIds,
     weather,
     activeStyleRules,
+    nonce: crypto.randomBytes(8).toString('hex'),
   });
 
   stage = 'ai_gemini';
@@ -421,12 +440,14 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
       prompt,
       responseSchema: geminiGeneratedLookJsonSchema,
       timeoutMs: 15000,
+      generationConfig: { temperature: 1.25, topP: 0.92 },
     });
   } catch {
     stage = 'ai_openai_fallback';
     aiJson = await openaiClient.generateJson({
       prompt,
       timeoutMs: 15000,
+      temperature: 1.35,
     });
   }
   lastAiJson = aiJson;
