@@ -96,8 +96,8 @@ export function MessageBubble({ role, content, isLoading, cloths }: MessageBubbl
             >
               <span className={styles.attachmentStripTitle}>{t('chat.fromWardrobe')}</span>
               <ul className={styles.attachmentList}>
-                {cloths!.map((c) => (
-                  <li key={c.id} className={styles.attachmentCard}>
+                {Array.from(new Map(cloths!.map((c) => [String(c.id), c])).values()).map((c) => (
+                  <li key={String(c.id)} className={styles.attachmentCard}>
                     {c.image ? (
                       <Image
                         src={getImgSrc(c.image) ?? ''}

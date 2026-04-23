@@ -1,5 +1,6 @@
 const { openaiClient } = require('../config/aiConfig');
 const { wardrobeAnalyzeSchema } = require('../schemas/wardrobeAnalyzeSchema');
+const crypto = require('node:crypto');
 
 function normalizeReferencedIds(raw, allowedSet) {
   if (!Array.isArray(raw)) return [];
@@ -21,12 +22,17 @@ async function analyzeWardrobeForChat({
   weather,
   activeStyleRulesBlock,
 }) {
+  const nonce = crypto.randomBytes(6).toString('hex');
   const prompt = [
     'You are a strict fashion assistant that returns ONLY valid JSON.',
     'Task: given wardrobe items and the user message, pick which wardrobe items to reference in the answer.',
     'Return JSON with keys: referenced_cloth_ids (array of integers), notes_for_writer (string or null).',
     'Do not include any extra keys.',
     'IMPORTANT: pick AT MOST 3 item ids.',
+    `Randomization token (use it only to break ties and increase variety across replies): ${nonce}`,
+    'DIVERSITY RULE: if multiple equally good options exist (especially shoes), prefer a different choice than the most obvious/default one.',
+    'LOOK RULE: if the user asks to build an outfit/look, and the wardrobe contains them, pick exactly 3 items: one TOP, one BOTTOM and one SHOES.',
+    'If some of these sections are missing in the wardrobe, pick the best possible alternative, but still keep max 3 ids.',
     '',
     activeStyleRulesBlock ? String(activeStyleRulesBlock).trim() : '',
     weather ? `## Weather\n${JSON.stringify(weather)}` : '',
