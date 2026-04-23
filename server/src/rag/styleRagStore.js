@@ -19,7 +19,7 @@ async function buildStoreFromFile(filePath) {
   const { MemoryVectorStore } = await import('@langchain/classic/vectorstores/memory');
 
   const docs = await loadStylingRulesAsDocuments(filePath);
-  const embeddings = new GigaChatEmbeddings({ model: 'GigaChat', dimension: 1024 });
+  const embeddings = new GigaChatEmbeddings({ model: 'Embeddings', dimension: 1024 });
   const store = await MemoryVectorStore.fromDocuments(docs, embeddings);
   return { store, docsCount: docs.length };
 }

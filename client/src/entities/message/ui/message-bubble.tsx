@@ -17,10 +17,42 @@ export interface MessageBubbleProps {
   cloths?: MessageClothChip[]
 }
 
+function normalizeBulletLinesClient(text: string) {
+  if (!text) return text;
+  if (text.includes('•')) {
+    const parts = text
+      .split('•')
+      .map((p) => p.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    if (parts.length >= 2) {
+      return parts.map((p) => `• ${p}`).join('\n');
+    }
+  }
+  return text.replace(/[ \t]*•[ \t]*/g, '\n• ').replace(/^\n+/, '');
+}
+
 export function MessageBubble({ role, content, isLoading, cloths }: MessageBubbleProps) {
   const { t } = useTranslation();
   const isAssistant = role === "assistant"
   const hasCloths = Boolean(cloths?.length)
+
+  const renderedContent = (() => {
+    if (typeof content !== 'string') return content;
+    const normalized = isAssistant ? normalizeBulletLinesClient(content) : content;
+    const lines = normalized.split('\n');
+    if (lines.length <= 1) return normalized;
+    return (
+      <>
+        {lines.map((line, idx) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <span key={idx}>
+            {line}
+            {idx < lines.length - 1 ? <br /> : null}
+          </span>
+        ))}
+      </>
+    );
+  })();
 
   return (
     <div className={`${styles.container} ${isAssistant ? styles.containerAssistant : styles.containerUser}`}>
@@ -52,7 +84,7 @@ export function MessageBubble({ role, content, isLoading, cloths }: MessageBubbl
                 <span className={styles.loadingDot} />
               </div>
             ) : (
-              <div>{content}</div>
+              <div>{renderedContent}</div>
             )}
           </div>
           {hasCloths && !isLoading ? (

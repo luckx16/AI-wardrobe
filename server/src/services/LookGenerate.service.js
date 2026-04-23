@@ -12,6 +12,14 @@ const db = require('../db/models');
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const cache = new Map();
 
+function shuffleInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function md5(s) {
   return crypto.createHash('md5').update(String(s)).digest('hex');
 }
@@ -175,23 +183,6 @@ function buildStyleRulesQuery(profile, userPrompt, weather) {
   return parts.join('\n');
 }
 
-function buildConsiderationsComment(profile, weather, activeStyleRules) {
-  const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
-  const chunks = [];
-  if (nonEmpty(p.skin_tone)) chunks.push(`подтон кожи: ${nonEmpty(p.skin_tone)}`);
-  if (nonEmpty(p.proportion)) chunks.push(`пропорции: ${nonEmpty(p.proportion)}`);
-  if (nonEmpty(p.contrast)) chunks.push(`контраст: ${nonEmpty(p.contrast)}`);
-  if (nonEmpty(p.height)) chunks.push(`рост: ${nonEmpty(p.height)}`);
-  if (weather && typeof weather === 'object') {
-    const t = nonEmpty(weather.temperature);
-    const d = nonEmpty(weather.description);
-    if (t || d) chunks.push(`погода: ${[t ? `${t}°C` : null, d].filter(Boolean).join(', ')}`);
-  }
-  const rulesCount = Array.isArray(activeStyleRules) ? activeStyleRules.length : 0;
-  if (rulesCount) chunks.push(`учтено правил: ${rulesCount}`);
-  if (!chunks.length) return null;
-  return `Учтено: ${chunks.join(' • ')}`;
-}
 
 function isMostlyLatin(text) {
   const s = String(text ?? '').trim();
@@ -217,29 +208,13 @@ function detectUserLangFromPrompt(userPrompt) {
 }
 
 function buildWhyThisLookComment({ userPrompt, weather, items, allowedById }) {
-  const w = weather && typeof weather === 'object' ? weather : null;
-  const t = nonEmpty(w?.temperature);
-  const d = nonEmpty(w?.description);
-  const weatherPart =
-    t || d ? `учитывает погоду` : null;
-
-  const roles = Array.isArray(items) ? items.map((it) => String(it.role ?? '').trim()).filter(Boolean) : [];
-  const uniqRoles = Array.from(new Set(roles));
-  const hasShoes = uniqRoles.some((r) => /shoe|обув/i.test(r));
-  const hasOuter = uniqRoles.some((r) => /outer|верх/i.test(r));
-  const structurePart = hasShoes || hasOuter ? 'получился собранный комплект по слоям' : 'получился цельный комплект';
-
   const reasons = (Array.isArray(items) ? items : [])
     .map((it) => (typeof it?.reason === 'string' ? it.reason.trim() : ''))
     .filter(Boolean)
     .slice(0, 3);
   const reasonPart = reasons.length ? `${reasons.join(' • ')}` : null;
 
-  const lines = [
-    [structurePart, weatherPart].filter(Boolean).join('; ') + '.',
-    reasonPart,
-  ].filter(Boolean);
-  return lines.join('\n');
+  return reasonPart;
 }
 
 function variantInstruction(index, total) {
@@ -403,6 +378,16 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
     cloths = [...orderedExtra, ...cloths];
   }
 
+  // Сильно повышаем разнообразие для "preview" (чат/варианты): перетасовываем вход.
+  // Иначе при стабильном порядке гардероба модель часто "залипает" на одном и том же наборе.
+  if (!persist && cloths.length > 1) {
+    const anchored = new Set(attachedIds.map(Number).filter(Number.isFinite));
+    const anchoredItems = cloths.filter((c) => anchored.has(Number(c.id)));
+    const rest = cloths.filter((c) => !anchored.has(Number(c.id)));
+    shuffleInPlace(rest);
+    cloths = [...anchoredItems, ...rest];
+  }
+
   if (!cloths?.length) {
     throw httpError(400, {
       error: 'Wardrobe is empty (no completed items)',
@@ -441,11 +426,11 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
       console.warn('[style-rag] failed:', e?.message || e);
     }
   }
-  const comment = buildConsiderationsComment(profile, weather, activeStyleRules);
   const prompt = buildStylistPrompt(profile, cloths.map(pickClothFields), userPrompt, {
     focusClothIds: attachedIds,
     weather,
     activeStyleRules,
+    nonce: crypto.randomBytes(8).toString('hex'),
   });
 
   stage = 'ai_gemini';
@@ -455,12 +440,14 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
       prompt,
       responseSchema: geminiGeneratedLookJsonSchema,
       timeoutMs: 15000,
+      generationConfig: { temperature: 1.25, topP: 0.92 },
     });
   } catch {
     stage = 'ai_openai_fallback';
     aiJson = await openaiClient.generateJson({
       prompt,
       timeoutMs: 15000,
+      temperature: 1.35,
     });
   }
   lastAiJson = aiJson;
@@ -537,7 +524,7 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
     items: finalItems,
     allowedById: allowed,
   });
-  const combinedWhyComment = [whyComment, comment].filter(Boolean).join('\n');
+  const combinedWhyComment = [whyComment].filter(Boolean).join('\n');
 
   stage = persist ? 'db_transaction_save' : 'format_preview_response';
 
@@ -551,7 +538,6 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
           metadata: {
             occasion: validated.occasion,
             item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
-            ...(comment ? { comment } : {}),
             ...(combinedWhyComment ? { why: combinedWhyComment } : {}),
           },
         },
@@ -581,7 +567,6 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
       metadata: {
         occasion: validated.occasion,
         item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
-        ...(comment ? { comment } : {}),
         ...(combinedWhyComment ? { why: combinedWhyComment } : {}),
       },
     };

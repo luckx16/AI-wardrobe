@@ -123,10 +123,40 @@ function normalizeReferencedIds(raw, allowedSet) {
   return out.slice(0, 3);
 }
 
+function stripReplyTextEnvelope(s) {
+  const input = String(s ?? '').trim();
+  const prefix = '{"replyText":"';
+  const suffix = '","imagePrompt":null}';
+  if (input.startsWith(prefix) && input.endsWith(suffix) && input.length >= prefix.length + suffix.length) {
+    return input.slice(prefix.length, input.length - suffix.length);
+  }
+  return input;
+}
+
+function normalizeBulletLines(text) {
+  const s = String(text ?? '');
+  if (!s) return s;
+  // Если модель склеила пункты через "•" в одну строку — делаем список,
+  // где КАЖДЫЙ пункт начинается с "•" и идёт с новой строки.
+  // Пример: "A. • B. • C." -> "• A.\n• B.\n• C."
+  if (s.includes('•')) {
+    const parts = s
+      .split('•')
+      .map((p) => p.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    if (parts.length >= 2) {
+      return parts.map((p) => `• ${p}`).join('\n');
+    }
+  }
+
+  // Фолбэк: просто переносим каждый "•" на новую строку.
+  return s.replace(/[ \t]*•[ \t]*/g, '\n• ').replace(/^\n+/, '');
+}
+
 function extractJsonPayload(answer, wardrobeOptions) {
   const allowedSet = wardrobeOptions?.allowedClothIdSet ?? null;
   const fallback = {
-    replyText: answer?.trim?.() ?? '...',
+    replyText: normalizeBulletLines(stripReplyTextEnvelope(answer?.trim?.() ?? '...')),
     imagePrompt: null,
     referencedClothIds: [],
   };
@@ -160,7 +190,7 @@ function extractJsonPayload(answer, wardrobeOptions) {
 
     const data = validated.data;
     const base = {
-      replyText: data.replyText,
+      replyText: normalizeBulletLines(data.replyText),
       imagePrompt: data.imagePrompt ?? null,
       referencedClothIds: [],
     };

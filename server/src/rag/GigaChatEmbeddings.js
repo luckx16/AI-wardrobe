@@ -1,5 +1,5 @@
 const crypto = require('node:crypto');
-const https = require('node:https');
+const fs = require('node:fs');
 
 function normalizeEnv(value) {
   if (typeof value !== 'string') return undefined;
@@ -10,15 +10,48 @@ function normalizeEnv(value) {
   return hasSingleQuotes || hasDoubleQuotes ? trimmed.slice(1, -1).trim() : trimmed;
 }
 
-function ensureInsecureTlsIfConfigured() {
+function buildTlsDispatcher() {
+  let ca = null;
+  const caPath = normalizeEnv(process.env.GIGACHAT_CA_CERT_PATH) || normalizeEnv(process.env.NODE_EXTRA_CA_CERTS);
+  if (caPath) {
+    try {
+      ca = fs.readFileSync(caPath);
+    } catch (e) {
+      throw new Error(`GigaChat TLS: failed to read CA bundle at ${caPath}: ${e?.message || e}`);
+    }
+  }
+
   const isProd = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
   const insecureRaw = normalizeEnv(process.env.GIGACHAT_INSECURE);
   const insecure = typeof insecureRaw === 'string' ? insecureRaw.toLowerCase() === 'true' : !isProd;
   if (insecure) {
+    // Самый надёжный fallback для dev: отключаем TLS-валидацию глобально.
+    // Иначе OAuth может падать с SELF_SIGNED_CERT_IN_CHAIN в окружениях с подменой сертификатов.
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    return new https.Agent({ rejectUnauthorized: false });
   }
-  return null;
+
+  // Для production (и вообще для нормального TLS) можем пробросить корпоративный CA bundle.
+  // Это решает SELF_SIGNED_CERT_IN_CHAIN без отключения проверки сертификатов.
+  if (!ca && !insecure) return null;
+
+  try {
+    // eslint-disable-next-line global-require
+    const undici = require('undici');
+    if (!undici || typeof undici.Agent !== 'function') return null;
+    const agent = new undici.Agent({
+      connect: {
+        ...(insecure ? { rejectUnauthorized: false } : { rejectUnauthorized: true }),
+        ...(ca ? { ca } : {}),
+      },
+    });
+    if (!globalThis.__gigachatDispatcherConfigured && typeof undici.setGlobalDispatcher === 'function') {
+      undici.setGlobalDispatcher(agent);
+      globalThis.__gigachatDispatcherConfigured = true;
+    }
+    return agent;
+  } catch {
+    return null;
+  }
 }
 
 function resolveGigachatApiBaseUrl() {
@@ -49,17 +82,27 @@ async function getAccessTokenCached({ credentials, scope, httpsAgent }) {
   const rqUid = crypto.randomUUID();
   const body = new URLSearchParams({ scope: scope || resolveScope() }).toString();
 
-  const res = await fetch(resolveOauthUrl(), {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${credentials}`,
-      RqUID: rqUid,
-    },
-    body,
-    agent: httpsAgent || undefined,
-  });
+  const oauthUrl = resolveOauthUrl();
+  let res;
+  try {
+    res = await fetch(oauthUrl, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${credentials}`,
+        RqUID: rqUid,
+      },
+      body,
+      ...(httpsAgent ? { dispatcher: httpsAgent } : {}),
+    });
+  } catch (err) {
+    const cause = err && typeof err === 'object' ? err.cause : null;
+    const causeCode = cause && typeof cause === 'object' ? cause.code : undefined;
+    throw new Error(
+      `GigaChat OAuth fetch failed (url=${oauthUrl}, scope=${scope || resolveScope()}, insecure=${normalizeEnv(process.env.GIGACHAT_INSECURE) ?? ''}, cause=${causeCode || ''}): ${err?.message || err}`,
+    );
+  }
 
   const text = await res.text();
   if (!res.ok) {
@@ -80,13 +123,13 @@ async function getAccessTokenCached({ credentials, scope, httpsAgent }) {
 
 class GigaChatEmbeddings {
   constructor(options = {}) {
-    this.model = options.model || 'GigaChat';
+    this.model = options.model ?? 'Embeddings';
     this.dimensions = Number.isFinite(options.dimension) ? options.dimension : 1024;
     this.credentials = normalizeEnv(options.credentials) || normalizeEnv(process.env.GIGACHAT_CREDENTIALS) || '';
     this.scope = normalizeEnv(options.scope) || normalizeEnv(process.env.GIGACHAT_SCOPE) || resolveScope();
     this.baseUrl = normalizeEnv(options.baseUrl) || resolveGigachatApiBaseUrl();
     this.timeoutMs = Number.isFinite(options.timeoutMs) ? options.timeoutMs : 20_000;
-    this.httpsAgent = ensureInsecureTlsIfConfigured();
+    this.httpsAgent = buildTlsDispatcher();
   }
 
   async embedQuery(text) {
@@ -110,17 +153,29 @@ class GigaChatEmbeddings {
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(new Error('GigaChat embeddings timeout')), this.timeoutMs);
     try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ model: this.model, input: inputs }),
-        signal: controller.signal,
-        agent: this.httpsAgent || undefined,
-      });
+      let res;
+      try {
+        res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...(this.model ? { model: this.model } : {}),
+            input: inputs,
+          }),
+          signal: controller.signal,
+          ...(this.httpsAgent ? { dispatcher: this.httpsAgent } : {}),
+        });
+      } catch (err) {
+        const cause = err && typeof err === 'object' ? err.cause : null;
+        const causeCode = cause && typeof cause === 'object' ? cause.code : undefined;
+        throw new Error(
+          `GigaChat embeddings fetch failed (url=${url}, baseUrl=${this.baseUrl}, model=${this.model || ''}, insecure=${normalizeEnv(process.env.GIGACHAT_INSECURE) ?? ''}, cause=${causeCode || ''}): ${err?.message || err}`,
+        );
+      }
 
       const text = await res.text();
       if (!res.ok) {
