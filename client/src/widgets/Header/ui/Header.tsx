@@ -26,6 +26,7 @@ import {
   setAndStoreUserCity,
   userLocationStorage,
 } from '@/shared/lib/userLocation';
+import { ThemeToggle } from '@/shared/ui';
 
 import styles from './Header.module.css';
 
@@ -98,7 +99,7 @@ export function Header() {
     const ref = authTab === 'sign-in' ? signInRef : signUpRef;
     if (!ref.current) return;
     setSliderStyle({ left: ref.current.offsetLeft, width: ref.current.offsetWidth });
-  }, [authTab]);
+  }, [authTab, i18n.language]);
 
   const isAuthenticated = !!user;
 
@@ -264,6 +265,8 @@ export function Header() {
               </option>
             ))}
           </select>
+
+          <ThemeToggle />
 
           {isAuthenticated ? (
             <>

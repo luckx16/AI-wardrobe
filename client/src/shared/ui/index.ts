@@ -20,4 +20,5 @@ export { SegmentedControl } from '@/shared/ui/SegmentedControl/SegmentedControl'
 export type { SidebarNavItem } from '@/shared/ui/SidebarNav/SidebarNav';
 export { SidebarNav } from '@/shared/ui/SidebarNav/SidebarNav';
 export { PageLoader, Spinner } from '@/shared/ui/Spinner/Spinner';
+export { ThemeToggle } from '@/shared/ui/ThemeToggle/ThemeToggle';
 export { useToast } from '@/shared/ui/Toast/Toast';

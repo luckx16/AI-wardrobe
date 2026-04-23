@@ -9,10 +9,11 @@ import { useTranslation } from 'react-i18next';
 import type { MessageClothChip } from '@/entities/message';
 import type { ClientWeather } from '@/features/chat/api/chatApi';
 import { getClothes } from '@/features/cloth/api/clothApi';
+import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import { getImgSrc } from '@/shared/lib/getImgSrc';
 import type { ServerResponseType } from '@/shared/types';
-import { ArrowUpIcon, PaperclipIcon } from '@/shared/ui';
+import { ArrowUpIcon, PaperclipIcon, useToast } from '@/shared/ui';
 
 import styles from './ChatInput.module.css';
 
@@ -38,6 +39,7 @@ export function ChatInput({
   placeholder,
 }: ChatInputProps) {
   const { t } = useTranslation();
+  const { addQueryParams, searchParams } = useCustomRouter();
   const [input, setInput] = useState('');
   const [clothOptions, setClothOptions] = useState<
     {
@@ -202,10 +204,20 @@ export function ChatInput({
     setPickerDraftIds([]);
     setAttachOpen(false);
   };
+  const { toast } = useToast();
+  type Mode = 'chat' | 'gen';
+  const mode: Mode = (searchParams.get('mode') as Mode | null) ?? 'chat';
+  const setMode = (newMode: Mode) => {
+    addQueryParams({ mode: newMode });
+    toast({
+      variant: 'success',
+      title: `Выбран режим ${newMode === 'chat' ? 'чата' : 'генерации лука'}`,
+    });
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    submit(false);
+    submit(mode === 'chat');
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -214,27 +226,9 @@ export function ChatInput({
       handleSubmit(e);
     }
   };
-  const mode: 'chat' | 'gen' = 'chat';
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.inputWrapper}>
-        {/* Внутренний селектор (Toggle) */}
-        <div className={styles.toggleContainer}>
-          <button
-            className={`${styles.toggleBtn} ${mode === 'chat' ? styles.activeChat : ''}`}
-            // onClick={() => setMode('chat')}
-            title="Чат"
-          >
-            <MessageSquare size={18} />
-          </button>
-          <button
-            className={`${styles.toggleBtn} ${mode === 'gen' ? styles.activeGen : ''}`}
-            // onClick={() => setMode('gen')}
-            title="Генерация одежды"
-          >
-            <Sparkles size={18} />
-          </button>
-        </div>
         <div className={styles.attachButtons}>
           <div className={styles.attachWrap} ref={attachRootRef}>
             <button
@@ -298,13 +292,33 @@ export function ChatInput({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder ?? t('chat.inputPlaceholder')}
+          placeholder={
+            placeholder ??
+            (mode === 'chat' ? t('chat.inputPlaceholder') : t('chat.inputPlaceholderGen'))
+          }
           rows={1}
           className={styles.textarea}
           disabled={isLoading}
         />
 
         <div className={styles.submitWrapper}>
+          {/* Внутренний селектор (Toggle) */}
+          <div className={styles.toggleContainer}>
+            <button
+              className={`${styles.toggleBtn} ${mode === 'chat' ? styles.activeChat : ''}`}
+              onClick={() => setMode('chat')}
+              title="Чат"
+            >
+              <MessageSquare size={18} />
+            </button>
+            <button
+              className={`${styles.toggleBtn} ${mode === 'gen' ? styles.activeGen : ''}`}
+              onClick={() => setMode('gen')}
+              title="Генерация одежды"
+            >
+              <Sparkles size={18} />
+            </button>
+          </div>
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
@@ -321,7 +335,7 @@ export function ChatInput({
       {wardrobeEnabled ? (
         <div className={styles.wardrobeBlock}>
           <div className={styles.wardrobeRow}>
-            <button
+            {/* <button
               type="button"
               className={styles.createLookButton}
               onClick={() => submit(true)}
@@ -329,7 +343,7 @@ export function ChatInput({
               title="Собрать образ и (при наличии) использовать ваш гардероб"
             >
               Создать лук
-            </button>
+            </button> */}
 
             <button
               type="button"

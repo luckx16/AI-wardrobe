@@ -24,10 +24,12 @@
 /* Стили для селектора внутри поля */
 .toggleContainer {
   display: flex;
-  background: #e2e2e7;
+  /* background-color: var(--surface-elevated); */
+  /* background-color: var(--background); */
   border-radius: 18px;
   padding: 2px;
   margin-right: 12px;
+  border: 1px solid var(--glass-border);
 }
 
 .toggleBtn {
@@ -44,14 +46,21 @@
 }
 
 .activeChat {
-  background: #fff;
-  color: #007aff;
+  background-color: var(--surface-elevated);
+  /* color: var(--accent); */
+  color: var(--accent);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* border: 0.1px solid var(--accent); */
+  /* border: 1px solid var(--glass-border); */
+  outline: 1px solid var(--accent);
+  translate: 1px 0;
 }
 
 .activeGen {
   background: linear-gradient(135deg, #8a2be2, #ff007f);
-  color: #fff;
+  color: var(--background);
+  translate: -1px 0;
+
   box-shadow: 0 2px 4px rgba(138, 43, 226, 0.3);
 }
 
@@ -95,7 +104,7 @@
   flex: 1;
   min-height: 3.25rem;
   max-height: 8rem;
-  padding: 1rem 3.5rem 1rem 0;
+  padding: 1rem 8.5rem 1rem 0;
   border: none;
   background: transparent;
   font-size: 0.9375rem;
@@ -122,6 +131,7 @@
   position: absolute;
   right: 0.5rem;
   bottom: 0.5rem;
+  display: flex;
 }
 
 .submitButton {
@@ -130,7 +140,8 @@
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
-  border: none;
+  border: 1px solid var(--ring);
+
   border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -142,7 +153,8 @@
 }
 
 .submitButtonActive {
-  background: linear-gradient(135deg, var(--foreground) 0%, #1a1a1a 100%);
+  border: none;
+  background: linear-gradient(135deg, var(--accent) 0%, #1a1a1a 100%);
   color: var(--background);
   transform: scale(1);
 }
