@@ -9,6 +9,63 @@ const HISTORY_LIMIT = 20;
 // userId -> [{ role, content }]
 const histories = new Map();
 
+function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function stripUserNameFromReply(replyText, userName) {
+  const name = String(userName ?? '').trim();
+  const text = String(replyText ?? '');
+  if (!name || !text) return text;
+
+  // Удаляем упоминания имени пользователя (часто модель повторяет "Имя: ...")
+  // Стараемся не ломать обычные слова: используем границы и типичные разделители.
+  const re = new RegExp(
+    `(^|\\n)\\s*(?:${escapeRegExp(name)}\\s*[:,-]\\s*|@${escapeRegExp(name)}\\b\\s*|${escapeRegExp(name)}\\b\\s*,\\s*)`,
+    'gmi',
+  );
+  return text.replace(re, '$1').replace(/[ \t]+\n/g, '\n').trim();
+}
+
+function extractBrandsFromWardrobeSnippet(snippet) {
+  const text = String(snippet ?? '').trim();
+  if (!text) return new Set();
+  const brands = new Set();
+  const lines = text.split('\n');
+  for (const line of lines) {
+    // compactItem формат: "...;brand=Clarks;..."
+    const m = String(line).match(/(?:^|;)\s*brand=([^;]+)\s*(?:;|$)/i);
+    if (!m) continue;
+    const brand = String(m[1] ?? '').trim();
+    if (brand) brands.add(brand);
+  }
+  return brands;
+}
+
+function stripBrandsFromReply(replyText, brands) {
+  const text = String(replyText ?? '');
+  if (!text) return text;
+  const set = brands instanceof Set ? brands : new Set(Array.isArray(brands) ? brands : []);
+  if (!set.size) return text;
+
+  let out = text;
+  for (const b of set) {
+    const brand = String(b ?? '').trim();
+    if (!brand) continue;
+    // Удаляем вхождения бренда как отдельного слова/фразы (без учёта регистра).
+    // Пример: "ботинки Clarks" -> "ботинки", "Clarks," -> ""
+    const re = new RegExp(`\\b${escapeRegExp(brand)}\\b`, 'gi');
+    out = out.replace(re, '').replace(/[ \t]{2,}/g, ' ');
+  }
+
+  // Подчищаем хвостовые пробелы и пробелы перед пунктуацией.
+  return out
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/[ \t]+([,.;:!?])/g, '$1')
+    .replace(/\(\s*\)/g, '')
+    .trim();
+}
+
 function detectReplyLanguage(text) {
   const s = String(text ?? '');
   const han = (s.match(/[\u3400-\u4DBF\u4E00-\u9FFF]/g) ?? []).length; // Chinese Han ideographs
@@ -233,6 +290,7 @@ function buildWardrobeSystemExtension(wardrobeOptions) {
       : (wardrobeOptions?.profile ?? {});
   const lines = [
     `Ты AI Wardrobe, дружелюбный персональный стилист. Отвечай на ${lang.label} языке (языке запроса пользователя).`,
+    'ВАЖНО: никогда не обращайся к пользователю по имени и не повторяй его имя/ник в replyText.',
     ...(profile && typeof profile === 'object'
       ? [
           '',
@@ -268,8 +326,8 @@ function buildWardrobeSystemExtension(wardrobeOptions) {
     'ВАЖНО: в одном ответе можно упомянуть максимум 3 конкретные вещи из гардероба.',
     'Если прикреплены вещи к сообщению — учитывай их в первую очередь.',
     'Не выдумывай id: используй только id из каталога или из списка разрешённых id.',
-    'КРИТИЧЕСКОЕ ОГРАНИЧЕНИЕ: если ты предлагаешь КОНКРЕТНУЮ вещь (бренд/модель/точное название), она должна быть из блока "Выбранные вещи для ответа".',
-    'Если подходящих вещей нет — не называй конкретные вещи, а дай общую рекомендацию по категориям/цветам/материалам.',
+    'КРИТИЧЕСКОЕ ОГРАНИЧЕНИЕ: любые КОНКРЕТНЫЕ вещи (из гардероба) можно упоминать ТОЛЬКО из блока "Выбранные вещи для ответа".',
+    'Если в блоке "Выбранные вещи для ответа" пусто — ЗАПРЕЩЕНО упоминать конкретные вещи из гардероба; можно давать только общие рекомендации по категориям/цветам/материалам.',
     '',
     '## Каталог гардероба',
     wardrobeOptions.wardrobeSnippet || '(пусто)',
@@ -280,14 +338,17 @@ function buildWardrobeSystemExtension(wardrobeOptions) {
   if (typeof wardrobeOptions.analyzerNotesBlock === 'string' && wardrobeOptions.analyzerNotesBlock.trim()) {
     lines.push('', wardrobeOptions.analyzerNotesBlock.trim());
   }
-  if (typeof wardrobeOptions.selectedItemsBlock === 'string' && wardrobeOptions.selectedItemsBlock.trim()) {
-    lines.push('', wardrobeOptions.selectedItemsBlock.trim());
-    lines.push(
-      '',
-      'ПРАВИЛО СООТВЕТСТВИЯ: в replyText ты ОБЯЗАН(А) упомянуть каждую вещь из блока "Выбранные вещи для ответа" (по названию/описанию БЕЗ бренда) и НЕ ИМЕЕШЬ ПРАВА упоминать какие-либо другие конкретные вещи.',
-      'Если хочется предложить что-то ещё — формулируй это общими словами (категория/цвет/материал) без конкретных названий.',
-    );
-  }
+  // Всегда показываем "выбранные вещи" (даже если пусто), чтобы модель не уносило в произвольные упоминания.
+  const selectedBlock =
+    typeof wardrobeOptions.selectedItemsBlock === 'string' && wardrobeOptions.selectedItemsBlock.trim()
+      ? wardrobeOptions.selectedItemsBlock.trim()
+      : '## Выбранные вещи для ответа (ТОЛЬКО их можно упоминать как конкретные вещи)\n(нет)';
+  lines.push('', selectedBlock);
+  lines.push(
+    '',
+    'ПРАВИЛО СООТВЕТСТВИЯ: в replyText ты ОБЯЗАН(А) упомянуть каждую вещь из блока "Выбранные вещи для ответа" (по названию/описанию БЕЗ бренда) и НЕ ИМЕЕШЬ ПРАВА упоминать какие-либо другие конкретные вещи.',
+    'Если блок пуст — не упоминай конкретные вещи; формулируй рекомендации только общими словами (категория/цвет/материал).',
+  );
   if (wardrobeOptions.attachedSnippet?.trim()) {
     lines.push('', '## Прикреплено к этому сообщению', wardrobeOptions.attachedSnippet.trim());
   }
@@ -370,6 +431,11 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
             selectedLines.trim(),
           ].join('\n');
         }
+      } else {
+        // Жёстко запрещаем упоминания конкретных вещей: если анализатор не выбрал items,
+        // не даём модели "allowed id" и показываем пустой selected block.
+        allowedClothIdsForReply = [];
+        selectedItemsBlock = null;
       }
     } catch {
       analyzerNotesBlock = null;
@@ -453,7 +519,8 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
       ? [{ role: 'system', content: activeStyleRulesBlock }, system]
       : [system];
 
-  const userMsg = { role: 'user', content: `${userName}: ${text}` };
+  // Не передаём имя пользователя модели, чтобы она не повторяла его в ответе.
+  const userMsg = { role: 'user', content: String(text ?? '').trim() };
   let messages;
   if (Array.isArray(historyMessages)) {
     const safeHistory = historyMessages
@@ -472,6 +539,14 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
   const resp = await client.chat({ messages });
   const answer = resp?.choices?.[0]?.message?.content?.trim() || '...';
   const payload = extractJsonPayload(answer, useWardrobe ? { allowedClothIdSet } : null);
+  payload.replyText = stripUserNameFromReply(payload.replyText, userName);
+  if (useWardrobe) {
+    const brands = new Set();
+    for (const src of [wardrobeOptions?.wardrobeSnippet, wardrobeOptions?.attachedSnippet]) {
+      for (const b of extractBrandsFromWardrobeSnippet(src)) brands.add(b);
+    }
+    payload.replyText = stripBrandsFromReply(payload.replyText, brands);
+  }
 
   if (!Array.isArray(historyMessages)) {
     pushHistory(userId, { role: 'assistant', content: payload.replyText });
@@ -481,9 +556,9 @@ async function generateAiReply({ userId, userName, text, historyMessages, wardro
     replyText: payload.replyText,
     imagePrompt: payload.imagePrompt,
     referencedClothIds:
-      useWardrobe && analyzerReferencedClothIds.length
-        ? analyzerReferencedClothIds
-        : (payload.referencedClothIds ?? []),
+      // Всегда прикрепляем ровно те вещи, которые прошли через анализатор (а не то, что "придумала" модель).
+      // Так выполняется правило: если вещь упомянута как конкретная — она обязана быть прикреплена.
+      useWardrobe ? analyzerReferencedClothIds : (payload.referencedClothIds ?? []),
   };
 }
 

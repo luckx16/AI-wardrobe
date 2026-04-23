@@ -440,14 +440,14 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
       prompt,
       responseSchema: geminiGeneratedLookJsonSchema,
       timeoutMs: 15000,
-      generationConfig: { temperature: 1.25, topP: 0.92 },
+      generationConfig: { temperature: 1.35, topP: 0.92 },
     });
   } catch {
     stage = 'ai_openai_fallback';
     aiJson = await openaiClient.generateJson({
       prompt,
       timeoutMs: 15000,
-      temperature: 1.35,
+      temperature: { temperature: 1.3, topP: 0.92 }
     });
   }
   lastAiJson = aiJson;
