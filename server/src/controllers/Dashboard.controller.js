@@ -91,6 +91,15 @@ async function countStaleClothes(userId, cutoffDate) {
   });
 }
 
+async function countNeverWornClothes(userId) {
+  return Cloth.count({
+    where: {
+      user_id: userId,
+      worn_at: null,
+    },
+  });
+}
+
 class DashboardController {
   static async getDashboardNumbers(req, res) {
     try {
@@ -113,6 +122,7 @@ class DashboardController {
         wornPrevious30,
         notWornCurrent30,
         notWornPrevious30,
+        neverWornClothes,
       ] = await Promise.all([
         ClothService.clothesNumber(user.id),
         LookService.looksNumber(user.id),
@@ -125,6 +135,7 @@ class DashboardController {
         countWornUsesBetween(user.id, previousStart, previousEnd),
         countStaleClothes(user.id, currentStart),
         countStaleClothes(user.id, previousStart),
+        countNeverWornClothes(user.id),
       ]);
 
       return res.json(
@@ -133,6 +144,7 @@ class DashboardController {
           looksNumber,
           wornLast30Days: wornStats.wornLast30Days,
           notWornMoreThan30Days: wornStats.notWornMoreThan30Days,
+          neverWornClothes,
           clothesTrend: buildTrend(clothesCurrent30, clothesPrevious30),
           looksTrend: buildTrend(looksCurrent30, looksPrevious30),
           wornTrend: buildTrend(wornCurrent30, wornPrevious30),
