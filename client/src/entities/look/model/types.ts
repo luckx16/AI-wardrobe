@@ -4,6 +4,7 @@ export type GeneratedLookCloth = {
   id: number | string;
   title: string;
   category: string | null;
+  section: string | null;
   color: string | null;
   brand?: string | null;
   material?: string | null;
@@ -26,6 +27,7 @@ export type GeneratedLook = {
     updatedAt?: string;
   };
   cloths: GeneratedLookCloth[];
+  comment?: string;
 };
 
 export interface ILook {

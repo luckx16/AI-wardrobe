@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 
 import { HistoryIcon, SettingsIcon, SparklesIcon } from '@/shared/ui';
@@ -21,12 +22,12 @@ export function ChatHeader({ onToggleHistory }: ChatHeaderProps) {
             <SparklesIcon className={styles.sparklesIcon} />
           </div>
           <div>
-            <h1 className={styles.title}>AI Wardrobe</h1>
-            <p className={styles.subtitle}>{t('chat.personalStylist')}</p>
+            <h1 className={clsx(styles.title, 'pageTitle')}>AI</h1>{' '}
+            <p className={clsx(styles.subtitle, 'pageSubtitle')}>{t('chat.personalStylist')}</p>
           </div>
         </div>
 
-        <div className={styles.actions}>
+        {/* <div className={styles.actions}>
           <button
             className={styles.actionButton}
             aria-label={t('chat.history')}
@@ -38,7 +39,7 @@ export function ChatHeader({ onToggleHistory }: ChatHeaderProps) {
           <button className={styles.actionButton} aria-label={t('chat.settings')} type="button">
             <SettingsIcon className={styles.actionIcon} />
           </button>
-        </div>
+        </div> */}
       </div>
     </header>
   );

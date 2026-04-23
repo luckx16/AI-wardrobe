@@ -2,59 +2,79 @@
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  padding: 0 24px 48px;
+  margin: 0 auto;
+  max-width: var(--page-max-width);
+  padding: var(--page-padding);
+  animation: fadeIn 0.3s ease both;
 }
 
 .header {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 48px 0 32px;
+  padding-bottom: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
 }
 
-.title {
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: -0.5px;
-}
-
-.subtitle {
-  font-size: 14px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
+/* ─── Pill add button (obsidian style) ─── */
 .addButton {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  background: var(--foreground);
-  color: var(--background);
+  padding: 0.5rem 1.25rem;
+  background: var(--accent);
+  color: var(--accent-foreground);
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition:
+    background var(--transition-base),
+    box-shadow var(--transition-base),
+    transform var(--transition-base);
 }
 
 .addButton:hover {
-  opacity: 0.85;
+  background: var(--accent-bright);
+  box-shadow: 0 0 20px var(--accent-dim), 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
+.addButton:active {
+  transform: translateY(0);
+}
+
+/* ─── Content grid ─── */
 .content {
   max-width: 960px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 340px;
-  gap: 32px;
+  gap: 1.5rem;
+  animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
 }
 
 @media (max-width: 768px) {
   .content {
     grid-template-columns: 1fr;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

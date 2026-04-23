@@ -7,7 +7,7 @@ class LookController {
    * POST /api/looks/generate — AI-генерация лука (логика в сервисе LookGenerate.service).
    */
   async generateLook(req, res) {
-    const { userId, userPrompt } = req.body ?? {};
+    const { userId, userPrompt, weather } = req.body ?? {};
     const user_id =
       Number.isFinite(Number(userId)) && Number(userId) > 0 ? Number(userId) : Number(req.user?.id);
     if (!Number.isFinite(user_id) || user_id <= 0) {
@@ -25,7 +25,7 @@ class LookController {
     const isDev = String(process.env.NODE_ENV || '').toLowerCase() !== 'production';
 
     try {
-      const result = await lookGenerateService.generateLook({ user_id, userPrompt });
+      const result = await lookGenerateService.generateLook({ user_id, userPrompt, weather });
       return res.json(formatResponse(200, 'Look generated', result.response));
     } catch (err) {
       if (err.status && err.body) {
@@ -50,6 +50,58 @@ class LookController {
           formatResponse(
             500,
             'Failed to generate look',
+            null,
+            isDev ? (err?.message ?? String(err)) : null,
+          ),
+        );
+    }
+  }
+
+  /**
+   * POST /api/looks/generate-preview — AI-генерация лука БЕЗ сохранения в БД.
+   */
+  async generateLookPreview(req, res) {
+    const { userId, userPrompt, weather } = req.body ?? {};
+    const user_id =
+      Number.isFinite(Number(userId)) && Number(userId) > 0 ? Number(userId) : Number(req.user?.id);
+    if (!Number.isFinite(user_id) || user_id <= 0) {
+      return res.status(400).json(
+        formatResponse(400, 'Invalid userId', null, {
+          hint: 'Send JSON body { "userId": <number>, "userPrompt": <string> } or authenticate with Bearer token.',
+        }),
+      );
+    }
+    if (req.user?.id && Number(req.user.id) !== user_id) {
+      return res.status(403).json(formatResponse(403, 'Forbidden', null, null));
+    }
+
+    const isDev = String(process.env.NODE_ENV || '').toLowerCase() !== 'production';
+    try {
+      const result = await lookGenerateService.generateLook({ user_id, userPrompt, weather, persist: false });
+      return res.json(formatResponse(200, 'Look preview generated', result.response));
+    } catch (err) {
+      if (err.status && err.body) {
+        const msg = err.body?.error ?? err.body?.hint ?? 'Request failed';
+        return res.status(err.status).json(formatResponse(err.status, msg, null, err.body));
+      }
+      if (err.name === 'ZodError') {
+        return res.status(422).json(
+          formatResponse(422, 'Validation failed', null, {
+            error: lookGenerateService.formatZodError(err),
+            stage: err.stage,
+            ...(isDev && err.lastAiJson
+              ? { ai_preview: lookGenerateService.buildAiPreview(err.lastAiJson) }
+              : {}),
+          }),
+        );
+      }
+      console.error(err);
+      return res
+        .status(500)
+        .json(
+          formatResponse(
+            500,
+            'Failed to generate look preview',
             null,
             isDev ? (err?.message ?? String(err)) : null,
           ),

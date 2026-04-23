@@ -206,11 +206,6 @@ export function Measurements({
               <p className={styles.photoHint}>{uploadError}</p>
             </div>
           ) : null}
-          {bodyPhoto && !uploadError ? (
-            <div className={styles.photoText}>
-              <p className={styles.photoHint}>{t('profile.measurements.photoUploaded')}</p>
-            </div>
-          ) : null}
         </div>
 
         <div className={styles.metrics}>

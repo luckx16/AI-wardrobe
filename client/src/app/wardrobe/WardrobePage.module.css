@@ -1,12 +1,10 @@
 .page {
   min-height: 100vh;
   background: var(--background);
-}
 
-.container {
-  max-width: 72rem;
   margin: 0 auto;
-  padding: 2.5rem 1rem;
+  max-width: var(--page-max-width);
+  padding: var(--page-padding);
 }
 
 .emptyState {

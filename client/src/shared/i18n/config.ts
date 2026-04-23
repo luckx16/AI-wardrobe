@@ -1,8 +1,10 @@
+'use client';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-export const supportedLngs = ['ru', 'en', 'de', 'fr', 'es', 'zh'] as const;
-export type AppLanguage = (typeof supportedLngs)[number];
+import { supportedLngs } from './languages';
+
+export { type AppLanguage, isSupportedLanguage, supportedLngs } from './languages';
 
 const resources = {
   ru: {
@@ -132,10 +134,9 @@ const resources = {
         saved: 'Сохранено',
       },
       lookBuilder: {
-        eyebrow: 'Конструктор образа:',
-        edit: 'Измени',
-        build: 'Собери',
-        titleTail: 'образ из вещей гардероба',
+        edit: 'Изменение',
+        build: 'Создание',
+        titleTail: 'образа',
         subtitle:
           'Слева выбираешь вещи из гардероба, справа сразу видишь, как выглядит комплект в сборке.',
         itemListTitle: 'Список вещей',
@@ -252,15 +253,15 @@ const resources = {
           title: 'Предпочтения',
           description:
             'Заполните предпочтения — так AI-помощник сможет предложить более подходящие образы.',
-          wishesLabel: 'Что в своей внешности вам хотелось бы подчеркнуть, а что, наоборот, скрыть?',
+          wishesLabel:
+            'Что в своей внешности вам хотелось бы подчеркнуть, а что, наоборот, скрыть?',
           wishesPlaceholder: 'Например: подчеркнуть ноги, скрыть живот, выглядеть выше',
           base: 'База (что нравится)',
           basePlaceholder: 'Например: спорт-шик',
           neverSuggest: 'Никогда не предлагать',
           neverSuggestPlaceholder: 'Например: жёлтый цвет',
           additional: 'Дополнительные пожелания и индивидуальные особенности',
-          additionalPlaceholder:
-            'Передвигаюсь на машине, поэтому почти не ношу тёплую одежду',
+          additionalPlaceholder: 'Передвигаюсь на машине, поэтому почти не ношу тёплую одежду',
           add: 'Добавить',
           remove: 'Удалить',
         },
@@ -323,6 +324,15 @@ const resources = {
           accessories: 'Аксессуары',
           other: 'Другое',
         },
+        sections: {
+          headwear: 'Головные уборы',
+          top: 'Верх',
+          accessory: 'Аксессуары',
+          bags: 'Сумки',
+          bottom: 'Низ',
+          shoes: 'Обувь',
+          other: 'Другое',
+        },
       },
       chat: {
         personalStylist: 'Персональный стилист',
@@ -343,6 +353,7 @@ const resources = {
         attachedItems: 'Прикреплённые вещи',
         fromWardrobe: 'Из гардероба',
         inputPlaceholder: 'Спросите о стиле, гардеробе или модных трендах...',
+        inputPlaceholderGen: 'Создайте образ, опишите стиль и ИИ-стилист подберет подходящий лук...',
         attachFile: 'Прикрепить файл',
         addImage: 'Добавить изображение',
         send: 'Отправить сообщение',
@@ -633,10 +644,9 @@ const resources = {
         saved: 'Saved',
       },
       lookBuilder: {
-        eyebrow: 'Look builder:',
         edit: 'Edit',
         build: 'Build',
-        titleTail: 'a look from wardrobe items',
+        titleTail: 'a look',
         subtitle: 'Choose items on the left and instantly see the assembled outfit on the right.',
         itemListTitle: 'Items list',
         itemListHint: 'Each item can be used in different saved looks.',
@@ -817,6 +827,15 @@ const resources = {
           accessories: 'Accessories',
           other: 'Other',
         },
+        sections: {
+          headwear: 'Headwear',
+          top: 'Top',
+          accessory: 'Accessories',
+          bags: 'Bags',
+          bottom: 'Bottom',
+          shoes: 'Shoes',
+          other: 'Other',
+        },
       },
       chat: {
         personalStylist: 'Personal stylist',
@@ -837,6 +856,7 @@ const resources = {
         attachedItems: 'Attached items',
         fromWardrobe: 'From wardrobe',
         inputPlaceholder: 'Ask about style, wardrobe or fashion trends...',
+        inputPlaceholderGen: 'Describe a look, share your style and the AI stylist will find the perfect outfit...',
         attachFile: 'Attach file',
         addImage: 'Add image',
         send: 'Send message',
@@ -909,7 +929,13 @@ const resources = {
         categories: {
           title: 'Categories',
           countShort: 'pcs.',
-          items: { top: 'Top', bottom: 'Bottom', shoes: 'Shoes', outerwear: 'Outerwear', accessories: 'Accessories' },
+          items: {
+            top: 'Top',
+            bottom: 'Bottom',
+            shoes: 'Shoes',
+            outerwear: 'Outerwear',
+            accessories: 'Accessories',
+          },
         },
         stats: {
           totalItems: { title: 'Total items', subtitle: 'in wardrobe', trend: 'this month' },
@@ -1055,8 +1081,20 @@ const resources = {
         emptyText: 'Filter andern und erneut versuchen',
         itemsCount_one: '{{count}} Artikel',
         itemsCount_other: '{{count}} Artikel',
-        sort: { label: 'Sortierung', title: 'Nach Name', season: 'Nach Saison', category: 'Nach Kategorie', createdAt: 'Nach Datum' },
-        seasons: { winter: 'Winter', spring: 'Fruhling', summer: 'Sommer', autumn: 'Herbst', allSeason: 'Ganzjahrig' },
+        sort: {
+          label: 'Sortierung',
+          title: 'Nach Name',
+          season: 'Nach Saison',
+          category: 'Nach Kategorie',
+          createdAt: 'Nach Datum',
+        },
+        seasons: {
+          winter: 'Winter',
+          spring: 'Fruhling',
+          summer: 'Sommer',
+          autumn: 'Herbst',
+          allSeason: 'Ganzjahrig',
+        },
         categories: {
           tshirt: 'T-Shirt',
           shirt: 'Hemd',
@@ -1069,6 +1107,15 @@ const resources = {
           shorts: 'Shorts',
           shoes: 'Schuhe',
           accessories: 'Accessoires',
+          other: 'Andere',
+        },
+        sections: {
+          headwear: 'Kopfbedeckung',
+          top: 'Oberteil',
+          accessory: 'Accessoires',
+          bags: 'Taschen',
+          bottom: 'Unterteil',
+          shoes: 'Schuhe',
           other: 'Andere',
         },
       },
@@ -1091,6 +1138,7 @@ const resources = {
         attachedItems: 'Angehangte Teile',
         fromWardrobe: 'Aus der Garderobe',
         inputPlaceholder: 'Frage nach Stil, Garderobe oder Modetrends...',
+        inputPlaceholderGen: 'Beschreibe einen Look, teile deinen Stil und der KI-Stylist findet das perfekte Outfit...',
         attachFile: 'Datei anhangen',
         addImage: 'Bild hinzufugen',
         send: 'Nachricht senden',
@@ -1124,8 +1172,7 @@ const resources = {
           },
           weekend: {
             label: 'Wochenende',
-            prompt:
-              'Erstelle ein bequemes Wochenend-Outfit (Spaziergang/Cafe) mit 2 Schuhoptionen',
+            prompt: 'Erstelle ein bequemes Wochenend-Outfit (Spaziergang/Cafe) mit 2 Schuhoptionen',
           },
         },
       },
@@ -1168,7 +1215,11 @@ const resources = {
           all: 'Alle Plane',
           items: {
             today: { date: 'Heute', title: 'Geschaftstreffen', outfit: 'Burostil' },
-            tomorrow: { date: 'Morgen', title: 'Abendessen mit Freunden', outfit: 'Casual am Abend' },
+            tomorrow: {
+              date: 'Morgen',
+              title: 'Abendessen mit Freunden',
+              outfit: 'Casual am Abend',
+            },
             upcomingOne: { date: 'Mi, 16 Apr', title: 'Prasentation', outfit: 'Formell' },
             upcomingTwo: { date: 'Fr, 18 Apr', title: 'Spaziergang', outfit: 'Sportlich' },
           },
@@ -1176,10 +1227,20 @@ const resources = {
         categories: {
           title: 'Kategorien',
           countShort: 'Stk.',
-          items: { top: 'Oberteil', bottom: 'Unterteil', shoes: 'Schuhe', outerwear: 'Oberbekleidung', accessories: 'Accessoires' },
+          items: {
+            top: 'Oberteil',
+            bottom: 'Unterteil',
+            shoes: 'Schuhe',
+            outerwear: 'Oberbekleidung',
+            accessories: 'Accessoires',
+          },
         },
         stats: {
-          totalItems: { title: 'Gesamtteile', subtitle: 'im Kleiderschrank', trend: 'diesen Monat' },
+          totalItems: {
+            title: 'Gesamtteile',
+            subtitle: 'im Kleiderschrank',
+            trend: 'diesen Monat',
+          },
           looks: { title: 'Looks', subtitle: 'gespeichert', trend: 'diesen Monat' },
           worn: { title: 'Getragen', subtitle: 'in 30 Tagen' },
           notWorn: { title: 'Nicht getragen', subtitle: 'uber 60 Tage', trend: 'vs vorher' },
@@ -1273,10 +1334,9 @@ const resources = {
         },
       },
       lookBuilder: {
-        eyebrow: 'Look-Builder:',
         edit: 'Bearbeite',
         build: 'Erstelle',
-        titleTail: 'einen Look aus Garderobenteilen',
+        titleTail: 'einen Look',
         subtitle: 'Links wahlst du Teile, rechts siehst du sofort den fertigen Look.',
         itemListTitle: 'Teileliste',
         itemListHint: 'Jedes Teil kann in mehreren gespeicherten Looks verwendet werden.',
@@ -1533,8 +1593,20 @@ const resources = {
         emptyText: 'Essayez de modifier les filtres',
         itemsCount_one: '{{count}} article',
         itemsCount_other: '{{count}} articles',
-        sort: { label: 'Tri', title: 'Par nom', season: 'Par saison', category: 'Par categorie', createdAt: 'Par date' },
-        seasons: { winter: 'Hiver', spring: 'Printemps', summer: 'Ete', autumn: 'Automne', allSeason: 'Toutes saisons' },
+        sort: {
+          label: 'Tri',
+          title: 'Par nom',
+          season: 'Par saison',
+          category: 'Par categorie',
+          createdAt: 'Par date',
+        },
+        seasons: {
+          winter: 'Hiver',
+          spring: 'Printemps',
+          summer: 'Ete',
+          autumn: 'Automne',
+          allSeason: 'Toutes saisons',
+        },
         categories: {
           tshirt: 'T-shirt',
           shirt: 'Chemise',
@@ -1547,6 +1619,15 @@ const resources = {
           shorts: 'Short',
           shoes: 'Chaussures',
           accessories: 'Accessoires',
+          other: 'Autre',
+        },
+        sections: {
+          headwear: 'Chapeaux',
+          top: 'Haut',
+          accessory: 'Accessoires',
+          bags: 'Sacs',
+          bottom: 'Bas',
+          shoes: 'Chaussures',
           other: 'Autre',
         },
       },
@@ -1569,6 +1650,7 @@ const resources = {
         attachedItems: 'Articles joints',
         fromWardrobe: 'Depuis la garde-robe',
         inputPlaceholder: 'Posez une question sur le style, la garde-robe ou les tendances...',
+        inputPlaceholderGen: 'Décrivez un look, partagez votre style et le styliste IA trouvera la tenue parfaite...',
         attachFile: 'Joindre un fichier',
         addImage: 'Ajouter une image',
         send: 'Envoyer un message',
@@ -1584,7 +1666,7 @@ const resources = {
         attach: 'Joindre',
         noProcessedItems: "Aucun article traite dans la garde-robe pour l'instant.",
         weatherNow:
-          "Maintenant : {{temperature}}° (ressenti {{feelsLike}}°), {{description}}, vent {{windSpeed}} km/h, humidite {{humidity}}%.",
+          'Maintenant : {{temperature}}° (ressenti {{feelsLike}}°), {{description}}, vent {{windSpeed}} km/h, humidite {{humidity}}%.',
         weatherUnavailable: 'Meteo indisponible',
         reset: 'Reinitialiser',
         hint: 'AI Wardrobe aide a composer le look ideal',
@@ -1593,7 +1675,7 @@ const resources = {
         suggestions: {
           business: {
             label: 'Look business',
-            prompt: "Aide-moi a creer un look business pour une reunion importante",
+            prompt: 'Aide-moi a creer un look business pour une reunion importante',
           },
           date: {
             label: 'Rendez-vous',
@@ -1654,10 +1736,20 @@ const resources = {
         categories: {
           title: 'Categories',
           countShort: 'pcs',
-          items: { top: 'Haut', bottom: 'Bas', shoes: 'Chaussures', outerwear: 'Vetements exterieurs', accessories: 'Accessoires' },
+          items: {
+            top: 'Haut',
+            bottom: 'Bas',
+            shoes: 'Chaussures',
+            outerwear: 'Vetements exterieurs',
+            accessories: 'Accessoires',
+          },
         },
         stats: {
-          totalItems: { title: 'Total articles', subtitle: 'dans la garde-robe', trend: 'ce mois-ci' },
+          totalItems: {
+            title: 'Total articles',
+            subtitle: 'dans la garde-robe',
+            trend: 'ce mois-ci',
+          },
           looks: { title: 'Looks', subtitle: 'enregistres', trend: 'ce mois-ci' },
           worn: { title: 'Porte', subtitle: 'sur 30 jours' },
           notWorn: { title: 'Non porte', subtitle: 'plus de 60 jours', trend: 'vs precedent' },
@@ -1751,10 +1843,9 @@ const resources = {
         },
       },
       lookBuilder: {
-        eyebrow: 'Createur de look :',
         edit: 'Modifier',
         build: 'Assembler',
-        titleTail: 'un look a partir de votre garde-robe',
+        titleTail: 'un look',
         subtitle: 'A gauche, choisissez des articles; a droite, voyez le resultat immediatement.',
         itemListTitle: 'Liste des articles',
         itemListHint: 'Chaque article peut etre utilise dans differents looks enregistres.',
@@ -1933,7 +2024,8 @@ const resources = {
           neverSuggest: 'Ne jamais proposer',
           neverSuggestPlaceholder: 'Par exemple: couleur jaune',
           additional: 'Souhaits supplementaires et particularites',
-          additionalPlaceholder: 'Je me deplace en voiture, je porte rarement des vetements tres chauds',
+          additionalPlaceholder:
+            'Je me deplace en voiture, je porte rarement des vetements tres chauds',
           add: 'Ajouter',
           remove: 'Supprimer',
         },
@@ -2011,8 +2103,20 @@ const resources = {
         emptyText: 'Intenta cambiar los filtros',
         itemsCount_one: '{{count}} articulo',
         itemsCount_other: '{{count}} articulos',
-        sort: { label: 'Ordenar', title: 'Por nombre', season: 'Por temporada', category: 'Por categoria', createdAt: 'Por fecha' },
-        seasons: { winter: 'Invierno', spring: 'Primavera', summer: 'Verano', autumn: 'Otono', allSeason: 'Todo el ano' },
+        sort: {
+          label: 'Ordenar',
+          title: 'Por nombre',
+          season: 'Por temporada',
+          category: 'Por categoria',
+          createdAt: 'Por fecha',
+        },
+        seasons: {
+          winter: 'Invierno',
+          spring: 'Primavera',
+          summer: 'Verano',
+          autumn: 'Otono',
+          allSeason: 'Todo el ano',
+        },
         categories: {
           tshirt: 'Camiseta',
           shirt: 'Camisa',
@@ -2025,6 +2129,15 @@ const resources = {
           shorts: 'Shorts',
           shoes: 'Zapatos',
           accessories: 'Accesorios',
+          other: 'Otro',
+        },
+        sections: {
+          headwear: 'Sombreros',
+          top: 'Arriba',
+          accessory: 'Accesorios',
+          bags: 'Bolsas',
+          bottom: 'Abajo',
+          shoes: 'Zapatos',
           other: 'Otro',
         },
       },
@@ -2047,6 +2160,7 @@ const resources = {
         attachedItems: 'Prendas adjuntas',
         fromWardrobe: 'Del armario',
         inputPlaceholder: 'Pregunta sobre estilo, armario o tendencias de moda...',
+        inputPlaceholderGen: 'Describe un look, comparte tu estilo y el estilista IA encontrará el outfit perfecto...',
         attachFile: 'Adjuntar archivo',
         addImage: 'Agregar imagen',
         send: 'Enviar mensaje',
@@ -2132,7 +2246,13 @@ const resources = {
         categories: {
           title: 'Categorias',
           countShort: 'uds.',
-          items: { top: 'Parte superior', bottom: 'Parte inferior', shoes: 'Zapatos', outerwear: 'Ropa exterior', accessories: 'Accesorios' },
+          items: {
+            top: 'Parte superior',
+            bottom: 'Parte inferior',
+            shoes: 'Zapatos',
+            outerwear: 'Ropa exterior',
+            accessories: 'Accesorios',
+          },
         },
         stats: {
           totalItems: { title: 'Total prendas', subtitle: 'en armario', trend: 'este mes' },
@@ -2229,10 +2349,9 @@ const resources = {
         },
       },
       lookBuilder: {
-        eyebrow: 'Creador de look:',
         edit: 'Edita',
         build: 'Arma',
-        titleTail: 'un look con prendas del armario',
+        titleTail: 'un look',
         subtitle:
           'A la izquierda eliges prendas del armario, a la derecha ves al instante como se ve el conjunto.',
         itemListTitle: 'Lista de prendas',
@@ -2489,8 +2608,20 @@ const resources = {
         emptyText: '请尝试更改筛选条件',
         itemsCount_one: '{{count}} 件',
         itemsCount_other: '{{count}} 件',
-        sort: { label: '排序', title: '按名称', season: '按季节', category: '按分类', createdAt: '按日期' },
-        seasons: { winter: '冬季', spring: '春季', summer: '夏季', autumn: '秋季', allSeason: '四季' },
+        sort: {
+          label: '排序',
+          title: '按名称',
+          season: '按季节',
+          category: '按分类',
+          createdAt: '按日期',
+        },
+        seasons: {
+          winter: '冬季',
+          spring: '春季',
+          summer: '夏季',
+          autumn: '秋季',
+          allSeason: '四季',
+        },
         categories: {
           tshirt: 'T恤',
           shirt: '衬衫',
@@ -2503,6 +2634,15 @@ const resources = {
           shorts: '短裤',
           shoes: '鞋子',
           accessories: '配饰',
+          other: '其他',
+        },
+        sections: {
+          headwear: '帽子',
+          top: '上衣',
+          accessory: '配饰',
+          bags: '包袋',
+          bottom: '下装',
+          shoes: '鞋子',
           other: '其他',
         },
       },
@@ -2525,6 +2665,7 @@ const resources = {
         attachedItems: '已附加单品',
         fromWardrobe: '来自衣橱',
         inputPlaceholder: '询问穿搭、衣橱或时尚趋势...',
+        inputPlaceholderGen: '描述一个造型，分享你的风格，AI 造型师将为你搭配完美的穿搭...',
         attachFile: '附加文件',
         addImage: '添加图片',
         send: '发送消息',
@@ -2608,7 +2749,13 @@ const resources = {
         categories: {
           title: '分类',
           countShort: '件',
-          items: { top: '上装', bottom: '下装', shoes: '鞋子', outerwear: '外套', accessories: '配饰' },
+          items: {
+            top: '上装',
+            bottom: '下装',
+            shoes: '鞋子',
+            outerwear: '外套',
+            accessories: '配饰',
+          },
         },
         stats: {
           totalItems: { title: '总单品', subtitle: '在衣橱中', trend: '本月' },
@@ -2705,7 +2852,6 @@ const resources = {
         },
       },
       lookBuilder: {
-        eyebrow: '穿搭生成器：',
         edit: '修改',
         build: '创建',
         titleTail: '基于衣橱单品的穿搭',

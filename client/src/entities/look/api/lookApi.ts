@@ -3,6 +3,7 @@ import { axiosInstance } from '@/shared/lib/axiosInstance';
 import type { ServerResponseType } from '@/shared/types';
 
 import type { GeneratedLook, ILook } from '../model/types';
+import type { WeatherByCoordsResponse } from '@/entities/weather/model/types';
 
 export type SavedLook = {
   id: string;
@@ -11,9 +12,25 @@ export type SavedLook = {
   createdAt: string;
 };
 
-export async function generateLook(payload: { userId: number; userPrompt?: string }) {
+export async function generateLook(payload: {
+  userId: number;
+  userPrompt?: string;
+  weather?: WeatherByCoordsResponse | null;
+}) {
   const { data } = await axiosInstance.post<ServerResponseType<GeneratedLook>>(
     '/looks/generate',
+    payload,
+  );
+  return data.data;
+}
+
+export async function generateLookPreview(payload: {
+  userId: number;
+  userPrompt?: string;
+  weather?: WeatherByCoordsResponse | null;
+}) {
+  const { data } = await axiosInstance.post<ServerResponseType<GeneratedLook>>(
+    '/looks/generate-preview',
     payload,
   );
   return data.data;

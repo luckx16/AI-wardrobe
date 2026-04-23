@@ -4,6 +4,8 @@ const { buildStylistPrompt } = require('../utils/stylistPrompt');
 const { compactItem } = require('../utils/stylistPrompt');
 const { generatedLookSchema, geminiGeneratedLookJsonSchema } = require('../schemas/lookSchema');
 const { geminiClient, openaiClient } = require('../config/aiConfig');
+const { createStyleRulesRetriever } = require('../rag/styleRulesRetriever');
+const { CATEGORY_TO_SECTION } = require('../db/utlis/category');
 
 const db = require('../db/models');
 
@@ -44,6 +46,11 @@ function pickClothFields(cloth) {
     image: cloth.image,
     ai_metadata: cloth.ai_metadata,
   };
+}
+
+function clothSectionFromCategory(category) {
+  const key = typeof category === 'string' ? category.trim().toLowerCase() : '';
+  return (CATEGORY_TO_SECTION && key && CATEGORY_TO_SECTION[key]) || 'other';
 }
 
 function buildFallbackLookTitleFromItems(items) {
@@ -128,6 +135,121 @@ function httpError(status, body) {
   e.status = status;
   e.body = body;
   return e;
+}
+
+function nonEmpty(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s ? s : null;
+}
+
+function mapProfileAndWeatherToMetadataFilters(profile, weather) {
+  const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
+  const filters = {};
+
+  const knownProfileFields = ['skin_tone', 'proportion', 'contrast', 'height'];
+  for (const k of knownProfileFields) {
+    if (p && typeof p[k] === 'string' && p[k].trim()) filters[k] = p[k].trim();
+  }
+
+  if (weather && typeof weather === 'object') {
+    if (typeof weather.description === 'string' && weather.description.trim()) {
+      filters.weather_description = weather.description.trim();
+    }
+    if (typeof weather.temperature === 'string' && weather.temperature.trim()) {
+      filters.temperature_c = weather.temperature.trim();
+    }
+  }
+
+  return filters;
+}
+
+function buildStyleRulesQuery(profile, userPrompt, weather) {
+  const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
+  const parts = [
+    typeof userPrompt === 'string' ? userPrompt.trim() : '',
+    typeof p?.wishes === 'string' ? p.wishes.trim() : '',
+    typeof weather?.description === 'string' ? weather.description.trim() : '',
+    typeof weather?.temperature === 'string' ? `temperature ${weather.temperature}` : '',
+  ].filter(Boolean);
+  return parts.join('\n');
+}
+
+function buildConsiderationsComment(profile, weather, activeStyleRules) {
+  const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
+  const chunks = [];
+  if (nonEmpty(p.skin_tone)) chunks.push(`подтон кожи: ${nonEmpty(p.skin_tone)}`);
+  if (nonEmpty(p.proportion)) chunks.push(`пропорции: ${nonEmpty(p.proportion)}`);
+  if (nonEmpty(p.contrast)) chunks.push(`контраст: ${nonEmpty(p.contrast)}`);
+  if (nonEmpty(p.height)) chunks.push(`рост: ${nonEmpty(p.height)}`);
+  if (weather && typeof weather === 'object') {
+    const t = nonEmpty(weather.temperature);
+    const d = nonEmpty(weather.description);
+    if (t || d) chunks.push(`погода: ${[t ? `${t}°C` : null, d].filter(Boolean).join(', ')}`);
+  }
+  const rulesCount = Array.isArray(activeStyleRules) ? activeStyleRules.length : 0;
+  if (rulesCount) chunks.push(`учтено правил: ${rulesCount}`);
+  if (!chunks.length) return null;
+  return `Учтено: ${chunks.join(' • ')}`;
+}
+
+function isMostlyLatin(text) {
+  const s = String(text ?? '').trim();
+  if (!s) return false;
+  const latin = (s.match(/[A-Za-z]/g) ?? []).length;
+  const cyr = (s.match(/[А-Яа-яЁё]/g) ?? []).length;
+  return latin > cyr;
+}
+
+function isMostlyCyrillic(text) {
+  const s = String(text ?? '').trim();
+  if (!s) return false;
+  const latin = (s.match(/[A-Za-z]/g) ?? []).length;
+  const cyr = (s.match(/[А-Яа-яЁё]/g) ?? []).length;
+  return cyr > latin;
+}
+
+function detectUserLangFromPrompt(userPrompt) {
+  const s = String(userPrompt ?? '');
+  if (isMostlyCyrillic(s)) return 'ru';
+  if (isMostlyLatin(s)) return 'en';
+  return 'ru';
+}
+
+function buildWhyThisLookComment({ userPrompt, weather, items, allowedById }) {
+  const w = weather && typeof weather === 'object' ? weather : null;
+  const t = nonEmpty(w?.temperature);
+  const d = nonEmpty(w?.description);
+  const weatherPart =
+    t || d ? `учитывает погоду` : null;
+
+  const roles = Array.isArray(items) ? items.map((it) => String(it.role ?? '').trim()).filter(Boolean) : [];
+  const uniqRoles = Array.from(new Set(roles));
+  const hasShoes = uniqRoles.some((r) => /shoe|обув/i.test(r));
+  const hasOuter = uniqRoles.some((r) => /outer|верх/i.test(r));
+  const structurePart = hasShoes || hasOuter ? 'получился собранный комплект по слоям' : 'получился цельный комплект';
+
+  const reasons = (Array.isArray(items) ? items : [])
+    .map((it) => (typeof it?.reason === 'string' ? it.reason.trim() : ''))
+    .filter(Boolean)
+    .slice(0, 3);
+  const reasonPart = reasons.length ? `${reasons.join(' • ')}` : null;
+
+  const lines = [
+    [structurePart, weatherPart].filter(Boolean).join('; ') + '.',
+    reasonPart,
+  ].filter(Boolean);
+  return lines.join('\n');
+}
+
+function variantInstruction(index, total) {
+  if (!Number.isFinite(index) || !Number.isFinite(total) || total <= 1) return '';
+  const i = index + 1;
+  return [
+    '',
+    `Additional constraint: produce variant ${i} of ${total}.`,
+    'Make it meaningfully different in style/mood/layering/colors if possible, but still realistic and using ONLY provided items.',
+  ].join('\n');
 }
 
 async function generateLookTitle({ user_id, attachedClothIds }) {
@@ -222,7 +344,7 @@ async function generateLookTitle({ user_id, attachedClothIds }) {
  * AI-генерация лука: кэш, Gemini → fallback GPT, Zod, транзакция Look + LookCloth.
  * @returns {{ response: object, fromCache: boolean }}
  */
-async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) {
+async function generateLook({ user_id, userPrompt, attachedClothIds, weather, persist = true }) {
   const isDev = String(process.env.NODE_ENV || '').toLowerCase() !== 'production';
   let stage = 'init';
   let lastAiJson = null;
@@ -296,15 +418,34 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
       JSON.stringify(prefs) +
       JSON.stringify(attachedIds.slice().sort((a, b) => a - b)),
   );
-  const cached = getCache(cacheKey);
-  if (cached) {
-    return { response: cached, fromCache: true };
+  // Preview-генерацию не кэшируем, чтобы гарантировать отсутствие побочных эффектов
+  // (и чтобы случайно не вернуть ранее сохранённый look payload).
+  if (persist) {
+    const cached = getCache(cacheKey);
+    if (cached) {
+      return { response: cached, fromCache: true };
+    }
   }
 
   stage = 'build_prompt';
+  let activeStyleRules = [];
+  try {
+    const filters = mapProfileAndWeatherToMetadataFilters(profile, weather);
+    const retriever = await createStyleRulesRetriever({ filters, k: 4 });
+    const query = buildStyleRulesQuery(profile, userPrompt, weather) || 'styling rules';
+    activeStyleRules = await retriever.getRelevantDocuments(query);
+  } catch (e) {
+    // RAG должен быть "best-effort": не валим генерацию лука из-за правил.
+    activeStyleRules = [];
+    if (isDev) {
+      console.warn('[style-rag] failed:', e?.message || e);
+    }
+  }
+  const comment = buildConsiderationsComment(profile, weather, activeStyleRules);
   const prompt = buildStylistPrompt(profile, cloths.map(pickClothFields), userPrompt, {
     focusClothIds: attachedIds,
     weather,
+    activeStyleRules,
   });
 
   stage = 'ai_gemini';
@@ -356,7 +497,21 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
       });
     }
   }
-  const finalItems = Array.from(dedup.values());
+  let finalItems = Array.from(dedup.values());
+
+  // Enforce: only one "bottom" item in a look (pants/jeans/skirt/shorts etc).
+  // AI иногда возвращает несколько "низов" — отбрасываем лишнее детерминированно.
+  const bottomItems = finalItems.filter((i) => {
+    const c = allowed.get(Number(i.cloth_id));
+    const plain = c && typeof c.toJSON === 'function' ? c.toJSON() : c;
+    return clothSectionFromCategory(plain?.category) === 'bottom';
+  });
+  if (bottomItems.length > 1) {
+    const byId = new Map(bottomItems.map((i) => [Number(i.cloth_id), i]));
+    const preferredIdFromAnchored = attachedIds.find((id) => byId.has(Number(id)));
+    const keepId = preferredIdFromAnchored != null ? Number(preferredIdFromAnchored) : Number(bottomItems[0].cloth_id);
+    finalItems = finalItems.filter((i) => !(byId.has(Number(i.cloth_id)) && Number(i.cloth_id) !== keepId));
+  }
   if (!finalItems.length) {
     throw httpError(422, {
       error: 'AI returned items not in wardrobe',
@@ -364,39 +519,78 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
     });
   }
 
-  stage = 'db_transaction_save';
-  const saved = await db.sequelize.transaction(async (t) => {
-    const look = await db.Look.create(
-      {
-        user_id,
-        title: validated.look_name,
-        metadata: {
-          occasion: validated.occasion,
-          item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
-        },
-      },
-      { transaction: t },
+  // Название лука: в промте просим на языке запроса, но страхуемся, если пришло пусто.
+  // Для русских запросов дополнительно страхуемся от "латиницы".
+  // Уникальность для отображения в чате решается на клиенте (makeUniqueTitle).
+  const userLang = detectUserLangFromPrompt(userPrompt);
+  let finalLookTitle = String(validated.look_name ?? '').trim();
+  if (!finalLookTitle || (userLang === 'ru' && isMostlyLatin(finalLookTitle))) {
+    finalLookTitle = buildFallbackLookTitleFromItems(
+      finalItems.map((i) => allowed.get(Number(i.cloth_id))).filter(Boolean),
     );
+  }
 
-    await db.LookCloth.bulkCreate(
-      finalItems.map((i) => ({ look_id: look.id, cloth_id: i.cloth_id })),
-      { transaction: t, ignoreDuplicates: true },
-    );
-
-    return look;
+  // Комментарий-пояснение (почему этот образ подходит под запрос/погоду).
+  const whyComment = buildWhyThisLookComment({
+    userPrompt,
+    weather,
+    items: finalItems,
+    allowedById: allowed,
   });
+  const combinedWhyComment = [whyComment, comment].filter(Boolean).join('\n');
 
-  stage = 'format_response';
-  const itemRoleById = new Map(finalItems.map((i) => [Number(i.cloth_id), i.role]));
-  const response = {
-    look: {
+  stage = persist ? 'db_transaction_save' : 'format_preview_response';
+
+  let lookPayload;
+  if (persist) {
+    const saved = await db.sequelize.transaction(async (t) => {
+      const look = await db.Look.create(
+        {
+          user_id,
+          title: finalLookTitle,
+          metadata: {
+            occasion: validated.occasion,
+            item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
+            ...(comment ? { comment } : {}),
+            ...(combinedWhyComment ? { why: combinedWhyComment } : {}),
+          },
+        },
+        { transaction: t },
+      );
+
+      await db.LookCloth.bulkCreate(
+        finalItems.map((i) => ({ look_id: look.id, cloth_id: i.cloth_id })),
+        { transaction: t, ignoreDuplicates: true },
+      );
+
+      return look;
+    });
+    lookPayload = {
       id: saved.id,
       user_id: saved.user_id,
       title: saved.title,
       metadata: saved.metadata,
       createdAt: saved.createdAt,
       updatedAt: saved.updatedAt,
-    },
+    };
+  } else {
+    lookPayload = {
+      id: 'preview',
+      user_id,
+      title: finalLookTitle,
+      metadata: {
+        occasion: validated.occasion,
+        item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
+        ...(comment ? { comment } : {}),
+        ...(combinedWhyComment ? { why: combinedWhyComment } : {}),
+      },
+    };
+  }
+
+  stage = 'format_response';
+  const itemRoleById = new Map(finalItems.map((i) => [Number(i.cloth_id), i.role]));
+  const response = {
+    look: lookPayload,
     cloths: finalItems.map((i) => {
       const c = allowed.get(Number(i.cloth_id));
       const plain = c && typeof c.toJSON === 'function' ? c.toJSON() : c;
@@ -406,14 +600,31 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather }) 
         reason: i.reason,
       };
     }),
+    comment: combinedWhyComment || null,
   };
 
-  setCache(cacheKey, response);
-  return { response, fromCache: false };
+  if (persist) setCache(cacheKey, response);
+  return { response, fromCache: false, isPreview: !persist };
+}
+
+async function generateLookVariant({
+  user_id,
+  userPrompt,
+  attachedClothIds,
+  weather,
+  variantIndex,
+  variantsTotal,
+  persist = true,
+}) {
+  // Ровно тот же пайплайн, но добавляем instruction в userPrompt.
+  const extra = variantInstruction(variantIndex, variantsTotal);
+  const enrichedPrompt = [String(userPrompt ?? '').trim(), extra].filter(Boolean).join('\n');
+  return generateLook({ user_id, userPrompt: enrichedPrompt, attachedClothIds, weather, persist });
 }
 
 module.exports = {
   generateLook,
+  generateLookVariant,
   generateLookTitle,
   formatZodError,
   buildAiPreview,

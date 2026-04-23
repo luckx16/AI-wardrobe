@@ -1,6 +1,6 @@
 'use client';
 import { DialogTitle } from '@radix-ui/react-dialog';
-import { CalendarDays, Palette, Sun, Tag } from 'lucide-react';
+import { CalendarDays, Package, Palette, Sun, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { WardrobeItem } from '../../app/wardrobe/types';

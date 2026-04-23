@@ -9,8 +9,10 @@ export type Category =
   | 'other';    // Другое
 
 export interface WardrobeItem {
-  id: number;
+  id: string;
   title: string;
+  brand?: string | null;
+  material?: string | null;
   category: Category;
   season: Season;
   color: string;

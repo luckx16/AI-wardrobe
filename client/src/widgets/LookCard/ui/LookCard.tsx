@@ -4,47 +4,65 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import clsx from 'clsx';
-import { Heart, HeartPlus, Pencil, Trash2 } from 'lucide-react';
+import { Heart, HeartPlus, LoaderCircle, Pencil, Save, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { IClothFromDb } from '@/entities/cloth';
-import type { GeneratedLook, ILook } from '@/entities/look';
-import { saveLook } from '@/entities/look/api/lookApi';
+import { createLookThunk, deleteLookThunk, type GeneratedLook, type ILook } from '@/entities/look';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
+import { useAppDispatch } from '@/shared/hooks';
+import { useConfirm } from '@/shared/hooks/useConfirmContext';
 import { getImgSrc } from '@/shared/lib/getImgSrc';
 
 import styles from './looks.module.css';
 
-const CATEGORY_PRIORITY: Partial<Record<IClothFromDb['category'], number>> = {
-  куртка: 0,
-  худи: 0,
-  платье: 1,
-  свитер: 1,
-  футболка: 2,
-  рубашка: 2,
-  брюки: 3,
-  юбка: 3,
-  шорты: 3,
-  обувь: 4,
-  аксессуары: 5,
-  другое: 6,
+const CATEGORY_PRIORITY: Partial<Record<IClothFromDb['section'], number>> = {
+  top: 0,
+  bottom: 1,
+  bags: 2,
+  accessory: 3,
+  headwear: 4,
+  other: 5,
+  shoes: 6,
 };
+// const CATEGORY_PRIORITY: Partial<Record<IClothFromDb['category'], number>> = {
+//   куртка: 0,
+//   худи: 0,
+//   платье: 1,
+//   свитер: 1,
+//   футболка: 2,
+//   рубашка: 2,
+//   брюки: 3,
+//   юбка: 3,
+//   шорты: 3,
+//   обувь: 4,
+//   аксессуары: 5,
+//   другое: 6,
+// };
 
 const ITEM_POSITIONS: React.CSSProperties[] = [
   { top: '6%', left: '5%', width: '60%', transform: 'rotate(-4deg)', zIndex: 3 },
   { top: '2%', right: '1%', width: '54%', transform: 'rotate(6deg)', zIndex: 2 },
   { bottom: '4%', right: '2%', width: '44%', transform: 'rotate(2deg)', zIndex: 1 },
   { bottom: '2%', left: '3%', width: '36%', transform: 'rotate(-7deg)', zIndex: 2 },
+  { bottom: '24%', left: '35%', width: '28%', transform: 'rotate(-3deg)', zIndex: 2 },
+  { bottom: '18%', left: '5%', width: '32%', transform: 'rotate(5deg)', zIndex: 1 },
+  { top: '18%', right: '4%', width: '30%', transform: 'rotate(-8deg)', zIndex: 3 },
   { top: '2%', left: '46%', width: '20%', transform: 'rotate(10deg)', zIndex: 4 },
-  { bottom: '24%', left: '26%', width: '28%', transform: 'rotate(-3deg)', zIndex: 2 },
+  { bottom: '8%', left: '38%', width: '26%', transform: 'rotate(4deg)', zIndex: 2 },
+  { top: '50%', left: '2%', width: '24%', transform: 'rotate(-5deg)', zIndex: 1 },
+  { bottom: '14%', right: '6%', width: '22%', transform: 'rotate(7deg)', zIndex: 2 },
+  { top: '40%', right: '18%', width: '20%', transform: 'rotate(-2deg)', zIndex: 3 },
 ];
 
-type WithCategory = { category?: string | null };
+type WithCategory = { section?: string | null };
 
 export function sortByPriority<T extends WithCategory>(clothes: T[]): T[] {
   return [...clothes].sort((a, b) => {
-    const pa = a.category != null ? (CATEGORY_PRIORITY[a.category as IClothFromDb['category']] ?? 6) : 6;
-    const pb = b.category != null ? (CATEGORY_PRIORITY[b.category as IClothFromDb['category']] ?? 6) : 6;
+    const pa =
+      a.section != null ? (CATEGORY_PRIORITY[a.section as IClothFromDb['section']] ?? 12) : 12;
+    const pb =
+      b.section != null ? (CATEGORY_PRIORITY[b.section as IClothFromDb['section']] ?? 12) : 12;
     return pa - pb;
   });
 }
@@ -53,7 +71,7 @@ type LookCardSavedProps = {
   look: ILook;
   generated?: never;
   onEdit?: (lookId: string) => void;
-  onDelete?: (lookId: string) => void;
+  onDelete?: (lookId: string, look: ILook) => void;
   toggleFav?: (lookId: string) => void;
   className?: string;
   id?: string;
@@ -63,6 +81,7 @@ type LookCardSavedProps = {
 type LookCardGeneratedProps = {
   generated: GeneratedLook;
   look?: never;
+  onSaved?: (savedLookId: string) => void;
 };
 
 type Props = LookCardSavedProps | LookCardGeneratedProps;
@@ -72,6 +91,7 @@ export const LookCard = (props: Props) => {
   const [isSaving, setIsSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const router = useRouter();
+  const { openConfirmDialog } = useConfirm();
 
   const isSaved = 'look' in props && props.look != null;
   const look = isSaved ? (props as LookCardSavedProps).look : undefined;
@@ -85,28 +105,33 @@ export const LookCard = (props: Props) => {
     if (isSaved) {
       return sortByPriority(
         look!.clothes.filter((c) => c.image && c.processing_status === 'completed'),
-      ).slice(0, 6);
+      );
     }
-    return sortByPriority(generated!.cloths).filter((c) => c.image).slice(0, 6);
+    return sortByPriority(generated!.cloths).filter((c) => c.image);
   }, [generated, isSaved, look]);
 
   const clothIdsForSave = useMemo(() => {
     if (isSaved) return [];
-    return generated!.cloths
-      .map((c) => Number(c.id))
-      .filter((n) => Number.isFinite(n) && n > 0);
+    return generated!.cloths.map((c) => Number(c.id)).filter((n) => Number.isFinite(n) && n > 0);
   }, [generated, isSaved]);
+  const dispatch = useAppDispatch();
 
   const handleSave = async () => {
     if (isSaved || isSaving || savedId) return;
     setIsSaving(true);
     try {
-      const saved = await saveLook({
-        title: generated!.look.title,
-        cloth_ids: clothIdsForSave,
-      });
+      const saved = await dispatch(
+        createLookThunk({
+          title: generated!.look.title,
+          cloth_ids: clothIdsForSave.map((n) => n.toString()),
+        }),
+      ).unwrap();
+
       const id = saved?.id != null ? String(saved.id) : 'saved';
       setSavedId(id);
+      if ('onSaved' in props && typeof props.onSaved === 'function') {
+        props.onSaved(id);
+      }
       return id;
     } finally {
       setIsSaving(false);
@@ -119,9 +144,27 @@ export const LookCard = (props: Props) => {
     if (!id) return;
     router.push(CLIENT_ROUTES.LOOK_BUILDER(id));
   };
+  const handleDeleteGenerated = async () => {
+    openConfirmDialog({
+      title: 'Удалить образ?',
+      description: `Образ ${generated?.look.title ? `${generated.look.title}` : ''}будет удален из галереи.`,
+      onConfirm: async () => {
+        try {
+          if (isSaved) return;
+          if (!savedId) return;
+          const { isDeleted } = await dispatch(deleteLookThunk(savedId)).unwrap();
+          if (!isDeleted) return;
+          setIsSaving(false);
+          setSavedId(null);
+        } catch (error) {
+          console.log(error);
+        }
+      },
+    });
+  };
 
   const savedProps = isSaved ? (props as LookCardSavedProps) : null;
-
+  const saveBtnDisabled = isSaving || !!savedId || clothIdsForSave.length === 0;
   return (
     <article
       id={savedProps?.id}
@@ -140,7 +183,10 @@ export const LookCard = (props: Props) => {
               src={src}
               alt={cloth.title}
               className={styles.flatlayItem}
-              style={ITEM_POSITIONS[index]}
+              style={{
+                ...ITEM_POSITIONS[index],
+                scale: cloth.section === 'top' || cloth.section === 'bottom' ? 1.3 : 1,
+              }}
             />
           );
         })}
@@ -153,7 +199,7 @@ export const LookCard = (props: Props) => {
             onClick={() => savedProps.toggleFav?.(look!.id)}
             aria-label={isFav ? t('lookCard.removeFromFavorites') : t('lookCard.addToFavorites')}
           >
-            {isFav ? <Heart size={16} /> : <HeartPlus size={16} color="#a8896e" />}
+            {isFav ? <Heart size={16} /> : <HeartPlus size={16}  />}
           </button>
         )}
       </div>
@@ -161,7 +207,7 @@ export const LookCard = (props: Props) => {
       <div className={styles.bottom}>
         <div className={styles.meta}>
           <h3 className={styles.title}>{title}</h3>
-          <p className={styles.tag}>{t('lookCard.itemsCount', { count: clothCount })}</p>
+          <p className={styles.tag}>{clothCount} вещей</p>
         </div>
 
         {isSaved ? (
@@ -180,7 +226,7 @@ export const LookCard = (props: Props) => {
               {savedProps?.onDelete && (
                 <button
                   className={clsx(styles.btn, styles.deleteBtn)}
-                  onClick={() => savedProps.onDelete?.(look!.id)}
+                  onClick={() => savedProps.onDelete?.(look!.id, look!)}
                   title={t('lookCard.delete')}
                   type="button"
                 >
@@ -202,14 +248,31 @@ export const LookCard = (props: Props) => {
               <Pencil size={16} />
             </button>
 
-            <button
-              className={clsx(styles.btn, styles.saveTextBtn)}
-              onClick={() => void handleSave()}
-              type="button"
-              disabled={isSaving || !!savedId || clothIdsForSave.length === 0}
-            >
-              {savedId ? t('lookCard.saved') : isSaving ? t('lookCard.saving') : t('lookCard.save')}
-            </button>
+            {!savedId && (
+              <button
+                className={clsx(styles.btn, !saveBtnDisabled && styles.editBtn, styles.saveTextBtn)}
+                onClick={() => void handleSave()}
+                type="button"
+                disabled={saveBtnDisabled}
+                title={isSaving ? t('lookCard.saving') : t('lookCard.save')}
+              >
+                {isSaving ? (
+                  <LoaderCircle className={styles.saveBtnLoadingIcon} size={16} />
+                ) : (
+                  <Save size={16} />
+                )}
+              </button>
+            )}
+            {savedId && (
+              <button
+                className={clsx(styles.btn, styles.deleteBtn)}
+                onClick={handleDeleteGenerated}
+                title={t('lookCard.delete')}
+                type="button"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
           </div>
         )}
       </div>

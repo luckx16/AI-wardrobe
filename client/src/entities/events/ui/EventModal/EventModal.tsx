@@ -10,6 +10,7 @@ import { getAllLooksThunk } from '@/entities/look';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
+import { useToast } from '@/shared/ui';
 import { LookCard } from '@/widgets/LookCard';
 
 import { createEventThunk, updateEventThunk } from '../../api/eventsThunk';
@@ -35,6 +36,7 @@ const customSelectInitial = {
 };
 
 export function EventModal({ initialDate, onClose }: EventModalProps) {
+  const { toast } = useToast();
   const { t } = useTranslation();
   const { addQueryParams, searchParams } = useCustomRouter();
   const editedEventId = searchParams.get(EVENT_MODAL_CONSTANTS.IN_EDIT_MODE_EVENT_ID);
@@ -139,13 +141,18 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
       look_id: form.look_id,
     };
 
-    if (isEditing) {
-      await dispatch(updateEventThunk({ editedEventId: editedEventId, ...eventDataFromClient }));
-    } else {
-      await dispatch(createEventThunk(eventDataFromClient));
+    try {
+      if (isEditing) {
+        await dispatch(updateEventThunk({ editedEventId: editedEventId, ...eventDataFromClient })).unwrap();
+        toast({ variant: 'success', title: 'Событие обновлено' });
+      } else {
+        await dispatch(createEventThunk(eventDataFromClient)).unwrap();
+        toast({ variant: 'success', title: 'Событие создано' });
+      }
+      onClose();
+    } catch {
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось сохранить событие' });
     }
-
-    onClose();
   }
 
   const hadleEventTitleChange = (e: ChangeEvent<HTMLSelectElement, HTMLSelectElement>) => {

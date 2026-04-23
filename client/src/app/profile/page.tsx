@@ -6,7 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/shared/hooks';
 import type { ProfileDto } from '@/shared/lib/profileApi';
 import { getProfile, upsertProfile } from '@/shared/lib/profileApi';
-import { SidebarNav } from '@/shared/ui';
+import { resolveAssetUrl } from '@/shared/lib/uploadApi';
+import { SidebarNav, useToast } from '@/shared/ui';
 
 import styles from './profilePage.module.css';
 import { AppearanceAnalysis } from './ui/AppearanceAnalysis/AppearanceAnalysis';
@@ -90,13 +91,16 @@ function formFromDto(dto: ProfileDto): ProfileFormState {
 
 export default function ProfilePage(): React.JSX.Element {
   const { t } = useTranslation();
-  // Имя берём из стора, но даём редактировать локально (пока без сохранения на сервер).
+  // Имя/возраст берём из стора, но даём редактировать локально и сохранять в БД через /profile.
+  const { toast } = useToast();
   const user = useAppSelector((state) => state.user.user);
   const [displayName, setDisplayName] = useState<string>(user?.name ?? '');
+  const [age, setAge] = useState<string>(user?.age == null ? '' : String(user.age));
 
   useEffect(() => {
     setDisplayName(user?.name ?? '');
-  }, [user?.name]);
+    setAge(user?.age == null ? '' : String(user.age));
+  }, [user?.age, user?.name]);
 
   const [form, setForm] = useState<ProfileFormState>({
     contrast: null,
@@ -136,6 +140,10 @@ export default function ProfilePage(): React.JSX.Element {
         const next = formFromDto(dto);
         setForm(next);
         setLastLoaded(next);
+        if (dto.user) {
+          setDisplayName(dto.user.name ?? '');
+          setAge(dto.user.age == null ? '' : String(dto.user.age));
+        }
       } catch (e) {
         if (cancelled) return;
         // Если профиля нет — это нормальный сценарий (первый вход).
@@ -185,7 +193,15 @@ export default function ProfilePage(): React.JSX.Element {
       <div className={styles.content}>
         <aside className={styles.sidebar}>
           <div className={styles.sidebarHead}>
-            <div className={styles.userAvatar} aria-hidden="true" />
+            {form.portraitPhoto ? (
+              <img
+                className={styles.userAvatar}
+                src={resolveAssetUrl(form.portraitPhoto)}
+                alt=""
+              />
+            ) : (
+              <div className={styles.userAvatar} aria-hidden="true" />
+            )}
             <div>
               <p className={styles.userName}>{displayName || t('profile.userDefault')}</p>
               <p className={styles.userSub}>{t('profile.userSubtitle')}</p>
@@ -212,6 +228,8 @@ export default function ProfilePage(): React.JSX.Element {
               <PersonalData
                 name={displayName}
                 onNameChange={setDisplayName}
+                age={age}
+                onAgeChange={setAge}
                 portraitPhoto={form.portraitPhoto}
                 onPortraitPhotoChange={(next) =>
                   setForm((prev) => ({ ...prev, portraitPhoto: next }))
@@ -288,6 +306,8 @@ export default function ProfilePage(): React.JSX.Element {
                 setError(null);
                 try {
                   const dto = await upsertProfile({
+                    name: displayName.trim() ? displayName.trim() : user.name,
+                    age: numOrNull(age),
                     skin_tone: form.undertone,
                     contrast: form.contrast,
                     portrait_photo: form.portraitPhoto,
@@ -306,8 +326,14 @@ export default function ProfilePage(): React.JSX.Element {
                   const next = formFromDto(dto);
                   setForm(next);
                   setLastLoaded(next);
+                  if (dto.user) {
+                    setDisplayName(dto.user.name ?? displayName);
+                    setAge(dto.user.age == null ? '' : String(dto.user.age));
+                  }
+                  toast({ variant: 'success', title: 'Профиль сохранён' });
                 } catch {
-                  setError(t('profile.errors.saveFailed'));
+                  toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось сохранить профиль' });
+                  setError('Не удалось сохранить профиль');
                 } finally {
                   setIsSaving(false);
                 }

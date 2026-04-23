@@ -2,10 +2,10 @@
 
 import Image from 'next/image';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import clsx from 'clsx';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { ClothingSection, IClothFromDb } from '@/entities/cloth';
 import { useOutfitBuilder } from '@/features/cloth/model/useOutfitBuilder';
@@ -14,7 +14,7 @@ import { getImgSrc } from '@/shared/lib/getImgSrc';
 import styles from './LookBuilder.module.css';
 
 export function LookBuilder({ lookId }: { lookId?: string }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const {
     filledSectionsState,
     activeFilter,
@@ -32,7 +32,6 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
     setLookName,
     message,
     saveLook,
-    looks,
     editedLook,
   } = useOutfitBuilder(lookId);
 
@@ -54,11 +53,10 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
   return (
     <section className={styles.page}>
       <header className={styles.header}>
-        <p className={styles.eyebrow}>{t('lookBuilder.eyebrow')}</p>
-        <h1 className={styles.title}>
+        <h1 className={clsx('pageTitle')}>
           {editedLook ? t('lookBuilder.edit') : t('lookBuilder.build')} {t('lookBuilder.titleTail')}
         </h1>
-        <p className={styles.subtitle}>{t('lookBuilder.subtitle')}</p>
+        <p className={clsx('pageSubtitle')}>{t('lookBuilder.subtitle')}</p>
       </header>
 
       <div className={styles.layout}>
@@ -109,10 +107,11 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                         {item.section}
                       </span>
                     )}
-                    <span className={styles.color} style={{ backgroundColor: item.color }} />
                     <div>
                       <p className={styles.itemName}>{item.title}</p>
-                      <p className={styles.itemMeta}>· {t('lookBuilder.inLooks')}: {usedCount}</p>
+                      <p className={styles.itemMeta}>
+                        {t('lookBuilder.inLooks')}: {usedCount}
+                      </p>
                       <p className={styles.itemDescription}>{item.brand}</p>
                     </div>
                   </div>
@@ -137,7 +136,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
           </div>
 
           <div className={styles.mannequin}>
-            <div className={styles.head} />
+            {/* <div className={styles.head} /> */}
             <div className={styles.body}>
               {sectionsIdsArr.map((sectionId) => {
                 if (sectionId === 'all') return null;
@@ -160,7 +159,10 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                       styles.mannequinSlot,
                       slotClassName,
                       sectionId === 'accessory' && styles.leftSlot,
+                      sectionId === 'headwear' && styles.headwearSlot,
                       sectionId === 'bags' && styles.rightSlot,
+                      sectionId === 'other' && styles.leftBottomSlot,
+                      sectionId === 'shoes' && styles.shoesSlot,
                     )}
                     data-active-drop={activeDropSlot === sectionId}
                     onDragOver={(event) => {
@@ -185,7 +187,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                                   removeClothFromSelected(sectionId, clothOfSection.id)
                                 }
                               >
-                                <X size={16} />
+                                <X size={12} />
                               </button>
                               <Image
                                 src={src}
@@ -227,25 +229,6 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
           </div>
         </section>
       </div>
-
-      <section className={styles.savedSection}>
-        <h2 className={styles.savedTitle}>{t('lookBuilder.savedLooks')}</h2>
-        {looks.length === 0 ? (
-          <p className={styles.savedHint}>{t('lookBuilder.savedEmpty')}</p>
-        ) : (
-          <ul className={styles.savedList}>
-            {looks.map((look) => (
-              <li key={look.id} className={styles.savedCard}>
-                <p className={styles.savedName}>{look.title}</p>
-                <p className={styles.savedMeta}>
-                  {new Date(look.createdAt).toLocaleDateString(i18n.language)} ·{' '}
-                  {t('lookBuilder.itemsCount', { count: look.clothes.length })}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </section>
   );
 }

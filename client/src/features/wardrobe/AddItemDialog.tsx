@@ -5,6 +5,12 @@ import { useTranslation } from 'react-i18next';
 
 import { ImagePlus, Plus, X } from 'lucide-react';
 
+import { axiosInstance } from '@/shared/lib/axiosInstance';
+import { resolveAssetUrl } from '@/shared/lib/uploadApi';
+import { getSeasonLabel } from '@/shared/lib/wardrobeI18n';
+import { useToast } from '@/shared/ui';
+
+
 import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
 import styles from './AddItemDialog.module.css';
 import { createClothesItem } from './api/wardrobeApi';
@@ -43,6 +49,7 @@ interface AddItemDialogProps {
 }
 
 const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
+  const { toast } = useToast();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -88,11 +95,13 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
           season: season,
         },
         imageFile,
-      );      
+      );
 
       onAdd(item);
+      toast({ variant: 'success', title: 'Добавлено', description: `«${name}» добавлено в гардероб` });
     } catch (error) {
       console.error(error);
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось добавить вещь' });
     }
     reset();
     setOpen(false);

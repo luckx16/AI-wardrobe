@@ -3,8 +3,8 @@ const fs = require('fs');
 
 class FileService {
   constructor() {
-    this.uploadDir = path.join(__dirname, '../uploads/profiles');
-    this.baseUrl = process.env.UPLOADS_URL || '/uploads/profiles';
+    this.uploadDir = path.join(__dirname, '../public/uploads/profile');
+    this.baseUrl = process.env.UPLOADS_URL || '/uploads/profile';
     
     // Создаем директорию если не существует
     if (!fs.existsSync(this.uploadDir)) {

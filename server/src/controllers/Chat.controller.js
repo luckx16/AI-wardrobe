@@ -1,77 +1,7 @@
 const { Chat, ChatMessage, Cloth, MessageCloth } = require('../db/models');
+const db = require('../db/models');
 const formatResponse = require('../utils/formatResponse');
-const { compactItem } = require('../utils/stylistPrompt');
-const { generateAiReply } = require('../services/AiChat.service');
-const { generateLook } = require('../services/LookGenerate.service');
 const lookService = require('../services/Look.service');
-
-const HISTORY_LIMIT = 20;
-const WARDROBE_CHAT_LIMIT = 40;
-
-function parseClothIdsFromBody(body) {
-  const raw = body?.clothIds ?? body?.cloth_ids;
-  if (raw == null) return [];
-  if (Array.isArray(raw)) {
-    return [...new Set(raw.map(Number).filter(Number.isFinite))];
-  }
-  if (typeof raw === 'number' && Number.isFinite(raw)) {
-    return [raw];
-  }
-  if (typeof raw === 'string' && raw.trim()) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        return [...new Set(parsed.map(Number).filter(Number.isFinite))];
-      }
-    } catch {
-      // fall through
-    }
-    return [...new Set(raw.split(/[,\s]+/).map(Number).filter(Number.isFinite))];
-  }
-  return [];
-}
-
-async function validateUserClothIds(userId, ids) {
-  if (!ids.length) return [];
-  const rows = await Cloth.findAll({
-    where: {
-      user_id: userId,
-      id: ids,
-      processing_status: 'completed',
-    },
-    attributes: ['id'],
-  });
-  const found = new Set(rows.map((r) => Number(r.id)));
-  return ids.filter((id) => found.has(id));
-}
-
-function clothRowsToSnippet(rows) {
-  return (rows ?? [])
-    .map((c) => {
-      const plain = c && typeof c.toJSON === 'function' ? c.toJSON() : c;
-      return compactItem(plain);
-    })
-    .join('\n');
-}
-
-async function loadWardrobeForChat(userId) {
-  return Cloth.findAll({
-    where: { user_id: userId, processing_status: 'completed' },
-    limit: WARDROBE_CHAT_LIMIT,
-    order: [['updatedAt', 'DESC']],
-    attributes: [
-      'id',
-      'title',
-      'brand',
-      'material',
-      'color',
-      'category',
-      'season',
-      'image',
-      'ai_metadata',
-    ],
-  });
-}
 
 async function loadClothsForMessages(messageIds, userId) {
   if (!messageIds.length) return new Map();
@@ -145,10 +75,6 @@ function toClientMessageBase(message, clothsByMessageId) {
   };
 }
 
-/**
- * Старые сообщения могли хранить полный JSON лука в content.look — отдаём как есть.
- * Новые: только suggested_look_id → подгружаем лук из БД (без дублирования в БД).
- */
 async function toClientMessage(message, userId, lookPayloadsById, clothsByMessageId) {
   const base = toClientMessageBase(message, clothsByMessageId);
   const legacyLook = messageLookPayload(message.content);
@@ -334,204 +260,56 @@ class ChatController {
   }
 
   static async postChatMessage(req, res) {
+    return res
+      .status(410)
+      .json(formatResponse(410, 'This endpoint is deprecated. Use WebSocket /ws/chat', null));
+  }
+
+  static async updateChatMessage(req, res) {
     try {
       const { user } = res.locals;
-      const { chatId } = req.params;
-      const text = String(req.body?.text ?? '').trim();
-      const createLook = Boolean(req.body?.createLook);
-      const useWardrobe = Boolean(req.body?.useWardrobe) || createLook;
-      const weather = req.body?.weather && typeof req.body.weather === 'object' ? req.body.weather : null;
+      const { chatId, messageId } = req.params;
+      const raw = req.body?.suggestedLookId ?? req.body?.suggested_look_id ?? null;
+      const suggestedLookId = raw != null ? Number(raw) : NaN;
 
-      if (!text) {
-        return res.status(400).json(formatResponse(400, 'Text is required', null));
+      if (!Number.isFinite(suggestedLookId) || suggestedLookId <= 0) {
+        return res.status(400).json(formatResponse(400, 'suggestedLookId must be a positive number', null));
       }
 
       const chat = await Chat.findOne({
         where: { id: chatId, user_id: user.id },
+        attributes: ['id'],
       });
-
       if (!chat) {
         return res.status(404).json(formatResponse(404, 'Chat not found', null));
       }
 
-      const requestedIds = parseClothIdsFromBody(req.body);
-      const validatedClothIds = useWardrobe
-        ? await validateUserClothIds(user.id, requestedIds)
-        : [];
-
-      const prevMessagesDesc = await ChatMessage.findAll({
-        where: { chat_id: chatId },
-        order: [['createdAt', 'DESC']],
-        limit: HISTORY_LIMIT - 1,
+      const message = await ChatMessage.findOne({
+        where: { id: messageId, chat_id: chatId },
       });
-
-      const historyMessages = prevMessagesDesc
-        .slice()
-        .reverse()
-        .map((m) => ({
-          role: m.role,
-          content: messageContentToText(m.content),
-        }));
-
-      const userContent = { text };
-      if (validatedClothIds.length) {
-        userContent.attachedClothIds = validatedClothIds;
+      if (!message) {
+        return res.status(404).json(formatResponse(404, 'Message not found', null));
       }
 
-      const userMessage = await ChatMessage.create({
-        chat_id: chatId,
-        role: 'user',
-        content: userContent,
+      const look = await db.Look.findOne({
+        where: { id: suggestedLookId, user_id: user.id },
+        attributes: ['id'],
       });
-
-      if (validatedClothIds.length) {
-        await MessageCloth.bulkCreate(
-          validatedClothIds.map((cloth_id) => ({
-            message_id: userMessage.id,
-            cloth_id,
-          })),
-          { ignoreDuplicates: true },
-        );
+      if (!look) {
+        return res.status(404).json(formatResponse(404, 'Look not found', null));
       }
 
-      let assistantMessage;
-      let generatedLookResult;
+      await message.update({ suggested_look_id: suggestedLookId });
 
-      if (createLook) {
-        generatedLookResult = await generateLook({
-          user_id: user.id,
-          userPrompt: text,
-          attachedClothIds: validatedClothIds,
-          weather,
-        });
-        assistantMessage = await ChatMessage.create({
-          chat_id: chatId,
-          role: 'assistant',
-          suggested_look_id: generatedLookResult.response?.look?.id ?? null,
-          content: {
-            text: 'Образ собран',
-          },
-        });
-        const lookClothIds = (generatedLookResult?.response?.cloths ?? [])
-          .map((c) => Number(c.id))
-          .filter(Number.isFinite);
-        if (lookClothIds.length) {
-          await MessageCloth.bulkCreate(
-            lookClothIds.map((cloth_id) => ({
-              message_id: assistantMessage.id,
-              cloth_id,
-            })),
-            { ignoreDuplicates: true },
-          );
-        }
-      } else if (useWardrobe) {
-        const clothRows = await loadWardrobeForChat(user.id);
-        if (!clothRows.length) {
-          return res.status(400).json(
-            formatResponse(400, 'Wardrobe has no completed items', null),
-          );
-        }
-        const allowedClothIds = clothRows.map((c) => Number(c.id));
-        const wardrobeSnippet = clothRowsToSnippet(clothRows);
-        let attachedSnippet = '';
-        if (validatedClothIds.length) {
-          const attachedRows = await Cloth.findAll({
-            where: {
-              user_id: user.id,
-              id: validatedClothIds,
-              processing_status: 'completed',
-            },
-            attributes: [
-              'id',
-              'title',
-              'brand',
-              'material',
-              'color',
-              'category',
-              'season',
-              'image',
-              'ai_metadata',
-            ],
-          });
-          attachedSnippet = clothRowsToSnippet(attachedRows);
-        }
+      const clothsByMsg = await loadClothsForMessages([message.id], user.id);
+      const lookPayloadsById = await lookService.getLookChatPayloadsByIds([suggestedLookId], user.id);
+      const clientMessage = await toClientMessage(message, user.id, lookPayloadsById, clothsByMsg);
 
-        const aiResult = await generateAiReply({
-          userId: user.id,
-          userName: user.name ?? 'User',
-          text,
-          historyMessages,
-          weather,
-          wardrobeOptions: {
-            wardrobeSnippet,
-            allowedClothIds,
-            attachedSnippet,
-          },
-        });
-
-        assistantMessage = await ChatMessage.create({
-          chat_id: chatId,
-          role: 'assistant',
-          content: {
-            text: aiResult.replyText ?? '...',
-            imagePrompt: aiResult.imagePrompt ?? null,
-          },
-        });
-
-        const refIds = Array.isArray(aiResult.referencedClothIds) ? aiResult.referencedClothIds : [];
-        if (refIds.length) {
-          await MessageCloth.bulkCreate(
-            refIds.map((cloth_id) => ({
-              message_id: assistantMessage.id,
-              cloth_id,
-            })),
-            { ignoreDuplicates: true },
-          );
-        }
-      } else {
-        const aiResult = await generateAiReply({
-          userId: user.id,
-          userName: user.name ?? 'User',
-          text,
-          historyMessages,
-          weather,
-        });
-
-        assistantMessage = await ChatMessage.create({
-          chat_id: chatId,
-          role: 'assistant',
-          content: {
-            text: aiResult.replyText ?? '...',
-            imagePrompt: aiResult.imagePrompt ?? null,
-          },
-        });
-      }
-
-      await chat.update({ updatedAt: new Date() });
-
-      const lookPayloadMap = new Map();
-      if (createLook && generatedLookResult?.response?.look?.id) {
-        lookPayloadMap.set(String(generatedLookResult.response.look.id), generatedLookResult.response);
-      }
-
-      const clothsByMsg = await loadClothsForMessages([userMessage.id, assistantMessage.id], user.id);
-
-      const [userClient, assistantClient] = await Promise.all([
-        toClientMessage(userMessage, user.id, lookPayloadMap, clothsByMsg),
-        toClientMessage(assistantMessage, user.id, lookPayloadMap, clothsByMsg),
-      ]);
-
-      return res.status(201).json(
-        formatResponse(201, 'Message generated', {
-          chatId: chat.id.toString(),
-          userMessage: userClient,
-          assistantMessage: assistantClient,
-        }),
-      );
+      return res.json(formatResponse(200, 'Message updated', clientMessage));
     } catch (error) {
       return res
         .status(500)
-        .json(formatResponse(500, 'Failed to send message', null, error?.message ?? error));
+        .json(formatResponse(500, 'Failed to update message', null, error?.message ?? error));
     }
   }
 }

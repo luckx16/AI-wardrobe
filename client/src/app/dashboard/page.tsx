@@ -1,134 +1,143 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+
+import clsx from 'clsx';
+import { Eye, Palette, Shirt, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Eye, Palette, Shirt, TrendingUp } from 'lucide-react';
-
+import {
+  DashboardNumbersResponse,
+  DashboardSectionsResponse,
+  loadDashboardNumbersApi,
+  loadDashboardSectionsApi,
+} from '@/entities/dashboard';
+import { EVENT_MODAL_CONSTANTS, IEvent } from '@/entities/events';
+import { getAllEventsThunk } from '@/entities/events/api/eventsThunk';
+import type { GeneratedLook } from '@/entities/look';
+import { generateLookPreview } from '@/entities/look/api/lookApi';
+import { fetchWeatherApi } from '@/entities/weather';
+import type { WeatherByCoordsResponse } from '@/entities/weather/model/types';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
-import { USER_API_ROUTES } from '@/shared/constants/userApiRoutes';
-import { axiosInstance } from '@/shared/lib/axiosInstance';
+import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 import { USER_LOCATION_UPDATED_EVENT, userLocationStorage } from '@/shared/lib/userLocation';
-import type { ServerResponseType } from '@/shared/types';
 import { StatsCard } from '@/shared/ui';
 import { CalendarPlans, OutfitOfTheDay } from '@/widgets';
 import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
 
 import styles from './dashboard.module.css';
 
-
-type WeatherByCoordsResponse = {
-  temperature: string;
-  description: string;
-  feels_like: string;
-  location?: string;
-};
-
+function buildOutfitOfTheDayPrompt(weather: WeatherByCoordsResponse | null) {
+  const parts = [
+    'Собери «образ дня» на сегодня из моего гардероба.',
+    'Он должен быть универсальным для города: комфортный, современный, без крайностей.',
+    'Учитывай погоду и подбери слои/материалы/обувь соответственно.',
+    weather
+      ? `Погода сейчас: ${weather.temperature}°C (ощущается как ${weather.feels_like}°C), ${weather.description}${
+          weather.location ? `, ${weather.location}` : ''
+        }.`
+      : null,
+    'Верни гармоничный комплект и обязательно добавь обувь и верхний слой, если это уместно по погоде.',
+  ].filter(Boolean);
+  return parts.join('\n');
+}
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const router = useRouter();
+  const { router, addQueryParams } = useCustomRouter();
   const [weatherText, setWeatherText] = useState<string>(t('dashboard.weather.undefined'));
   const [weatherTip, setWeatherTip] = useState<string>(t('dashboard.weather.tipDefault'));
+  const [weatherData, setWeatherData] = useState<WeatherByCoordsResponse | null>(null);
+  const [outfitGenerated, setOutfitGenerated] = useState<GeneratedLook | null>(null);
+  const [outfitExplanation, setOutfitExplanation] = useState<string | null>(null);
+  const [outfitGenerating, setOutfitGenerating] = useState(false);
 
-  const statsData = useMemo(
-    () => [
-      {
-        title: t('dashboard.stats.totalItems.title'),
-        value: 69,
-        icon: Shirt,
-        subtitle: t('dashboard.stats.totalItems.subtitle'),
-        trend: { value: 5, label: t('dashboard.stats.totalItems.trend') },
-      },
-      {
-        title: t('dashboard.stats.looks.title'),
-        value: 12,
-        icon: Palette,
-        subtitle: t('dashboard.stats.looks.subtitle'),
-        trend: { value: 20, label: t('dashboard.stats.looks.trend') },
-      },
-      { title: t('dashboard.stats.worn.title'), value: 43, icon: Eye, subtitle: t('dashboard.stats.worn.subtitle') },
-      {
-        title: t('dashboard.stats.notWorn.title'),
-        value: 26,
-        icon: TrendingUp,
-        subtitle: t('dashboard.stats.notWorn.subtitle'),
-        trend: { value: -8, label: t('dashboard.stats.notWorn.trend') },
-      },
-    ],
-    [t],
-  );
-
+  /*
+   */
+  const [categories, setCategories] = useState<DashboardSectionsResponse>([]);
+  const [dashboardNumbers, setDashboardNumbers] = useState<DashboardNumbersResponse>({
+    clothesNumber: 0,
+    looksNumber: 0,
+    wornLast30Days: 0,
+    notWornMoreThan30Days: 0,
+    clothesTrend: { value: 0, label: 'к предыдущим 30 дням' },
+    looksTrend: { value: 0, label: 'к предыдущим 30 дням' },
+    wornTrend: { value: 0, label: 'к предыдущим 30 дням' },
+    notWornTrend: { value: 0, label: 'к предыдущим 30 дням' },
+  });
   const navigateToEventsPageHandler = () => {
     router.push(CLIENT_ROUTES.EVENTS);
   };
+  const navigateToEventEditingEventsPageHandler = (event: IEvent) => {
+    const { id, title, date, activity_type, look_id } = event;
+    addQueryParams(
+      {
+        title,
+        date: date.slice(0, 10),
+        activity_type,
+        look_id,
+        [EVENT_MODAL_CONSTANTS.IS_OPEN]: 'true',
+        [EVENT_MODAL_CONSTANTS.IN_EDIT_MODE_EVENT_ID]: id,
+      },
+      CLIENT_ROUTES.EVENTS,
+    );
+  };
+  const navigateToEventsWithCreateModal = () => {
+    addQueryParams(
+      {
+        [EVENT_MODAL_CONSTANTS.IS_OPEN]: 'true',
+      },
+      CLIENT_ROUTES.EVENTS,
+    );
+  };
 
   useEffect(() => {
-    const fetchWeatherByCoords = async (
-      lat: number,
-      lon: number,
-    ): Promise<WeatherByCoordsResponse | null> => {
-      try {
-        const { data } = await axiosInstance.get<ServerResponseType<WeatherByCoordsResponse>>(
-          USER_API_ROUTES.WEATHER_BY_COORDS,
-          {
-            params: { lat, lon },
-          },
-        );
-        return data.data ?? null;
-      } catch {
-        return null;
-      }
-    };
-
-    const fetchWeatherByCity = async (city: string): Promise<WeatherByCoordsResponse | null> => {
-      try {
-        const { data } = await axiosInstance.get<ServerResponseType<WeatherByCoordsResponse>>(
-          USER_API_ROUTES.WEATHER,
-          {
-            params: { city },
-          },
-        );
-        return data.data ?? null;
-      } catch {
-        return null;
-      }
-    };
-
-    const loadWeather = async () => {
+    const loadWeatherData = async () => {
       const coords = userLocationStorage.getCoords();
       const city = userLocationStorage.getCity();
 
-      const weatherData =
-        (coords ? await fetchWeatherByCoords(coords.lat, coords.lon) : null) ||
-        (city ? await fetchWeatherByCity(city) : null);
-
-      if (!weatherData) {
-        if (!coords && !city) {
-          setWeatherText(t('dashboard.weather.enterCity'));
-          setWeatherTip(t('dashboard.weather.headerHint'));
-          return;
-        }
-
-        setWeatherText(t('dashboard.weather.loadFailed'));
-        setWeatherTip(t('dashboard.weather.tryAgain'));
+      if (!coords && !city) {
+        setWeatherText(t('dashboard.weather.enterCity'));
+        setWeatherTip(t('dashboard.weather.headerHint'));
+        setWeatherData(null);
         return;
       }
 
-      try {
-        const weatherLine = `${weatherData.temperature}°C, ${weatherData.description}`;
-        setWeatherText(weatherLine);
-        setWeatherTip(t('dashboard.weather.feelsLike', { value: weatherData.feels_like }));
-      } catch {
+      const weatherData = await fetchWeatherApi(coords ?? city ?? undefined);
+
+      if (!weatherData) {
         setWeatherText(t('dashboard.weather.loadFailed'));
         setWeatherTip(t('dashboard.weather.tryAgain'));
+        setWeatherData(null);
+        return;
+      }
+
+      const weatherLine = `${weatherData.temperature}°C, ${weatherData.description}`;
+      setWeatherText(weatherLine);
+      setWeatherTip(t('dashboard.weather.feelsLike', { value: weatherData.feels_like }));
+      setWeatherData(weatherData);
+    };
+
+    const loadDashboardData = async () => {
+      const [dashboardNumbers, dashboardSections] = await Promise.all([
+        loadDashboardNumbersApi(),
+        loadDashboardSectionsApi(),
+      ]);
+
+      if (dashboardNumbers) {
+        setDashboardNumbers(dashboardNumbers);
+      }
+      if (dashboardSections) {
+        setCategories(dashboardSections);
       }
     };
-    void loadWeather();
+
+    loadWeatherData();
+    loadDashboardData();
 
     const onUserLocationUpdated = () => {
-      void loadWeather();
+      loadWeatherData();
     };
 
     window.addEventListener(USER_LOCATION_UPDATED_EVENT, onUserLocationUpdated);
@@ -138,100 +147,131 @@ export default function DashboardPage() {
     };
   }, [t]);
 
-  const outfitWithWeather = useMemo(
-    () => ({
-      items: [
-        { id: 12, name: t('dashboard.outfit.items.jeans'), category: t('dashboard.categories.items.bottom'), emoji: '👖' },
-        { id: 45, name: t('dashboard.outfit.items.hoodie'), category: t('dashboard.categories.items.top'), emoji: '🧥' },
-        {
-          id: 7,
-          name: t('dashboard.outfit.items.trench'),
-          category: t('dashboard.categories.items.outerwear'),
-          emoji: '🧥',
-        },
-        { id: 23, name: t('dashboard.outfit.items.sneakers'), category: t('dashboard.categories.items.shoes'), emoji: '👟' },
-      ],
-      weather: weatherText,
-      tip: weatherTip,
-    }),
-    [t, weatherText, weatherTip],
-  );
+  const { user } = useAppSelector((s) => s.user);
 
-  const plans = useMemo(
+  const refreshOutfitOfTheDay = async () => {
+    if (!user?.id || outfitGenerating) return;
+    setOutfitGenerating(true);
+    try {
+      const prompt = buildOutfitOfTheDayPrompt(weatherData);
+      const generated = await generateLookPreview({
+        userId: Number(user.id),
+        userPrompt: prompt,
+        weather: weatherData,
+      });
+      console.log('generated', generated);
+
+      setOutfitGenerated(generated ?? null);
+      const exp =
+        (generated?.comment?.trim() ? generated.comment.trim() : null) ??
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (typeof (generated?.look?.metadata as any)?.why === 'string'
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            String((generated?.look?.metadata as any).why).trim()
+          : null);
+      setOutfitExplanation(exp && String(exp).trim() ? String(exp).trim() : null);
+    } catch (e) {
+      console.error('Failed to generate outfit of the day', e);
+      setOutfitGenerated(null);
+      setOutfitExplanation(null);
+    } finally {
+      setOutfitGenerating(false);
+    }
+  };
+
+  // Генерируем «образ дня» при первой успешной загрузке погоды (и при её изменении).
+  useEffect(() => {
+    if (!user?.id) return;
+    if (!weatherData) return;
+    void refreshOutfitOfTheDay();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    user?.id,
+    weatherData?.temperature,
+    weatherData?.description,
+    weatherData?.feels_like,
+    weatherData?.location,
+  ]);
+
+  const { events } = useAppSelector((s) => s.events);
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(getAllEventsThunk());
+  }, [dispatch]);
+
+  console.log('events', events);
+
+  const statsData = useMemo(
     () => [
       {
-        id: 1,
-        date: t('dashboard.plans.items.today.date'),
-        title: t('dashboard.plans.items.today.title'),
-        outfit: t('dashboard.plans.items.today.outfit'),
-        color: '#8a6a4a',
+        title: 'Всего вещей',
+        value: dashboardNumbers.clothesNumber,
+        icon: Shirt,
+        subtitle: 'в гардеробе',
+        trend: dashboardNumbers.clothesTrend,
       },
       {
-        id: 2,
-        date: t('dashboard.plans.items.tomorrow.date'),
-        title: t('dashboard.plans.items.tomorrow.title'),
-        outfit: t('dashboard.plans.items.tomorrow.outfit'),
-        color: '#10b981',
+        title: 'Образов',
+        value: dashboardNumbers.looksNumber,
+        icon: Palette,
+        subtitle: 'сохранено',
+        trend: dashboardNumbers.looksTrend,
       },
       {
-        id: 3,
-        date: t('dashboard.plans.items.upcomingOne.date'),
-        title: t('dashboard.plans.items.upcomingOne.title'),
-        outfit: t('dashboard.plans.items.upcomingOne.outfit'),
-        color: '#f59e0b',
+        title: 'Носилось',
+        value: dashboardNumbers.wornLast30Days,
+        icon: Eye,
+        subtitle: 'за 30 дней',
+        trend: dashboardNumbers.wornTrend,
       },
       {
-        id: 4,
-        date: t('dashboard.plans.items.upcomingTwo.date'),
-        title: t('dashboard.plans.items.upcomingTwo.title'),
-        outfit: t('dashboard.plans.items.upcomingTwo.outfit'),
-        color: '#f43f5e',
+        title: 'Не носилось',
+        value: dashboardNumbers.notWornMoreThan30Days,
+        icon: TrendingUp,
+        subtitle: 'более 60 дней',
+        trend: dashboardNumbers.notWornTrend,
       },
     ],
-    [t],
+    [dashboardNumbers],
   );
-
-  const categories = useMemo(
-    () => [
-      { name: t('dashboard.categories.items.top'), count: 24, percentage: 35, emoji: '👕' },
-      { name: t('dashboard.categories.items.bottom'), count: 16, percentage: 23, emoji: '👖' },
-      { name: t('dashboard.categories.items.shoes'), count: 12, percentage: 17, emoji: '👟' },
-      { name: t('dashboard.categories.items.outerwear'), count: 8, percentage: 12, emoji: '🧥' },
-      { name: t('dashboard.categories.items.accessories'), count: 9, percentage: 13, emoji: '🎒' },
-    ],
-    [t],
-  );
+  console.log('outfitGenerated', outfitGenerated);
 
   return (
     <div className={styles.page}>
-      <main className={styles.main}>
-        <div className={styles.welcome}>
-          <h2 className={styles.welcomeTitle}>{t('dashboard.welcomeTitle')} 👋</h2>
-          <p className={styles.welcomeSubtitle}>{t('dashboard.welcomeSubtitle')}</p>
-        </div>
+      <div className={styles.welcome}>
+        <h1 className={clsx('pageTitle')}>{t('dashboard.welcomeTitle')} 👋</h1>
+        <p className={clsx('pageSubtitle')}>{t('dashboard.welcomeSubtitle')}</p>
+      </div>
 
-        <div className={styles.statsGrid}>
-          {statsData.map((stat) => (
-            <StatsCard key={stat.title} {...stat} />
-          ))}
-        </div>
+      <div className={styles.statsGrid}>
+        {statsData.map((stat) => (
+          <StatsCard key={stat.title} {...stat} />
+        ))}
+      </div>
 
-        <div className={styles.widgetsGrid}>
-          <div className={styles.widgetItem}>
-            <OutfitOfTheDay outfit={outfitWithWeather} />
-          </div>
-          <div className={styles.widgetItem}>
-            <CalendarPlans
-              plans={plans}
-              onAllPlans={navigateToEventsPageHandler}
-              onPlanClick={navigateToEventsPageHandler}
-            />
-          </div>
-          <div className={styles.widgetItem}>
-            <CategoryBreakdown categories={categories} />
-          </div>
+      <div className={styles.widgetsGrid}>
+        <div className={styles.widgetItem}>
+          <OutfitOfTheDay
+            generated={outfitGenerated}
+            weather={weatherText}
+            tip={weatherTip}
+            explanation={outfitExplanation}
+            isLoading={outfitGenerating}
+            onRefresh={refreshOutfitOfTheDay}
+          />
         </div>
-      </main>
+        <div className={styles.widgetItem}>
+          <CalendarPlans
+            plans={events}
+            onAllPlans={navigateToEventsPageHandler}
+            onCreatePlan={navigateToEventsWithCreateModal}
+            onPlanClick={navigateToEventEditingEventsPageHandler}
+          />
+        </div>
+        <div className={styles.widgetItem}>
+          <CategoryBreakdown categories={categories} />
+        </div>
+      </div>
     </div>
   );
 }

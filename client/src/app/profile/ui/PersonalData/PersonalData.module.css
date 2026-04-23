@@ -11,10 +11,10 @@
 }
 
 .infoCard {
-  border: 1px solid var(--border, #e8e5e0);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 1rem;
-  background: rgba(245, 244, 242, 0.35);
+  background: var(--surface-elevated);
   min-height: 190px;
 }
 
@@ -23,11 +23,11 @@
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted, #737373);
+  color: var(--muted);
 }
 
 .field {
-  border-top: 1px solid rgba(232, 229, 224, 0.85);
+  border-top: 1px solid var(--border);
   padding-top: 0.75rem;
   margin-top: 0.75rem;
 }
@@ -43,10 +43,10 @@
 }
 
 .photoDrop {
-  border: 1px dashed #d1ccc5;
-  border-radius: 10px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
   padding: 1rem;
-  background: rgba(245, 244, 242, 0.18);
+  background: var(--input);
   min-height: 190px;
   display: grid;
   align-content: center;
@@ -61,13 +61,13 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-size: 0.76rem;
-  color: var(--foreground, #111111);
+  color: var(--foreground);
 }
 
 .photoHint {
   margin: 0;
   max-width: 22rem;
-  color: var(--muted, #737373);
+  color: var(--muted);
   font-size: 0.84rem;
   line-height: 1.45;
 }
@@ -78,9 +78,9 @@
   justify-content: center;
   padding: 0.45rem 0.75rem;
   border-radius: 999px;
-  border: 1px solid var(--border, #e8e5e0);
-  background: var(--surface, #ffffff);
-  color: var(--foreground, #111111);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-elevated);
+  color: var(--foreground);
   cursor: pointer;
   font-size: 0.78rem;
   letter-spacing: 0.06em;
@@ -90,12 +90,12 @@
 }
 
 .fileLabel:hover {
-  border-color: #c0bbb4;
+  border-color: var(--accent);
   transform: translateY(-1px);
 }
 
 .fileLabel:focus-visible {
-  outline: 2px solid var(--accent, #b09070);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -115,8 +115,8 @@
   width: min(220px, 100%);
   aspect-ratio: 1 / 1;
   object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid rgba(232, 229, 224, 0.9);
-  background: rgba(245, 244, 242, 0.35);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-elevated);
 }
 

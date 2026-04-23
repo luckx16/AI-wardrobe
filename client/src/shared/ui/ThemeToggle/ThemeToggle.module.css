@@ -1,0 +1,64 @@
+/* ─── Theme toggle pill ─── */
+.toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 2.6rem;
+  height: 1.4rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-elevated);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+  padding: 0;
+  outline: none;
+}
+
+.toggle:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-dim);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Sliding knob */
+.knob {
+  position: absolute;
+  left: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transition:
+    left var(--transition-base),
+    background var(--transition-base),
+    transform var(--transition-base);
+  color: var(--accent-foreground);
+}
+
+.toggle[data-theme-state='light'] .knob {
+  left: calc(100% - 1rem - 3px);
+  background: var(--accent);
+}
+
+.toggle:hover .knob {
+  transform: scale(1.1);
+}
+
+/* Icons inside knob */
+.icon {
+  width: 0.6rem;
+  height: 0.6rem;
+  flex-shrink: 0;
+}

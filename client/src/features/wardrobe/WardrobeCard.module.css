@@ -1,8 +1,10 @@
 .card {
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 0.125rem);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
   opacity: 0;
   transform: translateY(0);
   animation: fadeIn 0.4s ease forwards;
@@ -140,4 +142,32 @@
 
 .delete:hover {
   background: var(--destructive);
+}
+
+.edit {
+  position: absolute;
+  top: 0.5rem;
+  right: 2.5rem;
+  z-index: 10;
+  padding: 0.375rem;
+  border-radius: 9999px;
+  border: none;
+  background: hsl(from var(--foreground) h s l / 0.6);
+  color: var(--background);
+  opacity: 0;
+  transition:
+    opacity 0.2s,
+    background 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit:hover {
+  background: var(--destructive);
+}
+
+.card:hover .edit {
+  opacity: 1;
 }

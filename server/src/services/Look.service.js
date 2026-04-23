@@ -1,5 +1,25 @@
 const { Look, LookCloth, Cloth } = require('../db/models');
 
+function normalizeClothIds(clothIds = []) {
+  return [...new Set((clothIds || []).map((id) => Number(id)).filter((n) => Number.isFinite(n) && n > 0))];
+}
+
+function getDateOnly(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+async function updateWornAtForCloths(clothIds, wornAt = new Date()) {
+  const normalizedIds = normalizeClothIds(clothIds);
+  if (!normalizedIds.length) return;
+
+  await Cloth.update(
+    { worn_at: getDateOnly(wornAt) },
+    {
+      where: { id: normalizedIds },
+    },
+  );
+}
+
 const CHAT_CLOTH_ATTRIBUTES = [
   'id',
   'title',
@@ -138,12 +158,15 @@ class LookService {
   async create(userId, data) {
     const look = await Look.create({ user_id: userId, ...data });
 
-    if (data.cloth_ids && Array.isArray(data.cloth_ids)) {
-      const lookCloths = data.cloth_ids.map((cloth_id) => ({
+    const clothIds = normalizeClothIds(data.cloth_ids);
+
+    if (clothIds.length) {
+      const lookCloths = clothIds.map((cloth_id) => ({
         look_id: look.id,
         cloth_id,
       }));
       await LookCloth.bulkCreate(lookCloths);
+      await updateWornAtForCloths(clothIds);
     }
 
     return this.findById(look.id, userId);
@@ -158,14 +181,17 @@ class LookService {
     await look.update({ title: data.title });
 
     if (data.cloth_ids !== undefined) {
+      const clothIds = normalizeClothIds(data.cloth_ids);
+
       await LookCloth.destroy({ where: { look_id: id } });
 
-      if (Array.isArray(data.cloth_ids) && data.cloth_ids.length > 0) {
-        const lookCloths = data.cloth_ids.map((cloth_id) => ({
+      if (clothIds.length > 0) {
+        const lookCloths = clothIds.map((cloth_id) => ({
           look_id: id,
           cloth_id,
         }));
         await LookCloth.bulkCreate(lookCloths);
+        await updateWornAtForCloths(clothIds);
       }
     }
 
@@ -202,6 +228,8 @@ class LookService {
       where: { look_id: lookId, cloth_id: clothId },
     });
 
+    await updateWornAtForCloths([clothId]);
+
     return this.findById(lookId, userId);
   }
 
@@ -217,6 +245,23 @@ class LookService {
 
     return this.findById(lookId, userId);
   }
+
+  /**
+   * Считает количество луков
+   */
+  async looksNumber(userId) {
+    try {
+      const looksCount = await Look.count({
+        where: { user_id: userId },
+      });
+
+      return looksCount;
+    } catch (err) {
+      console.error('Looks count error:', err.message);
+      throw err;
+    }
+  }
+
 }
 
 module.exports = new LookService();

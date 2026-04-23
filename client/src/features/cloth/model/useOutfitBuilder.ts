@@ -12,6 +12,7 @@ import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 import { makeUniqueTitle } from '@/shared/lib/makeUniqueTitle';
+import { useToast } from '@/shared/ui';
 
 const INITIAL_FILLEDSECTIONS_STATE: Record<ClothingSection, Set<string>> = {
   headwear: new Set(),
@@ -28,9 +29,12 @@ const REQUIRED_SECTIONS = ['top', 'shoes'] satisfies ClothingSection[];
 export const useOutfitBuilder = (editedLookId: string | undefined) => {
   const { t } = useTranslation();
   const { router, addQueryParams, deleteQueryParams } = useCustomRouter();
+  const { toast } = useToast();
+
   const getSectionLabel = (sectionId: ClothingSection) => {
     return t(`lookBuilder.sections.${sectionId}`);
   };
+
 
   const [filledSectionsState, setFilledSectionsState] = useState<
     Record<ClothingSection, Set<string>>
@@ -216,8 +220,9 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
 
       setLookName('');
       setIsLookNameDirty(false);
-      setMessage(t('lookBuilder.success.saved'));
+      setMessage(null);
       setFilledSectionsState(INITIAL_FILLEDSECTIONS_STATE);
+      toast({ variant: 'success', title: 'Образ сохранён' });
 
       // передаем в query-params id созданного лука и перенаправляем обратно на events
       if (searchParams.has('date') && searchParams.has('look_id')) {
@@ -232,7 +237,8 @@ export const useOutfitBuilder = (editedLookId: string | undefined) => {
       router.push(CLIENT_ROUTES.LOOK_BUILDER());
     } catch (error) {
       console.error('Failed to save look', error);
-      setMessage(t('lookBuilder.errors.saveFailed'));
+      setMessage(null);
+      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось сохранить образ' });
     }
   };
 
