@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useTranslation } from 'react-i18next';
 
+import { useConfirm } from '@/shared/hooks/useConfirmContext';
 import { PageLoader, useToast } from '@/shared/ui';
 
 import AddItemDialog from '../../features/wardrobe/AddItemDialog';
@@ -19,7 +20,7 @@ import WardrobeToolbar from '../../features/wardrobe/WardrobeToolbar';
 import { type Category, type Season, type WardrobeItem } from './types';
 import styles from './WardrobePage.module.css';
 
-type SortField = 'title' | 'season' | 'createdAt' | 'category';
+type SortDirection = 'asc' | 'desc';
 
 const categoryAliasToSection: Record<string, Category> = {
   футболка: 'top',
@@ -98,7 +99,7 @@ const WardrobePage = () => {
   const { t } = useTranslation();
   const [items, setItems] = useState<WardrobeItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<SortField>('title');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [filterSeason, setFilterSeason] = useState<Season | 'all'>('all');
   const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all');
   const [selectedItem, setSelectedItem] = useState<WardrobeItem | null>(null);
@@ -159,20 +160,31 @@ const WardrobePage = () => {
   const handleAddItem = useCallback((item: WardrobeItem) => {
     setItems((prev) => [item, ...prev]);
   }, []);
+  const { openConfirmDialog } = useConfirm();
 
   const handleDeleteItem = useCallback(
-    async (id: string) => {
-      try {
-        await removeClothesItem(id);
+    async (itemForDelete: WardrobeItem) => {
+      openConfirmDialog({
+        title: 'Удалить позицию?',
+        description: `${itemForDelete.title} ${itemForDelete.brand} будет удалена из вашего гардероба.`,
+        onConfirm: async () => {
+          try {
+            await removeClothesItem(itemForDelete.id);
 
-        setItems((prev) => prev.filter((item) => item.id !== id));
-        toast({ variant: 'success', title: 'Удалено', description: 'Вещь удалена из гардероба' });
-      } catch (e) {
-        console.error(e);
-        toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить вещь' });
-      }
+            setItems((prev) => prev.filter((item) => item.id !== itemForDelete.id));
+            toast({
+              variant: 'success',
+              title: 'Удалено',
+              description: 'Вещь удалена из гардероба',
+            });
+          } catch (e) {
+            console.error(e);
+            toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить вещь' });
+          }
+        },
+      });
     },
-    [toast],
+    [openConfirmDialog, toast],
   );
 
   const handleEditItem = useCallback(
@@ -218,22 +230,21 @@ const WardrobePage = () => {
       result = result.filter((i) => normalizeItemCategory(i) === filterCategory);
     }
 
-    result.sort((a: WardrobeItem, b: WardrobeItem) => {
-      if (sortBy === 'title') return a.title.localeCompare(b.title, 'ru');
-      if (sortBy === 'season') return a.season.localeCompare(b.season, 'ru');
-      if (sortBy === 'category') return a.category.localeCompare(b.category, 'ru');
-      if (sortBy === 'createdAt') return a.createdAt.localeCompare(b.createdAt, 'ru');
-      return 0;
+    const sorted = [...result].sort((a: WardrobeItem, b: WardrobeItem) => {
+      // Сортируем по id (новые = больший id)
+      const idA = Number(a.id);
+      const idB = Number(b.id);
+      return sortDirection === 'asc' ? idA - idB : idB - idA;
     });
 
-    return result;
-  }, [items, sortBy, filterSeason, filterCategory]);
+    return sorted;
+  }, [items, sortDirection, filterSeason, filterCategory]);
 
   return (
     <div className={styles.page}>
       <WardrobeToolbar
-        sortBy={sortBy}
-        onSortChange={setSortBy}
+        sortDirection={sortDirection}
+        onSortDirectionChange={setSortDirection}
         filterSeason={filterSeason}
         onFilterSeasonChange={setFilterSeason}
         filterCategory={filterCategory}

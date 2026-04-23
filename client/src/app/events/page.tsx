@@ -10,6 +10,7 @@ import { EVENT_MODAL_CONSTANTS, toDateStr } from '@/entities/events';
 import { deleteEventThunk, getAllEventsThunk } from '@/entities/events/api/eventsThunk';
 import { EventDataFromClient, IEvent } from '@/entities/events/model/types';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+import { useConfirm } from '@/shared/hooks/useConfirmContext';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 import { useToast } from '@/shared/ui';
 
@@ -54,14 +55,21 @@ export default function EventsPage() {
   }, [events]);
 
   const eventsOfSelectedDateArr = eventsByDateObj[selectedDate] ?? [];
+  const { openConfirmDialog } = useConfirm();
 
-  const deleteEventHandler = async (eventId: string) => {
-    try {
-      await dispatch(deleteEventThunk(eventId)).unwrap();
-      toast({ variant: 'success', title: 'Событие удалено' });
-    } catch {
-      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить событие' });
-    }
+  const deleteEventHandler = async (event: IEvent) => {
+    openConfirmDialog({
+      title: 'Удалить событие?',
+      description: `Событие ${event.title} будет удалено из календаря.`,
+      onConfirm: async () => {
+        try {
+          await dispatch(deleteEventThunk(event.id)).unwrap();
+          toast({ variant: 'success', title: 'Событие удалено' });
+        } catch {
+          toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить событие' });
+        }
+      },
+    });
   };
 
   const openUpdateModalHandler = ({ id, title, activity_type, date, look_id }: IEvent) => {

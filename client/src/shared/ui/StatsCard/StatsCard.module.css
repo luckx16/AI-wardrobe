@@ -1,13 +1,18 @@
 .card {
-  border: 1px solid var(--border, #e8e5e0);
-  border-radius: 8px;
-  background: var(--surface, #ffffff);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
   padding: 1.25rem;
-  transition: box-shadow 0.2s ease;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    transform var(--transition-base);
 }
 
 .card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-glow), var(--shadow-sm);
+  transform: translateY(-1px);
 }
 
 .top {
@@ -25,40 +30,47 @@
 
 .title {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  color: var(--muted, #737373);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
 }
 
 .value {
   margin: 0;
   font-size: 1.75rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--foreground, #111111);
+  letter-spacing: -0.03em;
+  color: var(--foreground);
   line-height: 1.1;
 }
 
 .subtitle {
   margin: 0;
   font-size: 0.72rem;
-  color: var(--muted, #737373);
+  color: var(--muted);
 }
 
 .iconWrap {
   flex-shrink: 0;
-  border-radius: 6px;
-  background: rgba(138, 106, 74, 0.08);
+  border-radius: var(--radius-sm);
+  background: var(--accent-dim);
   padding: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background var(--transition-base);
+}
+
+.card:hover .iconWrap {
+  background: rgba(200, 168, 128, 0.18);
 }
 
 .icon {
   width: 1.1rem;
   height: 1.1rem;
-  color: var(--accent-bright, #8a6a4a);
+  color: var(--accent);
 }
 
 .trend {
@@ -66,19 +78,19 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
 }
 
 .trendPositive {
   font-weight: 600;
-  color: var(--success, #2a8f68);
+  color: var(--success);
 }
 
 .trendNegative {
   font-weight: 600;
-  color: var(--danger, #c83246);
+  color: var(--danger);
 }
 
 .trendLabel {
-  color: var(--muted, #737373);
+  color: var(--muted);
 }

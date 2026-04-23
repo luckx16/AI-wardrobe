@@ -4,10 +4,10 @@
 }
 
 .note {
-  border: 1px solid var(--border, #e8e5e0);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 0.85rem 0.95rem;
-  background: rgba(245, 244, 242, 0.35);
+  background: var(--surface-elevated);
 }
 
 .noteTitle {
@@ -15,7 +15,7 @@
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted, #737373);
+  color: var(--muted);
 }
 
 .grid {
@@ -31,10 +31,10 @@
 }
 
 .group {
-  border: 1px solid var(--border, #e8e5e0);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 0.85rem 0.95rem;
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--surface-elevated);
 }
 
 .bad {
@@ -47,7 +47,7 @@
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted, #737373);
+  color: var(--muted);
 }
 
 .addRow {
@@ -73,11 +73,11 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.45rem 0.6rem;
-  border: 1px solid rgba(232, 229, 224, 0.9);
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
-  background: rgba(245, 244, 242, 0.5);
+  background: var(--surface);
   font-size: 0.82rem;
-  color: var(--foreground, #111111);
+  color: var(--foreground);
   max-width: 100%;
 }
 
@@ -91,7 +91,7 @@
 .chipRemove {
   border: 0;
   background: transparent;
-  color: var(--muted, #737373);
+  color: var(--muted);
   cursor: pointer;
   line-height: 1;
   font-size: 1rem;
@@ -99,14 +99,14 @@
 }
 
 .chipRemove:hover {
-  color: var(--foreground, #111111);
+  color: var(--foreground);
 }
 
 .constraints {
-  border: 1px solid var(--border, #e8e5e0);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 0.85rem 0.95rem;
-  background: rgba(245, 244, 242, 0.22);
+  background: var(--surface);
   display: grid;
   gap: 0.75rem;
 }
@@ -116,7 +116,7 @@
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--muted, #737373);
+  color: var(--muted);
 }
 
 .textarea {

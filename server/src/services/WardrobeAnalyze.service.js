@@ -26,6 +26,7 @@ async function analyzeWardrobeForChat({
     'Task: given wardrobe items and the user message, pick which wardrobe items to reference in the answer.',
     'Return JSON with keys: referenced_cloth_ids (array of integers), notes_for_writer (string or null).',
     'Do not include any extra keys.',
+    'IMPORTANT: pick AT MOST 3 item ids.',
     '',
     activeStyleRulesBlock ? String(activeStyleRulesBlock).trim() : '',
     weather ? `## Weather\n${JSON.stringify(weather)}` : '',
@@ -52,7 +53,7 @@ async function analyzeWardrobeForChat({
   }
 
   const data = validated.data;
-  const ids = normalizeReferencedIds(data.referenced_cloth_ids, allowedClothIdSet);
+  const ids = normalizeReferencedIds(data.referenced_cloth_ids, allowedClothIdSet).slice(0, 3);
   return { referencedClothIds: ids, notesForWriter: data.notes_for_writer ?? null };
 }
 

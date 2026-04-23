@@ -11,6 +11,11 @@ export type StringListLike = string[] | { items: string[] };
 export type ProfileDto = {
   id: number;
   user_id: number;
+  user: {
+    id: number;
+    name: string;
+    age: number | null;
+  } | null;
   skin_tone: SkinTone | null;
   contrast: Contrast | null;
   portrait_photo: string | null;
@@ -30,6 +35,8 @@ export type ProfileDto = {
 };
 
 export type ProfileUpsertPayload = Partial<{
+  name: string;
+  age: number | null;
   skin_tone: SkinTone | null;
   contrast: Contrast | null;
   portrait_photo: string | null;

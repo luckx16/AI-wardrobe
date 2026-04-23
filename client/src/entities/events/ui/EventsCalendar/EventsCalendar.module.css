@@ -1,51 +1,64 @@
-/* Calendar */
 .calendar {
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.calendar:hover {
+  border-color: var(--border-strong);
 }
 
 .calendarNav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 
 .calendarMonth {
-  font-size: 16px;
+  font-size: 0.95rem;
   font-weight: 600;
+  color: var(--foreground);
+  letter-spacing: -0.01em;
 }
 
 .navBtn {
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
   cursor: pointer;
-  color: var(--foreground);
-  transition: background 0.15s;
+  color: var(--muted);
+  transition:
+    background var(--transition-base),
+    border-color var(--transition-base),
+    color var(--transition-base);
 }
 
 .navBtn:hover {
   background: var(--surface-elevated);
+  border-color: var(--border-strong);
+  color: var(--foreground);
 }
 
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-size: 12px;
+  font-size: 0.68rem;
   color: var(--muted);
-  margin-bottom: 8px;
-  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
 }
 
 .days {
@@ -56,20 +69,19 @@
 
 .day {
   animation: var(--anim-animate-up);
-
   min-height: 72px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   padding: 6px;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
   cursor: pointer;
   border: none;
   background: none;
   color: var(--foreground);
   position: relative;
-  transition: background 0.12s;
+  transition: background var(--transition-base);
 }
 
 .day:hover {
@@ -77,30 +89,30 @@
 }
 
 .dayOther {
-  color: var(--border);
+  color: var(--border-strong);
 }
 
 .dayOther .dayEventTag {
-  opacity: 0.35;
+  opacity: 0.3;
 }
 
 .dayToday {
-  font-weight: 600;
+  font-weight: 700;
   background: var(--surface-elevated);
 }
 
 .daySelected {
-  background: var(--foreground);
-  color: var(--background);
+  background: var(--accent-dim);
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
 }
 
 .daySelected:hover {
-  background: var(--foreground);
-  opacity: 0.9;
+  background: var(--accent-dim);
 }
 
 .dayNumber {
-  font-size: 13px;
+  font-size: 0.8rem;
   line-height: 1;
   margin-bottom: 4px;
   text-align: left;
@@ -120,18 +132,19 @@
   font-size: 10px;
   line-height: 1.2;
   padding: 2px 5px;
-  border-radius: 4px;
+  border-radius: 3px;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-foreground);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 500;
+  font-weight: 600;
   text-align: left;
 }
 
 .daySelected .dayEventTag {
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--accent-bright);
+  color: var(--accent-foreground);
 }
 
 .dayMore {
@@ -142,5 +155,5 @@
 }
 
 .daySelected .dayMore {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--accent);
 }

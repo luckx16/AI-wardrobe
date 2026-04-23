@@ -1,16 +1,19 @@
 'use client';
 
-import { type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
 import Image from 'next/image';
+import { type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
+
+import { MessageSquare, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { MessageClothChip } from '@/entities/message';
 import type { ClientWeather } from '@/features/chat/api/chatApi';
 import { getClothes } from '@/features/cloth/api/clothApi';
+import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import { getImgSrc } from '@/shared/lib/getImgSrc';
 import type { ServerResponseType } from '@/shared/types';
-import { ArrowUpIcon, PaperclipIcon } from '@/shared/ui';
+import { ArrowUpIcon, PaperclipIcon, useToast } from '@/shared/ui';
 
 import styles from './ChatInput.module.css';
 
@@ -36,9 +39,16 @@ export function ChatInput({
   placeholder,
 }: ChatInputProps) {
   const { t } = useTranslation();
+  const { addQueryParams, searchParams } = useCustomRouter();
   const [input, setInput] = useState('');
   const [clothOptions, setClothOptions] = useState<
-    { id: string; title: string; category: string | null; color: string | null; image: string | null }[]
+    {
+      id: string;
+      title: string;
+      category: string | null;
+      color: string | null;
+      image: string | null;
+    }[]
   >([]);
   const [attachOpen, setAttachOpen] = useState(false);
   const [pickerDraftIds, setPickerDraftIds] = useState<string[]>([]);
@@ -194,10 +204,20 @@ export function ChatInput({
     setPickerDraftIds([]);
     setAttachOpen(false);
   };
+  const { toast } = useToast();
+  type Mode = 'chat' | 'gen';
+  const mode: Mode = (searchParams.get('mode') as Mode | null) ?? 'chat';
+  const setMode = (newMode: Mode) => {
+    addQueryParams({ mode: newMode });
+    toast({
+      variant: 'success',
+      title: `Выбран режим ${newMode === 'chat' ? 'чата' : 'генерации лука'}`,
+    });
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    submit(false);
+    submit(mode !== 'chat');
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -206,7 +226,6 @@ export function ChatInput({
       handleSubmit(e);
     }
   };
-
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.inputWrapper}>
@@ -220,7 +239,11 @@ export function ChatInput({
               disabled={isLoading || !wardrobeEnabled || !clothOptions.length}
               aria-expanded={attachOpen}
               aria-controls={attachMenuId}
-              title={!wardrobeEnabled ? 'Войдите в аккаунт, чтобы прикреплять вещи' : 'Прикрепить вещи из гардероба'}
+              title={
+                !wardrobeEnabled
+                  ? 'Войдите в аккаунт, чтобы прикреплять вещи'
+                  : 'Прикрепить вещи из гардероба'
+              }
             >
               <PaperclipIcon />
             </button>
@@ -269,13 +292,33 @@ export function ChatInput({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder ?? t('chat.inputPlaceholder')}
+          placeholder={
+            placeholder ??
+            (mode === 'chat' ? t('chat.inputPlaceholder') : t('chat.inputPlaceholderGen'))
+          }
           rows={1}
           className={styles.textarea}
           disabled={isLoading}
         />
 
         <div className={styles.submitWrapper}>
+          {/* Внутренний селектор (Toggle) */}
+          <div className={styles.toggleContainer}>
+            <button
+              className={`${styles.toggleBtn} ${mode === 'chat' ? styles.activeChat : ''}`}
+              onClick={() => setMode('chat')}
+              title="Чат"
+            >
+              <MessageSquare size={18} />
+            </button>
+            <button
+              className={`${styles.toggleBtn} ${mode === 'gen' ? styles.activeGen : ''}`}
+              onClick={() => setMode('gen')}
+              title="Генерация одежды"
+            >
+              <Sparkles size={18} />
+            </button>
+          </div>
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
@@ -292,7 +335,7 @@ export function ChatInput({
       {wardrobeEnabled ? (
         <div className={styles.wardrobeBlock}>
           <div className={styles.wardrobeRow}>
-            <button
+            {/* <button
               type="button"
               className={styles.createLookButton}
               onClick={() => submit(true)}
@@ -300,7 +343,7 @@ export function ChatInput({
               title="Собрать образ и (при наличии) использовать ваш гардероб"
             >
               Создать лук
-            </button>
+            </button> */}
 
             <button
               type="button"
@@ -308,9 +351,7 @@ export function ChatInput({
               onClick={() => void toggleWeather()}
               disabled={isLoading || weatherLoading}
               aria-pressed={Boolean(weather)}
-              title={
-                weather ? t('chat.weatherWillBeRemoved') : t('chat.addCurrentWeather')
-              }
+              title={weather ? t('chat.weatherWillBeRemoved') : t('chat.addCurrentWeather')}
             >
               {weatherLoading
                 ? t('chat.weatherLoading')
@@ -372,7 +413,6 @@ export function ChatInput({
           ) : null}
         </div>
       ) : null}
-
     </form>
   );
 }

@@ -5,10 +5,11 @@ import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 
-import { LOOKS_PAGE_CONSTANTS } from '@/entities/look';
+import { ILook, LOOKS_PAGE_CONSTANTS } from '@/entities/look';
 import { deleteLookThunk, getAllLooksThunk, toggleLikeThunk } from '@/entities/look/api/lookThunk';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
+import { useConfirm } from '@/shared/hooks/useConfirmContext';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 import { PageLoader, useToast } from '@/shared/ui';
 import { LookCard } from '@/widgets/LookCard';
@@ -34,14 +35,20 @@ export default function OutfitsPage() {
   };
 
   const arrayOfLooksObj = tab === 'all' ? looks : looks.filter((l) => l.is_in_favorites);
-
-  const deleteLookHandler = async (id: string) => {
-    try {
-      await dispatch(deleteLookThunk(id)).unwrap();
-      toast({ variant: 'success', title: 'Образ удалён' });
-    } catch {
-      toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить образ' });
-    }
+  const { openConfirmDialog } = useConfirm();
+  const deleteLookHandler = async (id: string, look: ILook) => {
+    openConfirmDialog({
+      title: 'Удалить образ?',
+      description: `Образ ${look.title} будет удален из галереи.`,
+      onConfirm: async () => {
+        try {
+          await dispatch(deleteLookThunk(id)).unwrap();
+          toast({ variant: 'success', title: 'Образ удалён' });
+        } catch {
+          toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось удалить образ' });
+        }
+      },
+    });
   };
 
   return (
@@ -85,7 +92,7 @@ export default function OutfitsPage() {
               <LookCard
                 look={look}
                 key={look.id}
-                onDelete={(lookId) => deleteLookHandler(lookId)}
+                onDelete={(lookId, look) => deleteLookHandler(lookId, look)}
                 onEdit={(lookId) => {
                   addQueryParams(
                     { [LOOKS_PAGE_CONSTANTS.FROM_LOOKS_PAGE]: 'true' },

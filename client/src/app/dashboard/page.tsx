@@ -14,7 +14,10 @@ import {
 } from '@/entities/dashboard';
 import { EVENT_MODAL_CONSTANTS, IEvent } from '@/entities/events';
 import { getAllEventsThunk } from '@/entities/events/api/eventsThunk';
+import type { GeneratedLook } from '@/entities/look';
+import { generateLookPreview } from '@/entities/look/api/lookApi';
 import { fetchWeatherApi } from '@/entities/weather';
+import type { WeatherByCoordsResponse } from '@/entities/weather/model/types';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
@@ -25,11 +28,30 @@ import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
 
 import styles from './dashboard.module.css';
 
+function buildOutfitOfTheDayPrompt(weather: WeatherByCoordsResponse | null) {
+  const parts = [
+    'Собери «образ дня» на сегодня из моего гардероба.',
+    'Он должен быть универсальным для города: комфортный, современный, без крайностей.',
+    'Учитывай погоду и подбери слои/материалы/обувь соответственно.',
+    weather
+      ? `Погода сейчас: ${weather.temperature}°C (ощущается как ${weather.feels_like}°C), ${weather.description}${
+          weather.location ? `, ${weather.location}` : ''
+        }.`
+      : null,
+    'Верни гармоничный комплект и обязательно добавь обувь и верхний слой, если это уместно по погоде.',
+  ].filter(Boolean);
+  return parts.join('\n');
+}
+
 export default function DashboardPage() {
   const { t } = useTranslation();
   const { router, addQueryParams } = useCustomRouter();
   const [weatherText, setWeatherText] = useState<string>(t('dashboard.weather.undefined'));
   const [weatherTip, setWeatherTip] = useState<string>(t('dashboard.weather.tipDefault'));
+  const [weatherData, setWeatherData] = useState<WeatherByCoordsResponse | null>(null);
+  const [outfitGenerated, setOutfitGenerated] = useState<GeneratedLook | null>(null);
+  const [outfitExplanation, setOutfitExplanation] = useState<string | null>(null);
+  const [outfitGenerating, setOutfitGenerating] = useState(false);
 
   /*
    */
@@ -52,11 +74,19 @@ export default function DashboardPage() {
     addQueryParams(
       {
         title,
-        date,
+        date: date.slice(0, 10),
         activity_type,
         look_id,
         [EVENT_MODAL_CONSTANTS.IS_OPEN]: 'true',
         [EVENT_MODAL_CONSTANTS.IN_EDIT_MODE_EVENT_ID]: id,
+      },
+      CLIENT_ROUTES.EVENTS,
+    );
+  };
+  const navigateToEventsWithCreateModal = () => {
+    addQueryParams(
+      {
+        [EVENT_MODAL_CONSTANTS.IS_OPEN]: 'true',
       },
       CLIENT_ROUTES.EVENTS,
     );
@@ -70,6 +100,7 @@ export default function DashboardPage() {
       if (!coords && !city) {
         setWeatherText(t('dashboard.weather.enterCity'));
         setWeatherTip(t('dashboard.weather.headerHint'));
+        setWeatherData(null);
         return;
       }
 
@@ -78,12 +109,14 @@ export default function DashboardPage() {
       if (!weatherData) {
         setWeatherText(t('dashboard.weather.loadFailed'));
         setWeatherTip(t('dashboard.weather.tryAgain'));
+        setWeatherData(null);
         return;
       }
 
       const weatherLine = `${weatherData.temperature}°C, ${weatherData.description}`;
       setWeatherText(weatherLine);
       setWeatherTip(t('dashboard.weather.feelsLike', { value: weatherData.feels_like }));
+      setWeatherData(weatherData);
     };
 
     const loadDashboardData = async () => {
@@ -114,39 +147,51 @@ export default function DashboardPage() {
     };
   }, [t]);
 
-  const outfitWithWeather = useMemo(
-    () => ({
-      items: [
-        {
-          id: 12,
-          name: t('dashboard.outfit.items.jeans'),
-          category: t('dashboard.categories.items.bottom'),
-          emoji: '👖',
-        },
-        {
-          id: 45,
-          name: t('dashboard.outfit.items.hoodie'),
-          category: t('dashboard.categories.items.top'),
-          emoji: '🧥',
-        },
-        {
-          id: 7,
-          name: t('dashboard.outfit.items.trench'),
-          category: t('dashboard.categories.items.outerwear'),
-          emoji: '🧥',
-        },
-        {
-          id: 23,
-          name: t('dashboard.outfit.items.sneakers'),
-          category: t('dashboard.categories.items.shoes'),
-          emoji: '👟',
-        },
-      ],
-      weather: weatherText,
-      tip: weatherTip,
-    }),
-    [t, weatherText, weatherTip],
-  );
+  const { user } = useAppSelector((s) => s.user);
+
+  const refreshOutfitOfTheDay = async () => {
+    if (!user?.id || outfitGenerating) return;
+    setOutfitGenerating(true);
+    try {
+      const prompt = buildOutfitOfTheDayPrompt(weatherData);
+      const generated = await generateLookPreview({
+        userId: Number(user.id),
+        userPrompt: prompt,
+        weather: weatherData,
+      });
+      console.log('generated', generated);
+
+      setOutfitGenerated(generated ?? null);
+      const exp =
+        (generated?.comment?.trim() ? generated.comment.trim() : null) ??
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (typeof (generated?.look?.metadata as any)?.why === 'string'
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            String((generated?.look?.metadata as any).why).trim()
+          : null);
+      setOutfitExplanation(exp && String(exp).trim() ? String(exp).trim() : null);
+    } catch (e) {
+      console.error('Failed to generate outfit of the day', e);
+      setOutfitGenerated(null);
+      setOutfitExplanation(null);
+    } finally {
+      setOutfitGenerating(false);
+    }
+  };
+
+  // Генерируем «образ дня» при первой успешной загрузке погоды (и при её изменении).
+  useEffect(() => {
+    if (!user?.id) return;
+    if (!weatherData) return;
+    void refreshOutfitOfTheDay();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    user?.id,
+    weatherData?.temperature,
+    weatherData?.description,
+    weatherData?.feels_like,
+    weatherData?.location,
+  ]);
 
   const { events } = useAppSelector((s) => s.events);
   const dispatch = useAppDispatch();
@@ -189,6 +234,7 @@ export default function DashboardPage() {
     ],
     [dashboardNumbers],
   );
+  console.log('outfitGenerated', outfitGenerated);
 
   return (
     <div className={styles.page}>
@@ -205,12 +251,20 @@ export default function DashboardPage() {
 
       <div className={styles.widgetsGrid}>
         <div className={styles.widgetItem}>
-          <OutfitOfTheDay outfit={outfitWithWeather} />
+          <OutfitOfTheDay
+            generated={outfitGenerated}
+            weather={weatherText}
+            tip={weatherTip}
+            explanation={outfitExplanation}
+            isLoading={outfitGenerating}
+            onRefresh={refreshOutfitOfTheDay}
+          />
         </div>
         <div className={styles.widgetItem}>
           <CalendarPlans
             plans={events}
             onAllPlans={navigateToEventsPageHandler}
+            onCreatePlan={navigateToEventsWithCreateModal}
             onPlanClick={navigateToEventEditingEventsPageHandler}
           />
         </div>

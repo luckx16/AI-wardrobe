@@ -108,6 +108,9 @@ function buildStylistPrompt(profile, items, userPrompt, options = {}) {
   return [
     'You are a professional stylist. Create one cohesive outfit (look) from the given wardrobe items.',
     '',
+    'IMPORTANT: Return "look_name", "occasion", "role" and "reason" texts in the SAME language as the user request.',
+    'IMPORTANT: "look_name" must be a short, catchy name (2–6 words), no quotes, no emoji.',
+    '',
     '## User profile',
     ...(profileLines.length ? profileLines : ['(empty)']),
     ...(weather

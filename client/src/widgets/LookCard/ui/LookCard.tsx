@@ -4,13 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import clsx from 'clsx';
-import { Heart, HeartPlus, Pencil, Trash2 } from 'lucide-react';
+import { Heart, HeartPlus, LoaderCircle, Pencil, Save, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { IClothFromDb } from '@/entities/cloth';
-import type { GeneratedLook, ILook } from '@/entities/look';
-import { saveLook } from '@/entities/look/api/lookApi';
+import { createLookThunk, deleteLookThunk, type GeneratedLook, type ILook } from '@/entities/look';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
+import { useAppDispatch } from '@/shared/hooks';
+import { useConfirm } from '@/shared/hooks/useConfirmContext';
 import { getImgSrc } from '@/shared/lib/getImgSrc';
 
 import styles from './looks.module.css';
@@ -70,7 +71,7 @@ type LookCardSavedProps = {
   look: ILook;
   generated?: never;
   onEdit?: (lookId: string) => void;
-  onDelete?: (lookId: string) => void;
+  onDelete?: (lookId: string, look: ILook) => void;
   toggleFav?: (lookId: string) => void;
   className?: string;
   id?: string;
@@ -90,6 +91,7 @@ export const LookCard = (props: Props) => {
   const [isSaving, setIsSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const router = useRouter();
+  const { openConfirmDialog } = useConfirm();
 
   const isSaved = 'look' in props && props.look != null;
   const look = isSaved ? (props as LookCardSavedProps).look : undefined;
@@ -98,7 +100,6 @@ export const LookCard = (props: Props) => {
   const title = isSaved ? look!.title : generated!.look.title;
   const clothCount = isSaved ? look!.clothes.length : generated!.cloths.length;
   const isFav = isSaved ? Boolean(look!.is_in_favorites) : false;
-  const comment = isSaved ? null : (generated?.comment?.trim() ? generated.comment.trim() : null);
 
   const sorted = useMemo(() => {
     if (isSaved) {
@@ -108,21 +109,24 @@ export const LookCard = (props: Props) => {
     }
     return sortByPriority(generated!.cloths).filter((c) => c.image);
   }, [generated, isSaved, look]);
-  console.log('sorted', sorted);
 
   const clothIdsForSave = useMemo(() => {
     if (isSaved) return [];
     return generated!.cloths.map((c) => Number(c.id)).filter((n) => Number.isFinite(n) && n > 0);
   }, [generated, isSaved]);
+  const dispatch = useAppDispatch();
 
   const handleSave = async () => {
     if (isSaved || isSaving || savedId) return;
     setIsSaving(true);
     try {
-      const saved = await saveLook({
-        title: generated!.look.title,
-        cloth_ids: clothIdsForSave,
-      });
+      const saved = await dispatch(
+        createLookThunk({
+          title: generated!.look.title,
+          cloth_ids: clothIdsForSave.map((n) => n.toString()),
+        }),
+      ).unwrap();
+
       const id = saved?.id != null ? String(saved.id) : 'saved';
       setSavedId(id);
       if ('onSaved' in props && typeof props.onSaved === 'function') {
@@ -140,9 +144,27 @@ export const LookCard = (props: Props) => {
     if (!id) return;
     router.push(CLIENT_ROUTES.LOOK_BUILDER(id));
   };
+  const handleDeleteGenerated = async () => {
+    openConfirmDialog({
+      title: 'Удалить образ?',
+      description: `Образ ${generated?.look.title ? `${generated.look.title}` : ''}будет удален из галереи.`,
+      onConfirm: async () => {
+        try {
+          if (isSaved) return;
+          if (!savedId) return;
+          const { isDeleted } = await dispatch(deleteLookThunk(savedId)).unwrap();
+          if (!isDeleted) return;
+          setIsSaving(false);
+          setSavedId(null);
+        } catch (error) {
+          console.log(error);
+        }
+      },
+    });
+  };
 
   const savedProps = isSaved ? (props as LookCardSavedProps) : null;
-
+  const saveBtnDisabled = isSaving || !!savedId || clothIdsForSave.length === 0;
   return (
     <article
       id={savedProps?.id}
@@ -177,7 +199,7 @@ export const LookCard = (props: Props) => {
             onClick={() => savedProps.toggleFav?.(look!.id)}
             aria-label={isFav ? t('lookCard.removeFromFavorites') : t('lookCard.addToFavorites')}
           >
-            {isFav ? <Heart size={16} /> : <HeartPlus size={16} color="#a8896e" />}
+            {isFav ? <Heart size={16} /> : <HeartPlus size={16}  />}
           </button>
         )}
       </div>
@@ -186,7 +208,6 @@ export const LookCard = (props: Props) => {
         <div className={styles.meta}>
           <h3 className={styles.title}>{title}</h3>
           <p className={styles.tag}>{clothCount} вещей</p>
-          {comment && <p className={styles.tag}>{comment}</p>}
         </div>
 
         {isSaved ? (
@@ -205,7 +226,7 @@ export const LookCard = (props: Props) => {
               {savedProps?.onDelete && (
                 <button
                   className={clsx(styles.btn, styles.deleteBtn)}
-                  onClick={() => savedProps.onDelete?.(look!.id)}
+                  onClick={() => savedProps.onDelete?.(look!.id, look!)}
                   title={t('lookCard.delete')}
                   type="button"
                 >
@@ -227,14 +248,31 @@ export const LookCard = (props: Props) => {
               <Pencil size={16} />
             </button>
 
-            <button
-              className={clsx(styles.btn, styles.saveTextBtn)}
-              onClick={() => void handleSave()}
-              type="button"
-              disabled={isSaving || !!savedId || clothIdsForSave.length === 0}
-            >
-              {savedId ? t('lookCard.saved') : isSaving ? t('lookCard.saving') : t('lookCard.save')}
-            </button>
+            {!savedId && (
+              <button
+                className={clsx(styles.btn, !saveBtnDisabled && styles.editBtn, styles.saveTextBtn)}
+                onClick={() => void handleSave()}
+                type="button"
+                disabled={saveBtnDisabled}
+                title={isSaving ? t('lookCard.saving') : t('lookCard.save')}
+              >
+                {isSaving ? (
+                  <LoaderCircle className={styles.saveBtnLoadingIcon} size={16} />
+                ) : (
+                  <Save size={16} />
+                )}
+              </button>
+            )}
+            {savedId && (
+              <button
+                className={clsx(styles.btn, styles.deleteBtn)}
+                onClick={handleDeleteGenerated}
+                title={t('lookCard.delete')}
+                type="button"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
           </div>
         )}
       </div>

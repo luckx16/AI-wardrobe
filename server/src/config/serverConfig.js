@@ -14,7 +14,7 @@ const serverConfig = (app) => {
     app.use(removeHttpHeader);
     app.use(express.static(path.join(__dirname, '../public')));
     // Раздаём загруженные файлы, чтобы URL вида /uploads/... открывались в браузере
-    app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+    app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
     app.use(cors(corsConfig));
 }
 

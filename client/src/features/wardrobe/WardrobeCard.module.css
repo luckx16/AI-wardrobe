@@ -4,6 +4,7 @@
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 0.125rem);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
   opacity: 0;
   transform: translateY(0);
   animation: fadeIn 0.4s ease forwards;
@@ -143,7 +144,6 @@
   background: var(--destructive);
 }
 
-
 .edit {
   position: absolute;
   top: 0.5rem;
@@ -164,10 +164,10 @@
   justify-content: center;
 }
 
-.card:hover .edit {
-  opacity: 1;
-}
-
 .edit:hover {
   background: var(--destructive);
+}
+
+.card:hover .edit {
+  opacity: 1;
 }

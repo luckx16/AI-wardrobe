@@ -1,0 +1,145 @@
+.dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--card-foreground);
+  width: 90vw;
+  max-width: 400px;
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-sans);
+  margin: 0;
+  overflow: hidden;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: visibility 0.2s;
+}
+
+.dialog[open] {
+  animation: animate-up 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.dialogInner {
+  padding: 1.5rem;
+}
+
+.title {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.75rem;
+}
+
+.description {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  margin-bottom: 1.5rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  padding: 0 1rem;
+  height: 2.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.buttonCancel {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: var(--border);
+}
+
+.buttonCancel:hover {
+  background: var(--surface-elevated);
+}
+
+.buttonConfirm {
+  background: var(--danger);
+  color: var(--destructive-foreground);
+}
+
+.buttonConfirm:hover {
+  filter: brightness(0.9);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Класс для фазы закрытия */
+.isClosing {
+  animation: animate-down 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+.isClosing::backdrop {
+  animation: fadeOut 0.2s ease forwards !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes animate-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes animate-down {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+}
