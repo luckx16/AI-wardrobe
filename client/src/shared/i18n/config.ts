@@ -472,9 +472,9 @@ const resources = {
           try: 'Попробовать →',
         },
         closet: {
-          badge: 'Цифровой гардероб',
+          badge: 'Цифровой гардероб и AI-стилист',
           title: 'Зачем вам приложение для шкафа',
-          lead: 'Управляйте коллекцией одежды так же легко, как музыкой в плейлисте.',
+          lead: 'Управляйте коллекцией одежды так же легко, как музыкой в плейлисте. А ещё персональный AI-стилист поможет вам создать идеальный образ для любого случая.',
           cards: {
             first: {
               alt: 'Мой гардероб',
@@ -487,31 +487,14 @@ const resources = {
               text: 'Экспериментируйте с сочетаниями верха, низа и обуви - AI предложит гармоничный образ и объяснит, почему он работает.',
             },
             third: {
-              alt: 'Список для поездки',
-              title: 'Упростите упаковку для отпуска',
-              text: 'Собирайте списки вещей на любые поездки: выберите стиль и длительность, а приложение предложит оптимальный набор.',
-            },
-          },
-        },
-        ai: {
-          badge: 'AI-стилист',
-          title: 'Зачем нужен стилист с искусственным интеллектом',
-          lead: 'Персональные рекомендации, которые учитывают ваш стиль, погоду и планы.',
-          cards: {
-            first: {
               alt: 'Ежедневные рекомендации AI',
-              title: 'Получайте рекомендации по одежде ежедневно',
+              title: 'Получайте рекомендации по одежде ежедневно, учитывая погоду',
               text: 'На основе вашего гардероба AI-стилист каждый день создает для вас предложения по образу, учитывая стиль, погоду и планы.',
             },
-            second: {
+            fourth: {
               alt: 'Образ для особого случая',
               title: 'Образ для особого случая',
               text: 'Обратитесь к личному стилисту за образом для свадьбы, делового ужина или вечеринки - и соберите цельный look из уже имеющихся вещей.',
-            },
-            third: {
-              alt: 'Статистика категорий гардероба',
-              title: 'Заполните пробелы в гардеробе',
-              text: 'WardrobeAI поможет определить, каких вещей не хватает, чтобы собрать больше образов и повысить вариативность гардероба.',
             },
           },
         },
@@ -521,11 +504,11 @@ const resources = {
           lead: 'Вы получаете все необходимые функции для вашего цифрового гардероба.',
           items: [
             'Создавайте наряды из своей одежды',
-            'Виртуальная примерка',
+            'Общайтесь с AI-стилистом в чате',
             'Предложения по образу от AI',
             'Составление образа под ближайшие планы',
-            'Общайтесь с друзьями и просматривайте их гардеробы',
-            'Вносите параметры тела для точного подбора образа',
+            'Сохраняйте и пересматривайте готовые образы',
+            'Отслеживайте статистику гардероба на дашборде',
           ],
         },
         cta: {
@@ -983,24 +966,15 @@ const resources = {
           cards: {
             first: { alt: 'My wardrobe', title: 'Track what you own', text: 'Add items, categories and filters to find clothes quickly and keep your wardrobe organized.' },
             second: { alt: 'Look builder', title: 'Find new outfits', text: 'Experiment with top, bottom and shoes combinations - AI suggests a balanced outfit and explains why it works.' },
-            third: { alt: 'Travel packing list', title: 'Simplify vacation packing', text: 'Build packing lists for any trip: choose style and duration and app suggests the optimal set.' },
-          },
-        },
-        ai: {
-          badge: 'AI stylist',
-          title: 'Why an AI stylist helps',
-          lead: 'Personal recommendations that account for your style, weather and plans.',
-          cards: {
-            first: { alt: 'Daily AI recommendations', title: 'Get daily outfit recommendations', text: 'Based on your wardrobe AI stylist creates outfit ideas daily with your style, weather and plans in mind.' },
-            second: { alt: 'Special occasion look', title: 'Looks for special occasions', text: 'Ask your personal stylist for weddings, business dinners or parties and build full looks from existing pieces.' },
-            third: { alt: 'Wardrobe category stats', title: 'Fill wardrobe gaps', text: 'WardrobeAI helps identify missing items to create more outfits and improve wardrobe variety.' },
+            third: { alt: 'Daily AI recommendations', title: 'Get daily outfit recommendations', text: 'Based on your wardrobe AI stylist creates outfit ideas daily with your style, weather and plans in mind.' },
+            fourth: { alt: 'Special occasion look', title: 'Looks for special occasions', text: 'Ask your personal stylist for weddings, business dinners or parties and build full looks from existing pieces.' },
           },
         },
         features: {
           badge: 'Features',
           title: 'Functions you will love',
           lead: 'You get all tools needed for your digital wardrobe.',
-          items: ['Create outfits from your clothes', 'Virtual try-on', 'AI outfit suggestions', 'Looks for upcoming plans', 'Connect with friends and view wardrobes', 'Add body measurements for better fit'],
+          items: ['Create outfits from your clothes', 'Chat with your AI stylist', 'AI outfit suggestions', 'Looks for upcoming plans', 'Save and review your ready looks', 'Track wardrobe stats on your dashboard'],
         },
         cta: {
           title: 'Ready to organize your wardrobe?',
@@ -1268,31 +1242,14 @@ const resources = {
               text: 'Kombiniere Oberteil, Unterteil und Schuhe - AI schlagt harmonische Looks vor und erklart warum.',
             },
             third: {
-              alt: 'Packliste fur Reise',
-              title: 'Packen fur Urlaub vereinfachen',
-              text: 'Erstelle Listen fur jede Reise: Stil und Dauer wahlen, die App schlagt optimale Sets vor.',
-            },
-          },
-        },
-        ai: {
-          badge: 'AI-Stylist',
-          title: 'Warum ein AI-Stylist sinnvoll ist',
-          lead: 'Personliche Empfehlungen mit Stil, Wetter und Planen.',
-          cards: {
-            first: {
               alt: 'Tagliche AI-Empfehlungen',
               title: 'Tagliche Outfit-Empfehlungen',
               text: 'Basierend auf deiner Garderobe erstellt AI taglich Outfit-Ideen passend zu Stil, Wetter und Planen.',
             },
-            second: {
+            fourth: {
               alt: 'Look fur besonderen Anlass',
               title: 'Look fur besondere Anlasse',
               text: 'Frage deinen Stylisten nach Looks fur Hochzeit, Business-Dinner oder Party und nutze vorhandene Teile.',
-            },
-            third: {
-              alt: 'Statistik nach Kategorien',
-              title: 'Lucken in der Garderobe schliessen',
-              text: 'WardrobeAI zeigt fehlende Teile, um mehr Looks zu bauen und Vielfalt zu erhohen.',
             },
           },
         },
@@ -1302,11 +1259,11 @@ const resources = {
           lead: 'Du bekommst alle notwendigen Funktionen fur deine digitale Garderobe.',
           items: [
             'Outfits aus eigener Kleidung erstellen',
-            'Virtuelle Anprobe',
+            'Mit dem AI-Stylisten im Chat sprechen',
             'AI-Outfitvorschlage',
             'Looks fur kommende Plane',
-            'Mit Freunden kommunizieren und ihre Garderoben ansehen',
-            'Korpermasse fur bessere Passform hinterlegen',
+            'Fertige Looks speichern und erneut ansehen',
+            'Garderoben-Statistiken im Dashboard verfolgen',
           ],
         },
         cta: {
@@ -1763,31 +1720,14 @@ const resources = {
               text: 'Testez des combinaisons haut, bas, chaussures; IA propose des looks harmonieux.',
             },
             third: {
-              alt: 'Liste pour voyage',
-              title: 'Simplifiez la valise',
-              text: 'Creez des listes pour tout voyage: style et duree, l’app propose un set optimal.',
-            },
-          },
-        },
-        ai: {
-          badge: 'Styliste IA',
-          title: 'Pourquoi un styliste IA',
-          lead: 'Recommandations personnalisees selon style, meteo et plans.',
-          cards: {
-            first: {
               alt: 'Recommandations IA quotidiennes',
               title: 'Recevez des recommandations chaque jour',
               text: 'IA cree des propositions quotidiennes a partir de votre garde-robe.',
             },
-            second: {
+            fourth: {
               alt: 'Look pour occasion speciale',
               title: 'Look pour occasion speciale',
               text: 'Demandez un look pour mariage, diner pro ou fete avec vos pieces existantes.',
-            },
-            third: {
-              alt: 'Statistiques categories',
-              title: 'Comblez les manques de la garde-robe',
-              text: 'WardrobeAI identifie les articles manquants pour plus de looks.',
             },
           },
         },
@@ -1797,11 +1737,11 @@ const resources = {
           lead: 'Toutes les fonctions necessaires pour votre garde-robe numerique.',
           items: [
             'Creer des tenues avec vos vetements',
-            'Essayage virtuel',
+            'Discutez avec votre styliste IA',
             'Suggestions de looks par IA',
             'Looks selon vos plans proches',
-            'Echanger avec des amis et voir leurs garde-robes',
-            'Ajouter les mensurations pour un meilleur ajustement',
+            'Enregistrez et revoyez vos looks prets',
+            'Suivez les statistiques du dressing sur le tableau de bord',
           ],
         },
         cta: {
@@ -2258,31 +2198,14 @@ const resources = {
               text: 'Experimenta con combinaciones de parte superior, inferior y zapatos: la IA sugerira un look armonioso y explicara por que funciona.',
             },
             third: {
-              alt: 'Lista para viaje',
-              title: 'Simplifica tu equipaje',
-              text: 'Crea listas para cualquier viaje: elige estilo y duracion, y la app sugerira el conjunto optimo.',
-            },
-          },
-        },
-        ai: {
-          badge: 'Estilista IA',
-          title: 'Por que necesitas un estilista con IA',
-          lead: 'Recomendaciones personales que consideran tu estilo, clima y planes.',
-          cards: {
-            first: {
               alt: 'Recomendaciones diarias IA',
               title: 'Recibe recomendaciones de ropa cada dia',
               text: 'Basado en tu armario, la IA crea propuestas diarias de outfits considerando estilo, clima y planes.',
             },
-            second: {
+            fourth: {
               alt: 'Outfit para ocasion especial',
               title: 'Outfit para ocasion especial',
               text: 'Pide a tu estilista personal un look para boda, cena de negocios o fiesta y arma un conjunto completo con lo que ya tienes.',
-            },
-            third: {
-              alt: 'Estadisticas de categorias del armario',
-              title: 'Llena los huecos del armario',
-              text: 'WardrobeAI ayuda a identificar que prendas faltan para crear mas looks y aumentar la variedad.',
             },
           },
         },
@@ -2292,11 +2215,11 @@ const resources = {
           lead: 'Obtienes todas las funciones necesarias para tu armario digital.',
           items: [
             'Crea outfits con tu propia ropa',
-            'Prueba virtual',
+            'Habla con tu estilista IA en el chat',
             'Sugerencias de outfit por IA',
             'Looks segun planes proximos',
-            'Conectate con amigos y mira sus armarios',
-            'Agrega medidas corporales para mejor ajuste',
+            'Guarda y revisa tus looks listos',
+            'Sigue estadisticas del armario en el panel',
           ],
         },
         cta: {
@@ -2751,31 +2674,14 @@ const resources = {
               text: '尝试上装、下装和鞋子的组合，AI 会给出协调搭配并解释原因。',
             },
             third: {
-              alt: '旅行打包清单',
-              title: '简化旅行打包',
-              text: '为任意旅行创建清单：选择风格和时长，应用会给出最佳组合。',
-            },
-          },
-        },
-        ai: {
-          badge: 'AI 造型师',
-          title: '为什么选择 AI 造型师',
-          lead: '结合你的风格、天气和计划的个性化推荐。',
-          cards: {
-            first: {
               alt: '每日 AI 推荐',
               title: '每天获取穿搭推荐',
               text: '基于你的衣橱，AI 每天生成适合你风格与天气计划的搭配建议。',
             },
-            second: {
+            fourth: {
               alt: '特殊场合穿搭',
               title: '特殊场合穿搭',
               text: '为婚礼、商务晚宴或派对获取完整穿搭，并使用你已有的单品。',
-            },
-            third: {
-              alt: '衣橱分类统计',
-              title: '补齐衣橱短板',
-              text: 'WardrobeAI 帮助你识别缺少的单品，打造更多搭配并提升多样性。',
             },
           },
         },
@@ -2785,11 +2691,11 @@ const resources = {
           lead: '为你的数字衣橱提供所需的一切能力。',
           items: [
             '用自己的衣服创建穿搭',
-            '虚拟试穿',
+            '与 AI 造型师聊天',
             'AI 穿搭建议',
             '根据近期计划生成搭配',
-            '与朋友交流并查看他们的衣橱',
-            '录入身体数据获得更精准建议',
+            '保存并回看已生成穿搭',
+            '在仪表盘查看衣橱统计',
           ],
         },
         cta: {
