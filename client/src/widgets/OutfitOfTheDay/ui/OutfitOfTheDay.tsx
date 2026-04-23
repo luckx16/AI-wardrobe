@@ -34,6 +34,64 @@ function normalizeBulletLines(text: string) {
   return text.replace(/[ \t]*•[ \t]*/g, '\n• ').replace(/^\n+/, '');
 }
 
+function splitIntoSentences(text: string) {
+  const normalized = String(text ?? '')
+    .replace(/\s+/g, ' ')
+    .replace(/•/g, '')
+    .trim();
+  if (!normalized) return [];
+  // Простой сплит по окончанию предложения. Нам достаточно эвристики для UI.
+  return normalized.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
+}
+
+function isWeatherRelated(sentence: string) {
+  const s = sentence.toLowerCase();
+  const keywords = [
+    'уют',
+    'погод',
+    'температур',
+    'градус',
+    'холод',
+    'прохлад',
+    'тепл',
+    'жар',
+    'ветер',
+    'влажн',
+    'дожд',
+    'лив',
+    'снег',
+    'осад',
+    'слякот',
+    'скольз',
+    'мороз',
+    'сезон',
+    'сло',
+    'утеп',
+    'верхн',
+    'непромока',
+    'промока',
+    'зонт',
+    'sun',
+    'rain',
+    'wind',
+    'snow',
+    'cold',
+    'warm',
+    'hot',
+    'weather',
+    'temperature',
+    'humid',
+  ];
+  return keywords.some((k) => s.includes(k));
+}
+
+function toWeatherBulletLines(text: string) {
+  const sentences = splitIntoSentences(normalizeBulletLines(text));
+  const weather = sentences.filter(isWeatherRelated);
+  if (!weather.length) return '';
+  return weather.map((t) => `• ${t}`).join('\n');
+}
+
 function renderMultilineText(text: string) {
   const lines = text.split('\n');
   if (lines.length <= 1) return text;
@@ -62,7 +120,7 @@ export function OutfitOfTheDay({
   sparkleIcon,
 }: OutfitOfTheDayProps) {
   const { t } = useTranslation();
-  const explanationText = explanation?.trim() ? normalizeBulletLines(explanation.trim()) : null;
+  const explanationText = explanation?.trim() ? toWeatherBulletLines(explanation.trim()) : null;
 
   return (
     <div className={styles.card}>

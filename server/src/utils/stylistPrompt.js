@@ -129,6 +129,7 @@ function buildStylistPrompt(profile, items, userPrompt, options = {}) {
     '- Prefer items with processing_status=completed (already filtered).',
     '- Keep the look realistic: compatible seasons, colors, and materials.',
     '- IMPORTANT: maximize variety across requests. If multiple good choices exist, pick a different combination than the most obvious/default one.',
+    '- CREATIVE TWIST: add one small but noticeable styling idea that makes the look feel fresh (e.g., unexpected color accent, texture contrast, or a different silhouette balance) — but still realistic and consistent with the items.',
     '- Bottom must be exactly one item at most (pants/jeans/leggings/skirt/shorts). Do NOT include multiple bottom items.',
     ...(weather
       ? [

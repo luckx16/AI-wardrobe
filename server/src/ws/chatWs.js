@@ -485,6 +485,7 @@ function setupChatWs(httpServer) {
             wardrobeSnippet,
             allowedClothIds,
             attachedSnippet,
+            attachedClothIds: validatedClothIds,
           },
         });
 
