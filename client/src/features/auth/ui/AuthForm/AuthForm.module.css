@@ -9,8 +9,7 @@
   align-items: center;
   gap: clamp(24px, 4vw, 64px);
   padding: clamp(20px, 3vw, 32px);
-  background:
-    url('/auth/auth-background.png') left center / cover no-repeat;
+  background: url('/auth/auth-background.png') left center / cover no-repeat;
 }
 
 /* Dark overlay */
@@ -236,7 +235,9 @@
 }
 
 .submitButton:hover:not(:disabled) {
-  box-shadow: 0 0 24px var(--accent-dim), 0 6px 16px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 0 24px var(--accent-dim),
+    0 6px 16px rgba(0, 0, 0, 0.3);
   transform: translateY(-1px);
 }
 
@@ -247,14 +248,6 @@
 .submitButton:disabled {
   opacity: 0.6;
   cursor: default;
-}
-
-/* ─── Bottom links ─── */
-.terms {
-  margin: 14px 0 0;
-  text-align: center;
-  color: var(--muted);
-  font-size: 12px;
 }
 
 .backHome {

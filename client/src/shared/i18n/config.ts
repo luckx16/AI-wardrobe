@@ -453,7 +453,7 @@ const resources = {
         showPassword: 'Показать пароль',
         hidePassword: 'Скрыть пароль',
         signingIn: 'Входим...',
-        terms: 'Продолжая, вы соглашаетесь с условиями использования',
+
         createAccount: 'Создать аккаунт',
         signUpLead: 'Начните управлять гардеробом с AI',
         name: 'Имя',
@@ -956,7 +956,7 @@ const resources = {
         showPassword: 'Show password',
         hidePassword: 'Hide password',
         signingIn: 'Signing in...',
-        terms: 'By continuing, you agree to terms of use',
+
         createAccount: 'Create account',
         signUpLead: 'Start managing wardrobe with AI',
         name: 'Name',
@@ -1258,7 +1258,7 @@ const resources = {
         showPassword: 'Passwort anzeigen',
         hidePassword: 'Passwort verbergen',
         signingIn: 'Anmeldung...',
-        terms: 'Mit dem Fortfahren akzeptierst du die Nutzungsbedingungen',
+     
         createAccount: 'Konto erstellen',
         signUpLead: 'Beginne mit AI deine Garderobe zu verwalten',
         name: 'Name',
@@ -1767,7 +1767,7 @@ const resources = {
         showPassword: 'Afficher le mot de passe',
         hidePassword: 'Masquer le mot de passe',
         signingIn: 'Connexion...',
-        terms: "En continuant, vous acceptez les conditions d'utilisation",
+   
         createAccount: 'Creer un compte',
         signUpLead: 'Commencez a gerer votre garde-robe avec IA',
         name: 'Nom',
@@ -2273,7 +2273,7 @@ const resources = {
         showPassword: 'Mostrar contrasena',
         hidePassword: 'Ocultar contrasena',
         signingIn: 'Entrando...',
-        terms: 'Al continuar, aceptas los terminos de uso',
+
         createAccount: 'Crear cuenta',
         signUpLead: 'Empieza a gestionar tu armario con IA',
         name: 'Nombre',
@@ -2776,7 +2776,7 @@ const resources = {
         showPassword: '显示密码',
         hidePassword: '隐藏密码',
         signingIn: '登录中...',
-        terms: '继续即表示你同意使用条款',
+
         createAccount: '创建账号',
         signUpLead: '开始使用 AI 管理你的衣橱',
         name: '姓名',

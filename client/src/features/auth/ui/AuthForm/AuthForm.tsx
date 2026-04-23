@@ -199,8 +199,6 @@ export function AuthForm(): React.JSX.Element {
               <button className={styles.submitButton} type="submit" disabled={isSignInSubmitting}>
                 {isSignInSubmitting ? t('auth.signingIn') : t('auth.signIn')}
               </button>
-
-              <p className={styles.terms}>{t('auth.terms')}</p>
             </form>
           ) : (
             <form onSubmit={onSubmitSignUp} noValidate className={styles.form}>
@@ -296,8 +294,6 @@ export function AuthForm(): React.JSX.Element {
               <button className={styles.submitButton} type="submit" disabled={isSignUpSubmitting}>
                 {isSignUpSubmitting ? t('auth.creating') : t('auth.createAccount')}
               </button>
-
-              <p className={styles.terms}>{t('auth.terms')}</p>
             </form>
           )}
 

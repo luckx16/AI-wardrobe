@@ -217,7 +217,7 @@ export function ChatInput({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    submit(mode === 'chat');
+    submit(mode !== 'chat');
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
