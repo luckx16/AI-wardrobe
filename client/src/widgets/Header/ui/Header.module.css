@@ -3,7 +3,7 @@
   position: fixed;
   top: 0;
   inset-inline: 0;
-  z-index: 100;
+  z-index: 500;
   padding: 0.6rem 1.25rem 0;
   pointer-events: none; /* transparent wrapper — children opt back in */
 }
@@ -515,6 +515,24 @@
 }
 
 /* ─── Responsive ─── */
+@media (max-width: 990px) and (min-width: 901px) {
+  .link {
+    padding: 0.3rem 0.38rem;
+    font-size: 0.73rem;
+  }
+
+  .subtleLink {
+    display: none;
+  }
+
+  .sep:first-of-type {
+    display: none;
+  }
+  .hamburger {
+    display: inline-flex;
+  }
+}
+
 @media (max-width: 900px) {
   .desktopNav {
     display: none;

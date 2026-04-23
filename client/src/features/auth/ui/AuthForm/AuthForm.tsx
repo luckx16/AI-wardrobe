@@ -33,6 +33,36 @@ export function AuthForm(): React.JSX.Element {
   const [showSignUpPassword, setShowSignUpPassword] = React.useState(false);
   const [showSignUpConfirmPassword, setShowSignUpConfirmPassword] = React.useState(false);
 
+  const bgRef = React.useRef<HTMLImageElement>(null);
+  const targetRotationRef = React.useRef(0);
+  const currentRotationRef = React.useRef(0);
+  const lastXRef = React.useRef<number | null>(null);
+  const rafRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    const animate = () => {
+      currentRotationRef.current += (targetRotationRef.current - currentRotationRef.current) * 0.06;
+      if (bgRef.current) {
+        bgRef.current.style.transform = `perspective(900px) rotateY(${currentRotationRef.current}deg)`;
+      }
+      rafRef.current = requestAnimationFrame(animate);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+  }, []);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (lastXRef.current !== null) {
+      const delta = e.clientX - lastXRef.current;
+      targetRotationRef.current = Math.max(-25, Math.min(25, targetRotationRef.current + delta * 0.25));
+    }
+    lastXRef.current = e.clientX;
+  };
+
+  const handleMouseLeave = () => {
+    lastXRef.current = null;
+  };
+
   const signInSchema = React.useMemo(
     () =>
       z.object({
@@ -124,7 +154,13 @@ export function AuthForm(): React.JSX.Element {
   });
 
   return (
-    <section className={styles.authPage}>
+    <section
+      className={styles.authPage}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className={styles.bgImage} />
+      <img ref={bgRef} src="/auth/auth-mannequin.png" className={styles.mannequin} alt="" />
       <div className={styles.bgOverlay} />
 
       <div className={styles.heroText}>

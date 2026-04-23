@@ -9,7 +9,29 @@
   align-items: center;
   gap: clamp(24px, 4vw, 64px);
   padding: clamp(20px, 3vw, 32px);
-  background: url('/auth/auth-background.png') left center / cover no-repeat;
+  overflow: hidden;
+}
+
+/* ─── Background layer (static) ─── */
+.bgImage {
+  position: absolute;
+  inset: 0;
+  background: url('/auth/auth-bg-layer.png') center / cover no-repeat;
+  pointer-events: none;
+}
+
+/* ─── Mannequin layer (mouse-driven rotateY) ─── */
+.mannequin {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  transform-origin: 38% center;
+  will-change: transform;
 }
 
 /* Dark overlay */

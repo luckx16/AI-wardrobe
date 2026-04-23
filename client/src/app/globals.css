@@ -28,6 +28,8 @@
 
   /* Text */
   --foreground: #ededf0;
+  --foreground-mirror: #111111;
+
   --muted: rgba(237, 237, 240, 0.44);
   --muted-foreground: rgba(237, 237, 240, 0.44);
 
@@ -115,6 +117,7 @@
   --border-strong: #b8b2a8;
 
   --foreground: #111111;
+  --foreground-mirror: #ededf0;
   --muted: #737373;
   --muted-foreground: #737373;
 
@@ -158,6 +161,8 @@
 html {
   min-height: 100%;
   background-color: var(--background);
+  scroll-margin-top: var(--header-h);
+  scroll-behavior: smooth;
 }
 
 html,
@@ -207,6 +212,22 @@ textarea,
 button,
 select {
   font-family: inherit;
+}
+input {
+  padding: 0.375rem 0.625rem 0.375rem;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ededf0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  color: var(--foreground);
+  padding: 0.375rem 1.5rem 0.375rem 0.625rem;
+}
+:where([data-theme='light']) select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23111111' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
 /* ─── Layout shell ─── */

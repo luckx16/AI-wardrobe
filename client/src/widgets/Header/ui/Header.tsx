@@ -20,6 +20,7 @@ import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useConfirm } from '@/shared/hooks/useConfirmContext';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
 import useDebouncedValue from '@/shared/hooks/useDebouncedValue';
+import { useTheme } from '@/shared/hooks/useTheme';
 import { AppLanguage, supportedLngs } from '@/shared/i18n/config';
 import {
   requestAndStoreUserLocation,
@@ -37,6 +38,7 @@ function isLinkActive(href: string, pathname: string) {
 }
 type AuthTab = 'sign-in' | 'sign-up';
 export function Header() {
+  const { theme } = useTheme();
   const { t, i18n } = useTranslation();
   const { user } = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
@@ -196,6 +198,8 @@ export function Header() {
   };
   const currentPageIsAuth = pathname.includes('auth');
 
+  const logoImgSrc = theme === 'dark' ? '/logo/Logo_dark.png' : '/logo/Logo_light.png';
+
   return (
     <header className={styles.header}>
       <div className={clsx(styles.bar, currentPageIsAuth && styles.isInAuthPage)}>
@@ -203,8 +207,8 @@ export function Header() {
         <Link href={CLIENT_ROUTES.HOME} className={styles.brand} aria-label={t('header.home')}>
           <span className={styles.brandLogoWrap}>
             <Image
-              src="/logo/Logo_last.png"
-              alt=""
+              src={logoImgSrc}
+              alt="logo"
               width={120}
               height={80}
               className={styles.brandLogo}

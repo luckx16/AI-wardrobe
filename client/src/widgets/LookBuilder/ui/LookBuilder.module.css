@@ -194,6 +194,9 @@
 
   position: relative;
 }
+:global(html[data-theme='light']) .mannequin {
+  background: unset;
+}
 
 .head {
   width: 42px;
@@ -201,7 +204,7 @@
   margin: 0 auto 0.5rem;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: #ece9e3;
+  background: var(--surface-elevated);
 }
 
 .body {
@@ -226,6 +229,7 @@
     width: fit-content;
   }
 }
+
 .leftSlot {
   position: absolute;
   flex-direction: column;
@@ -289,6 +293,15 @@
   letter-spacing: 0.08em;
   color: var(--muted);
   font-weight: 600;
+}
+
+.headwearSlot .slotTag {
+  color: var(--background);
+  opacity: 0.3;
+}
+:global(html[data-theme='light']) .slotTag {
+  color: var(--muted);
+  opacity: 1;
 }
 
 .mannequinItem {

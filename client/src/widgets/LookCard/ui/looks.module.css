@@ -62,9 +62,10 @@
   height: 34px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: hsl(from var(--foreground) h s l / 0.6);
-  color: var(--background);
-  
+  background-color: transparent;
+  /* background: hsl(from var(--foreground) h s l / 0.1); */
+  color: var(--border);
+
   backdrop-filter: blur(6px);
   cursor: pointer;
   display: inline-flex;
