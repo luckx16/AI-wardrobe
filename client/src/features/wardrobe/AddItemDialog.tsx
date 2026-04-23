@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 import { useToast } from '@/shared/ui';
 
-import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
 import styles from './AddItemDialog.module.css';
 import { createClothesItem } from './api/wardrobeApi';
 import {
@@ -18,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './components/dialog';
+import type { Category, Season, WardrobeItem } from './types';
 
 const seasons: Season[] = ['зима', 'весна', 'лето', 'осень', 'всесезон'];
 

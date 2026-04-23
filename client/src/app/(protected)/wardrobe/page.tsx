@@ -4,20 +4,20 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useTranslation } from 'react-i18next';
 
-import { useConfirm } from '@/shared/hooks/useConfirmContext';
-import { PageLoader, useToast } from '@/shared/ui';
-
-import AddItemDialog from '../../features/wardrobe/AddItemDialog';
+import AddItemDialog from '@/features/wardrobe/AddItemDialog';
 import {
   getAll,
   getClothProcessingStatus,
   removeClothesItem,
-} from '../../features/wardrobe/api/wardrobeApi';
-import EditItemDialog from '../../features/wardrobe/EditItemDialog';
-import ItemDetailDialog from '../../features/wardrobe/ItemDetailDialog';
-import WardrobeCard from '../../features/wardrobe/WardrobeCard';
-import WardrobeToolbar from '../../features/wardrobe/WardrobeToolbar';
-import { type Category, type Season, type WardrobeItem } from './types';
+} from '@/features/wardrobe/api/wardrobeApi';
+import EditItemDialog from '@/features/wardrobe/EditItemDialog';
+import ItemDetailDialog from '@/features/wardrobe/ItemDetailDialog';
+import { type Category, type Season, type WardrobeItem } from '@/features/wardrobe/types';
+import WardrobeCard from '@/features/wardrobe/WardrobeCard';
+import WardrobeToolbar from '@/features/wardrobe/WardrobeToolbar';
+import { useConfirm } from '@/shared/hooks/useConfirmContext';
+import { PageLoader, useToast } from '@/shared/ui';
+
 import styles from './WardrobePage.module.css';
 
 type SortDirection = 'asc' | 'desc';

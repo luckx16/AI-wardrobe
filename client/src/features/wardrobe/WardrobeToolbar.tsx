@@ -3,10 +3,9 @@ import { useTranslation } from 'react-i18next';
 
 import { getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 
-import type { Category, Season } from '../../app/wardrobe/types';
+import type { Category, Season } from './types';
 import styles from './WardrobeToolbar.module.css';
 
-type SortField = 'createdAt';
 type SortDirection = 'asc' | 'desc';
 
 interface WardrobeToolbarProps {
@@ -31,11 +30,6 @@ const categoryOptions: Array<{ value: Category | 'all'; label: string }> = [
   { value: 'shoes', label: 'Обувь' },
   { value: 'other', label: 'Другое' },
 ];
-
-const sortOptions: { value: SortField }[] = [{ value: 'createdAt' }];
-
-const cx = (...classNames: Array<string | false | null | undefined>) =>
-  classNames.filter(Boolean).join(' ');
 
 const WardrobeToolbar = ({
   sortDirection,
