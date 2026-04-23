@@ -27,7 +27,7 @@ const resources = {
         signUp: 'Регистрация',
         signIn: 'Вход',
         dashboard: 'Дашборд',
-        events: 'События',
+        events: 'Планы',
         wardrobe: 'Мой гардероб',
         lookBuilder: 'Сборщик образов',
         chat: 'ИИ-чат',
@@ -353,7 +353,8 @@ const resources = {
         attachedItems: 'Прикреплённые вещи',
         fromWardrobe: 'Из гардероба',
         inputPlaceholder: 'Спросите о стиле, гардеробе или модных трендах...',
-        inputPlaceholderGen: 'Создайте образ, опишите стиль и ИИ-стилист подберет подходящий лук...',
+        inputPlaceholderGen:
+          'Создайте образ, опишите стиль и ИИ-стилист подберет подходящий лук...',
         attachFile: 'Прикрепить файл',
         addImage: 'Добавить изображение',
         send: 'Отправить сообщение',
@@ -499,8 +500,8 @@ const resources = {
             },
             third: {
               alt: 'Ежедневные рекомендации AI',
-              title: 'Получайте рекомендации по одежде ежедневно, учитывая погоду',
-              text: 'На основе вашего гардероба AI-стилист каждый день создает для вас предложения по образу, учитывая стиль, погоду и планы.',
+              title: 'Получайте рекомендации по одежде ежедневно',
+              text: 'На основе вашего гардероба AI-стилист каждый день создает для вас предложения по образу, учитывая погоду.',
             },
             fourth: {
               alt: 'Образ для особого случая',
@@ -856,7 +857,8 @@ const resources = {
         attachedItems: 'Attached items',
         fromWardrobe: 'From wardrobe',
         inputPlaceholder: 'Ask about style, wardrobe or fashion trends...',
-        inputPlaceholderGen: 'Describe a look, share your style and the AI stylist will find the perfect outfit...',
+        inputPlaceholderGen:
+          'Describe a look, share your style and the AI stylist will find the perfect outfit...',
         attachFile: 'Attach file',
         addImage: 'Add image',
         send: 'Send message',
@@ -990,17 +992,40 @@ const resources = {
           title: 'Why you need a wardrobe app',
           lead: 'Manage clothing collection as easily as a music playlist.',
           cards: {
-            first: { alt: 'My wardrobe', title: 'Track what you own', text: 'Add items, categories and filters to find clothes quickly and keep your wardrobe organized.' },
-            second: { alt: 'Look builder', title: 'Find new outfits', text: 'Experiment with top, bottom and shoes combinations - AI suggests a balanced outfit and explains why it works.' },
-            third: { alt: 'Daily AI recommendations', title: 'Get daily outfit recommendations', text: 'Based on your wardrobe AI stylist creates outfit ideas daily with your style, weather and plans in mind.' },
-            fourth: { alt: 'Special occasion look', title: 'Looks for special occasions', text: 'Ask your personal stylist for weddings, business dinners or parties and build full looks from existing pieces.' },
+            first: {
+              alt: 'My wardrobe',
+              title: 'Track what you own',
+              text: 'Add items, categories and filters to find clothes quickly and keep your wardrobe organized.',
+            },
+            second: {
+              alt: 'Look builder',
+              title: 'Find new outfits',
+              text: 'Experiment with top, bottom and shoes combinations - AI suggests a balanced outfit and explains why it works.',
+            },
+            third: {
+              alt: 'Daily AI recommendations',
+              title: 'Get daily outfit recommendations',
+              text: 'Based on your wardrobe AI stylist creates outfit ideas daily with your style, weather and plans in mind.',
+            },
+            fourth: {
+              alt: 'Special occasion look',
+              title: 'Looks for special occasions',
+              text: 'Ask your personal stylist for weddings, business dinners or parties and build full looks from existing pieces.',
+            },
           },
         },
         features: {
           badge: 'Features',
           title: 'Functions you will love',
           lead: 'You get all tools needed for your digital wardrobe.',
-          items: ['Create outfits from your clothes', 'Chat with your AI stylist', 'AI outfit suggestions', 'Looks for upcoming plans', 'Save and review your ready looks', 'Track wardrobe stats on your dashboard'],
+          items: [
+            'Create outfits from your clothes',
+            'Chat with your AI stylist',
+            'AI outfit suggestions',
+            'Looks for upcoming plans',
+            'Save and review your ready looks',
+            'Track wardrobe stats on your dashboard',
+          ],
         },
         cta: {
           title: 'Ready to organize your wardrobe?',
@@ -1138,7 +1163,8 @@ const resources = {
         attachedItems: 'Angehangte Teile',
         fromWardrobe: 'Aus der Garderobe',
         inputPlaceholder: 'Frage nach Stil, Garderobe oder Modetrends...',
-        inputPlaceholderGen: 'Beschreibe einen Look, teile deinen Stil und der KI-Stylist findet das perfekte Outfit...',
+        inputPlaceholderGen:
+          'Beschreibe einen Look, teile deinen Stil und der KI-Stylist findet das perfekte Outfit...',
         attachFile: 'Datei anhangen',
         addImage: 'Bild hinzufugen',
         send: 'Nachricht senden',
@@ -1258,7 +1284,7 @@ const resources = {
         showPassword: 'Passwort anzeigen',
         hidePassword: 'Passwort verbergen',
         signingIn: 'Anmeldung...',
-     
+
         createAccount: 'Konto erstellen',
         signUpLead: 'Beginne mit AI deine Garderobe zu verwalten',
         name: 'Name',
@@ -1650,7 +1676,8 @@ const resources = {
         attachedItems: 'Articles joints',
         fromWardrobe: 'Depuis la garde-robe',
         inputPlaceholder: 'Posez une question sur le style, la garde-robe ou les tendances...',
-        inputPlaceholderGen: 'Décrivez un look, partagez votre style et le styliste IA trouvera la tenue parfaite...',
+        inputPlaceholderGen:
+          'Décrivez un look, partagez votre style et le styliste IA trouvera la tenue parfaite...',
         attachFile: 'Joindre un fichier',
         addImage: 'Ajouter une image',
         send: 'Envoyer un message',
@@ -1767,7 +1794,7 @@ const resources = {
         showPassword: 'Afficher le mot de passe',
         hidePassword: 'Masquer le mot de passe',
         signingIn: 'Connexion...',
-   
+
         createAccount: 'Creer un compte',
         signUpLead: 'Commencez a gerer votre garde-robe avec IA',
         name: 'Nom',
@@ -2160,7 +2187,8 @@ const resources = {
         attachedItems: 'Prendas adjuntas',
         fromWardrobe: 'Del armario',
         inputPlaceholder: 'Pregunta sobre estilo, armario o tendencias de moda...',
-        inputPlaceholderGen: 'Describe un look, comparte tu estilo y el estilista IA encontrará el outfit perfecto...',
+        inputPlaceholderGen:
+          'Describe un look, comparte tu estilo y el estilista IA encontrará el outfit perfecto...',
         attachFile: 'Adjuntar archivo',
         addImage: 'Agregar imagen',
         send: 'Enviar mensaje',

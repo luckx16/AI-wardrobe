@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+
 import { useTranslation } from 'react-i18next';
 
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
@@ -41,7 +42,11 @@ export default function Home() {
         <p className={styles.sectionLead}>{t('home.closet.lead')}</p>
         <div className={styles.infoGrid}>
           <article className={styles.infoCard}>
-            <img className={styles.infoPreview} src="/home/Следите.png" alt={t('home.closet.cards.first.alt')} />
+            <img
+              className={styles.infoPreview}
+              src="/home/Следите.png"
+              alt={t('home.closet.cards.first.alt')}
+            />
             <h3>{t('home.closet.cards.first.title')}</h3>
             <p>{t('home.closet.cards.first.text')}</p>
           </article>

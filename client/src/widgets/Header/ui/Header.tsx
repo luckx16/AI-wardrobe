@@ -203,7 +203,7 @@ export function Header() {
         <Link href={CLIENT_ROUTES.HOME} className={styles.brand} aria-label={t('header.home')}>
           <span className={styles.brandLogoWrap}>
             <Image
-              src="/logo/New_Logo.png"
+              src="/logo/Logo_last.png"
               alt=""
               width={120}
               height={80}
