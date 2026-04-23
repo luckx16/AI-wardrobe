@@ -52,6 +52,7 @@ function buildStylistPrompt(profile, items, userPrompt, options = {}) {
     : [];
   const weather = options.weather && typeof options.weather === 'object' ? options.weather : null;
   const activeRulesBlock = formatActiveStyleRulesBlock(options.activeStyleRules);
+  const nonce = typeof options.nonce === 'string' && options.nonce.trim() ? options.nonce.trim() : null;
 
   const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
   const prefs = p && typeof p.prefs === 'object' && p.prefs ? p.prefs : {};
@@ -110,6 +111,7 @@ function buildStylistPrompt(profile, items, userPrompt, options = {}) {
     '',
     'IMPORTANT: Return "look_name", "occasion", "role" and "reason" texts in the SAME language as the user request.',
     'IMPORTANT: "look_name" must be a short, catchy name (2–6 words), no quotes, no emoji.',
+    ...(nonce ? ['', `Randomization token (do not mention): ${nonce}`] : []),
     '',
     '## User profile',
     ...(profileLines.length ? profileLines : ['(empty)']),
@@ -126,6 +128,7 @@ function buildStylistPrompt(profile, items, userPrompt, options = {}) {
     '- Use ONLY provided items. Do not invent items.',
     '- Prefer items with processing_status=completed (already filtered).',
     '- Keep the look realistic: compatible seasons, colors, and materials.',
+    '- IMPORTANT: maximize variety across requests. If multiple good choices exist, pick a different combination than the most obvious/default one.',
     '- Bottom must be exactly one item at most (pants/jeans/leggings/skirt/shorts). Do NOT include multiple bottom items.',
     ...(weather
       ? [

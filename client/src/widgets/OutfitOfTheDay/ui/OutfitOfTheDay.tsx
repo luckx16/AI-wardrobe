@@ -20,6 +20,36 @@ type OutfitOfTheDayProps = {
   sparkleIcon?: React.ReactNode;
 };
 
+function normalizeBulletLines(text: string) {
+  if (!text) return text;
+  if (text.includes('•')) {
+    const parts = text
+      .split('•')
+      .map((p) => p.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    if (parts.length >= 2) {
+      return parts.map((p) => `• ${p}`).join('\n');
+    }
+  }
+  return text.replace(/[ \t]*•[ \t]*/g, '\n• ').replace(/^\n+/, '');
+}
+
+function renderMultilineText(text: string) {
+  const lines = text.split('\n');
+  if (lines.length <= 1) return text;
+  return (
+    <>
+      {lines.map((line, idx) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <span key={idx}>
+          {line}
+          {idx < lines.length - 1 ? <br /> : null}
+        </span>
+      ))}
+    </>
+  );
+}
+
 export function OutfitOfTheDay({
   look,
   generated,
@@ -32,6 +62,7 @@ export function OutfitOfTheDay({
   sparkleIcon,
 }: OutfitOfTheDayProps) {
   const { t } = useTranslation();
+  const explanationText = explanation?.trim() ? normalizeBulletLines(explanation.trim()) : null;
 
   return (
     <div className={styles.card}>
@@ -77,7 +108,9 @@ export function OutfitOfTheDay({
           </div>
           {explanation?.trim() && (
             <div className={styles.explanation}>
-              <p className={styles.explanationText}>{explanation.trim()}</p>
+              <p className={styles.explanationText}>
+                {explanationText ? renderMultilineText(explanationText) : null}
+              </p>
             </div>
           )}
         </>
