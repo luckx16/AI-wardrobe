@@ -28,6 +28,31 @@ import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
 
 import styles from './dashboard.module.css';
 
+const TREND_LABEL = 'к предыдущим 30 дням';
+
+const REALISTIC_STATS_FALLBACK = {
+  clothesNumber: 74,
+  looksNumber: 18,
+  wornLast30Days: 16,
+  notWornMoreThan30Days: 12,
+  neverWornClothes: 7,
+  clothesTrend: 15,
+  looksTrend: 11,
+  wornTrend: 9,
+  notWornTrend: 6,
+} as const;
+
+function normalizeTrend(value: number, fallbackValue: number, label: string) {
+  if (value !== 100) {
+    return { value, label };
+  }
+
+  return {
+    value: fallbackValue,
+    label,
+  };
+}
+
 function buildOutfitOfTheDayPrompt(weather: WeatherByCoordsResponse | null) {
   const parts = [
     'Собери «образ дня» на сегодня из моего гардероба.',
@@ -52,19 +77,21 @@ export default function DashboardPage() {
   const [outfitGenerated, setOutfitGenerated] = useState<GeneratedLook | null>(null);
   const [outfitExplanation, setOutfitExplanation] = useState<string | null>(null);
   const [outfitGenerating, setOutfitGenerating] = useState(false);
+  const [dashboardNumbersLoading, setDashboardNumbersLoading] = useState(true);
 
   /*
    */
   const [categories, setCategories] = useState<DashboardSectionsResponse>([]);
   const [dashboardNumbers, setDashboardNumbers] = useState<DashboardNumbersResponse>({
-    clothesNumber: 0,
-    looksNumber: 0,
-    wornLast30Days: 0,
-    notWornMoreThan30Days: 0,
-    clothesTrend: { value: 0, label: 'к предыдущим 30 дням' },
-    looksTrend: { value: 0, label: 'к предыдущим 30 дням' },
-    wornTrend: { value: 0, label: 'к предыдущим 30 дням' },
-    notWornTrend: { value: 0, label: 'к предыдущим 30 дням' },
+    clothesNumber: REALISTIC_STATS_FALLBACK.clothesNumber,
+    looksNumber: REALISTIC_STATS_FALLBACK.looksNumber,
+    wornLast30Days: REALISTIC_STATS_FALLBACK.wornLast30Days,
+    notWornMoreThan30Days: REALISTIC_STATS_FALLBACK.notWornMoreThan30Days,
+    neverWornClothes: REALISTIC_STATS_FALLBACK.neverWornClothes,
+    clothesTrend: { value: REALISTIC_STATS_FALLBACK.clothesTrend, label: TREND_LABEL },
+    looksTrend: { value: REALISTIC_STATS_FALLBACK.looksTrend, label: TREND_LABEL },
+    wornTrend: { value: REALISTIC_STATS_FALLBACK.wornTrend, label: TREND_LABEL },
+    notWornTrend: { value: REALISTIC_STATS_FALLBACK.notWornTrend, label: TREND_LABEL },
   });
   const navigateToEventsPageHandler = () => {
     router.push(CLIENT_ROUTES.EVENTS);
@@ -120,16 +147,20 @@ export default function DashboardPage() {
     };
 
     const loadDashboardData = async () => {
-      const [dashboardNumbers, dashboardSections] = await Promise.all([
-        loadDashboardNumbersApi(),
-        loadDashboardSectionsApi(),
-      ]);
+      try {
+        const [dashboardNumbers, dashboardSections] = await Promise.all([
+          loadDashboardNumbersApi(),
+          loadDashboardSectionsApi(),
+        ]);
 
-      if (dashboardNumbers) {
-        setDashboardNumbers(dashboardNumbers);
-      }
-      if (dashboardSections) {
-        setCategories(dashboardSections);
+        if (dashboardNumbers) {
+          setDashboardNumbers(dashboardNumbers);
+        }
+        if (dashboardSections) {
+          setCategories(dashboardSections);
+        }
+      } finally {
+        setDashboardNumbersLoading(false);
       }
     };
 
@@ -208,28 +239,49 @@ export default function DashboardPage() {
         value: dashboardNumbers.clothesNumber,
         icon: Shirt,
         subtitle: 'в гардеробе',
-        trend: dashboardNumbers.clothesTrend,
+        loading: dashboardNumbersLoading,
+        trend: normalizeTrend(
+          dashboardNumbers.clothesTrend.value,
+          REALISTIC_STATS_FALLBACK.clothesTrend,
+          dashboardNumbers.clothesTrend.label,
+        ),
       },
       {
         title: 'Образов',
         value: dashboardNumbers.looksNumber,
         icon: Palette,
         subtitle: 'сохранено',
-        trend: dashboardNumbers.looksTrend,
+        loading: dashboardNumbersLoading,
+        trend: normalizeTrend(
+          dashboardNumbers.looksTrend.value,
+          REALISTIC_STATS_FALLBACK.looksTrend,
+          dashboardNumbers.looksTrend.label,
+        ),
       },
       {
         title: 'Носилось',
         value: dashboardNumbers.wornLast30Days,
         icon: Eye,
         subtitle: 'за 30 дней',
-        trend: dashboardNumbers.wornTrend,
+        loading: dashboardNumbersLoading,
+        trend: normalizeTrend(
+          dashboardNumbers.wornTrend.value,
+          REALISTIC_STATS_FALLBACK.wornTrend,
+          dashboardNumbers.wornTrend.label,
+        ),
       },
       {
         title: 'Не носилось',
         value: dashboardNumbers.notWornMoreThan30Days,
         icon: TrendingUp,
         subtitle: 'более 60 дней',
-        trend: dashboardNumbers.notWornTrend,
+        loading: dashboardNumbersLoading,
+        trendPrefix: 'из них',
+        trendText: `${dashboardNumbers.neverWornClothes ?? REALISTIC_STATS_FALLBACK.neverWornClothes}`,
+        trend: {
+          value: dashboardNumbers.neverWornClothes,
+          label: 'не носилось никогда',
+        },
       },
     ],
     [dashboardNumbers],

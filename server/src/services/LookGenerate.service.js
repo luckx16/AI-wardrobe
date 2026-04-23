@@ -11,6 +11,16 @@ const db = require('../db/models');
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const cache = new Map();
+// user_id -> last shoes cloth_id (for diversity)
+const lastShoesByUser = new Map();
+
+function shuffleInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 function md5(s) {
   return crypto.createHash('md5').update(String(s)).digest('hex');
@@ -34,6 +44,24 @@ function setCache(key, value) {
   }
 }
 
+function pickWithNoImmediateRepeat(candidates, lastId) {
+  const list = Array.isArray(candidates) ? candidates.map(Number).filter(Number.isFinite) : [];
+  if (!list.length) return null;
+  if (list.length === 1) return list[0];
+  const filtered = lastId != null ? list.filter((id) => Number(id) !== Number(lastId)) : list;
+  const pool = filtered.length ? filtered : list;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function getShoesIdsFromAllowed(allowed) {
+  const ids = [];
+  for (const [id, c] of allowed.entries()) {
+    const plain = c && typeof c.toJSON === 'function' ? c.toJSON() : c;
+    if (clothSectionFromCategory(plain?.category) === 'shoes') ids.push(Number(id));
+  }
+  return ids.filter(Number.isFinite);
+}
+
 function pickClothFields(cloth) {
   return {
     id: cloth.id,
@@ -51,6 +79,27 @@ function pickClothFields(cloth) {
 function clothSectionFromCategory(category) {
   const key = typeof category === 'string' ? category.trim().toLowerCase() : '';
   return (CATEGORY_TO_SECTION && key && CATEGORY_TO_SECTION[key]) || 'other';
+}
+
+function getCategoryKeysBySection(section) {
+  const out = [];
+  const map = CATEGORY_TO_SECTION && typeof CATEGORY_TO_SECTION === 'object' ? CATEGORY_TO_SECTION : {};
+  for (const [k, v] of Object.entries(map)) {
+    if (v === section) out.push(k);
+  }
+  return out;
+}
+
+function mergeUniqueById(primary, extra) {
+  const seen = new Set((primary ?? []).map((c) => Number(c?.id)).filter(Number.isFinite));
+  const out = [...(primary ?? [])];
+  for (const c of extra ?? []) {
+    const id = Number(c?.id);
+    if (!Number.isFinite(id) || seen.has(id)) continue;
+    seen.add(id);
+    out.push(c);
+  }
+  return out;
 }
 
 function buildFallbackLookTitleFromItems(items) {
@@ -175,23 +224,6 @@ function buildStyleRulesQuery(profile, userPrompt, weather) {
   return parts.join('\n');
 }
 
-function buildConsiderationsComment(profile, weather, activeStyleRules) {
-  const p = profile && typeof profile.toJSON === 'function' ? profile.toJSON() : (profile ?? {});
-  const chunks = [];
-  if (nonEmpty(p.skin_tone)) chunks.push(`подтон кожи: ${nonEmpty(p.skin_tone)}`);
-  if (nonEmpty(p.proportion)) chunks.push(`пропорции: ${nonEmpty(p.proportion)}`);
-  if (nonEmpty(p.contrast)) chunks.push(`контраст: ${nonEmpty(p.contrast)}`);
-  if (nonEmpty(p.height)) chunks.push(`рост: ${nonEmpty(p.height)}`);
-  if (weather && typeof weather === 'object') {
-    const t = nonEmpty(weather.temperature);
-    const d = nonEmpty(weather.description);
-    if (t || d) chunks.push(`погода: ${[t ? `${t}°C` : null, d].filter(Boolean).join(', ')}`);
-  }
-  const rulesCount = Array.isArray(activeStyleRules) ? activeStyleRules.length : 0;
-  if (rulesCount) chunks.push(`учтено правил: ${rulesCount}`);
-  if (!chunks.length) return null;
-  return `Учтено: ${chunks.join(' • ')}`;
-}
 
 function isMostlyLatin(text) {
   const s = String(text ?? '').trim();
@@ -217,29 +249,88 @@ function detectUserLangFromPrompt(userPrompt) {
 }
 
 function buildWhyThisLookComment({ userPrompt, weather, items, allowedById }) {
-  const w = weather && typeof weather === 'object' ? weather : null;
-  const t = nonEmpty(w?.temperature);
-  const d = nonEmpty(w?.description);
-  const weatherPart =
-    t || d ? `учитывает погоду` : null;
-
-  const roles = Array.isArray(items) ? items.map((it) => String(it.role ?? '').trim()).filter(Boolean) : [];
-  const uniqRoles = Array.from(new Set(roles));
-  const hasShoes = uniqRoles.some((r) => /shoe|обув/i.test(r));
-  const hasOuter = uniqRoles.some((r) => /outer|верх/i.test(r));
-  const structurePart = hasShoes || hasOuter ? 'получился собранный комплект по слоям' : 'получился цельный комплект';
-
   const reasons = (Array.isArray(items) ? items : [])
     .map((it) => (typeof it?.reason === 'string' ? it.reason.trim() : ''))
     .filter(Boolean)
     .slice(0, 3);
   const reasonPart = reasons.length ? `${reasons.join(' • ')}` : null;
 
-  const lines = [
-    [structurePart, weatherPart].filter(Boolean).join('; ') + '.',
-    reasonPart,
-  ].filter(Boolean);
-  return lines.join('\n');
+  return reasonPart;
+}
+
+function toBulletedSentences(text) {
+  const s = String(text ?? '').replace(/\s+/g, ' ').trim();
+  if (!s) return null;
+  const cleaned = s.replace(/•/g, '').trim();
+  const parts = cleaned.split(/(?<=[.!?])\s+/).map((p) => p.trim()).filter(Boolean);
+  if (!parts.length) return null;
+  return parts.map((p) => `• ${p}`).join('\n');
+}
+
+function describeItemNoBrand(cloth) {
+  const plain = cloth && typeof cloth.toJSON === 'function' ? cloth.toJSON() : cloth;
+  const category = String(plain?.category ?? '').trim();
+  const color = String(plain?.color ?? '').trim();
+  const material = String(plain?.material ?? '').trim();
+  const parts = [];
+  if (color) parts.push(color);
+  if (category) parts.push(category);
+  if (material) parts.push(`(${material})`);
+  return parts.length ? parts.join(' ') : 'вещь';
+}
+
+async function generateWhyThisLookCommentAi({ userPrompt, weather, finalItems, allowedById, attachedIds }) {
+  const anchorId = Array.isArray(attachedIds) && attachedIds.length ? Number(attachedIds[0]) : null;
+  const anchorCloth = anchorId != null ? allowedById.get(Number(anchorId)) : null;
+  const anchorText = anchorCloth ? describeItemNoBrand(anchorCloth) : null;
+
+  const itemTexts = (finalItems ?? [])
+    .map((i) => allowedById.get(Number(i.cloth_id)))
+    .filter(Boolean)
+    .map((c) => describeItemNoBrand(c));
+
+  const prompt = [
+    'You are a fashion stylist.',
+    'Write a natural, non-template Russian comment (3–6 sentences) explaining WHY these selected wardrobe items work together.',
+    anchorText ? `Focus on how the items match the anchored item: ${anchorText}.` : 'Explain coherence (colors, textures, silhouette).',
+    'Do NOT mention any brands or model names.',
+    'Do NOT mention any items that are not in the provided list.',
+    'Be practical and specific, but keep it short.',
+    '',
+    `User request: ${String(userPrompt ?? '').trim() || '(empty)'}`,
+    weather ? `Weather: ${JSON.stringify(weather)}` : '',
+    '',
+    'Items in the look (only these can be mentioned):',
+    ...itemTexts.map((t) => `- ${t}`),
+    '',
+    'Return ONLY valid JSON: {"comment": string}',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  try {
+    const aiJson = await geminiClient.generateJson({
+      prompt,
+      responseSchema: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['comment'],
+        properties: { comment: { type: 'string', minLength: 1, maxLength: 700 } },
+      },
+      timeoutMs: 12000,
+      generationConfig: { temperature: 1.35, topP: 0.92 },
+    });
+    const c = String(aiJson?.comment ?? '').trim();
+    return c || null;
+  } catch (geminiErr) {
+    try {
+      const aiJson = await openaiClient.generateJson({ prompt, timeoutMs: 12000, temperature: 1.2 });
+      const c = String(aiJson?.comment ?? '').trim();
+      return c || null;
+    } catch {
+      return null;
+    }
+  }
 }
 
 function variantInstruction(index, total) {
@@ -380,7 +471,7 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
     db.Profile.findOne({ where: { user_id } }),
     db.Cloth.findAll({
       where: { user_id, processing_status: 'completed' },
-      limit: 30,
+      limit:80,
       order: [['updatedAt', 'DESC']],
       attributes: clothAttrs,
     }),
@@ -401,6 +492,37 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
     const extraById = new Map(extra.map((c) => [Number(c.id), c]));
     const orderedExtra = missingAttached.map((id) => extraById.get(id)).filter(Boolean);
     cloths = [...orderedExtra, ...cloths];
+  }
+
+  // Ensure: обувь попадает в пул выбора.
+  // Иначе при limit=30 модель "видит" только 1 пару и постоянно выбирает её.
+  const shoesCats = getCategoryKeysBySection('shoes');
+  const shoesInPool = cloths.filter((c) => {
+    const plain = c && typeof c.toJSON === 'function' ? c.toJSON() : c;
+    return clothSectionFromCategory(plain?.category) === 'shoes';
+  }).length;
+  if (shoesCats.length && shoesInPool < 3) {
+    const extraShoes = await db.Cloth.findAll({
+      where: {
+        user_id,
+        processing_status: 'completed',
+        category: shoesCats,
+      },
+      limit: 12,
+      order: [['updatedAt', 'DESC']],
+      attributes: clothAttrs,
+    });
+    cloths = mergeUniqueById(cloths, extraShoes);
+  }
+
+  // Сильно повышаем разнообразие для "preview" (чат/варианты): перетасовываем вход.
+  // Иначе при стабильном порядке гардероба модель часто "залипает" на одном и том же наборе.
+  if (!persist && cloths.length > 1) {
+    const anchored = new Set(attachedIds.map(Number).filter(Number.isFinite));
+    const anchoredItems = cloths.filter((c) => anchored.has(Number(c.id)));
+    const rest = cloths.filter((c) => !anchored.has(Number(c.id)));
+    shuffleInPlace(rest);
+    cloths = [...anchoredItems, ...rest];
   }
 
   if (!cloths?.length) {
@@ -441,11 +563,11 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
       console.warn('[style-rag] failed:', e?.message || e);
     }
   }
-  const comment = buildConsiderationsComment(profile, weather, activeStyleRules);
   const prompt = buildStylistPrompt(profile, cloths.map(pickClothFields), userPrompt, {
     focusClothIds: attachedIds,
     weather,
     activeStyleRules,
+    nonce: crypto.randomBytes(8).toString('hex'),
   });
 
   stage = 'ai_gemini';
@@ -455,12 +577,14 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
       prompt,
       responseSchema: geminiGeneratedLookJsonSchema,
       timeoutMs: 15000,
+      generationConfig: { temperature: 1.5, topP: 0.95 },
     });
   } catch {
     stage = 'ai_openai_fallback';
     aiJson = await openaiClient.generateJson({
       prompt,
       timeoutMs: 15000,
+      temperature: { temperature: 1.45, topP: 0.95 }
     });
   }
   lastAiJson = aiJson;
@@ -512,6 +636,57 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
     const keepId = preferredIdFromAnchored != null ? Number(preferredIdFromAnchored) : Number(bottomItems[0].cloth_id);
     finalItems = finalItems.filter((i) => !(byId.has(Number(i.cloth_id)) && Number(i.cloth_id) !== keepId));
   }
+
+  // Enforce: shoes are REQUIRED in a look if wardrobe has any shoes.
+  const wardrobeShoesIds = getShoesIdsFromAllowed(allowed);
+  const attachedShoes = attachedIds.find((id) => wardrobeShoesIds.includes(Number(id)));
+  const shoesInLook = finalItems
+    .filter((i) => {
+      const c = allowed.get(Number(i.cloth_id));
+      const plain = c && typeof c.toJSON === 'function' ? c.toJSON() : c;
+      return clothSectionFromCategory(plain?.category) === 'shoes';
+    })
+    .map((i) => Number(i.cloth_id))
+    .filter(Number.isFinite);
+  const hasShoes = finalItems.some((i) => {
+    const c = allowed.get(Number(i.cloth_id));
+    const plain = c && typeof c.toJSON === 'function' ? c.toJSON() : c;
+    return clothSectionFromCategory(plain?.category) === 'shoes';
+  });
+
+  // Diversity: rotate shoes when there are multiple choices (unless user anchored shoes).
+  if (hasShoes && wardrobeShoesIds.length > 1 && attachedShoes == null) {
+    const lastShoes = lastShoesByUser.get(String(user_id));
+    const cur = shoesInLook[0];
+    const next = pickWithNoImmediateRepeat(wardrobeShoesIds, lastShoes ?? cur);
+    if (next != null && cur != null && Number(next) !== Number(cur)) {
+      finalItems = finalItems.filter((i) => !shoesInLook.includes(Number(i.cloth_id)));
+      finalItems.push({ cloth_id: Number(next), role: 'shoes', reason: 'Rotate shoes for variety' });
+      lastShoesByUser.set(String(user_id), Number(next));
+    } else if (cur != null) {
+      lastShoesByUser.set(String(user_id), Number(cur));
+    }
+  }
+
+  if (!hasShoes) {
+    if (!wardrobeShoesIds.length) {
+      throw httpError(422, {
+        error: 'Shoes are required to generate a look',
+        hint: 'Add at least 1 completed shoes item to wardrobe (e.g. sneakers/boots/shoes).',
+      });
+    }
+    const preferredFromAttached = attachedIds.find((id) => wardrobeShoesIds.includes(Number(id)));
+    const lastShoes = lastShoesByUser.get(String(user_id));
+    const pickId =
+      preferredFromAttached != null ? Number(preferredFromAttached) : pickWithNoImmediateRepeat(wardrobeShoesIds, lastShoes);
+    if (!finalItems.some((i) => Number(i.cloth_id) === pickId)) {
+      finalItems.push({
+        cloth_id: pickId,
+        role: 'shoes',
+      });
+    }
+    if (pickId != null) lastShoesByUser.set(String(user_id), Number(pickId));
+  }
   if (!finalItems.length) {
     throw httpError(422, {
       error: 'AI returned items not in wardrobe',
@@ -531,13 +706,14 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
   }
 
   // Комментарий-пояснение (почему этот образ подходит под запрос/погоду).
-  const whyComment = buildWhyThisLookComment({
+  const whyComment = await generateWhyThisLookCommentAi({
     userPrompt,
     weather,
-    items: finalItems,
+    finalItems,
     allowedById: allowed,
+    attachedIds,
   });
-  const combinedWhyComment = [whyComment, comment].filter(Boolean).join('\n');
+  const combinedWhyComment = [toBulletedSentences(whyComment)].filter(Boolean).join('\n');
 
   stage = persist ? 'db_transaction_save' : 'format_preview_response';
 
@@ -551,7 +727,6 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
           metadata: {
             occasion: validated.occasion,
             item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
-            ...(comment ? { comment } : {}),
             ...(combinedWhyComment ? { why: combinedWhyComment } : {}),
           },
         },
@@ -581,7 +756,6 @@ async function generateLook({ user_id, userPrompt, attachedClothIds, weather, pe
       metadata: {
         occasion: validated.occasion,
         item_roles: Object.fromEntries(finalItems.map((i) => [String(i.cloth_id), i.role])),
-        ...(comment ? { comment } : {}),
         ...(combinedWhyComment ? { why: combinedWhyComment } : {}),
       },
     };

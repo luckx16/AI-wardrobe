@@ -3,6 +3,7 @@ export type DashboardNumbersResponse = {
   looksNumber: number;
   wornLast30Days: number;
   notWornMoreThan30Days: number;
+  neverWornClothes: number;
   clothesTrend: {
     value: number;
     label: string;

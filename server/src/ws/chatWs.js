@@ -8,7 +8,7 @@ const lookService = require('../services/Look.service');
 const { generateLook, generateLookVariant } = require('../services/LookGenerate.service');
 
 const HISTORY_LIMIT = 20;
-const WARDROBE_CHAT_LIMIT = 40;
+const WARDROBE_CHAT_LIMIT = 80;
 
 function safeSend(ws, payload) {
   try {
@@ -485,6 +485,7 @@ function setupChatWs(httpServer) {
             wardrobeSnippet,
             allowedClothIds,
             attachedSnippet,
+            attachedClothIds: validatedClothIds,
           },
         });
 

@@ -20,6 +20,94 @@ type OutfitOfTheDayProps = {
   sparkleIcon?: React.ReactNode;
 };
 
+function normalizeBulletLines(text: string) {
+  if (!text) return text;
+  if (text.includes('•')) {
+    const parts = text
+      .split('•')
+      .map((p) => p.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    if (parts.length >= 2) {
+      return parts.map((p) => `• ${p}`).join('\n');
+    }
+  }
+  return text.replace(/[ \t]*•[ \t]*/g, '\n• ').replace(/^\n+/, '');
+}
+
+function splitIntoSentences(text: string) {
+  const normalized = String(text ?? '')
+    .replace(/\s+/g, ' ')
+    .replace(/•/g, '')
+    .trim();
+  if (!normalized) return [];
+  // Простой сплит по окончанию предложения. Нам достаточно эвристики для UI.
+  return normalized.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
+}
+
+function isWeatherRelated(sentence: string) {
+  const s = sentence.toLowerCase();
+  const keywords = [
+    'уют',
+    'погод',
+    'температур',
+    'градус',
+    'холод',
+    'прохлад',
+    'тепл',
+    'жар',
+    'ветер',
+    'влажн',
+    'дожд',
+    'лив',
+    'снег',
+    'осад',
+    'слякот',
+    'скольз',
+    'мороз',
+    'сезон',
+    'сло',
+    'утеп',
+    'верхн',
+    'непромока',
+    'промока',
+    'зонт',
+    'sun',
+    'rain',
+    'wind',
+    'snow',
+    'cold',
+    'warm',
+    'hot',
+    'weather',
+    'temperature',
+    'humid',
+  ];
+  return keywords.some((k) => s.includes(k));
+}
+
+function toWeatherBulletLines(text: string) {
+  const sentences = splitIntoSentences(normalizeBulletLines(text));
+  const weather = sentences.filter(isWeatherRelated);
+  if (!weather.length) return '';
+  return weather.map((t) => `• ${t}`).join('\n');
+}
+
+function renderMultilineText(text: string) {
+  const lines = text.split('\n');
+  if (lines.length <= 1) return text;
+  return (
+    <>
+      {lines.map((line, idx) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <span key={idx}>
+          {line}
+          {idx < lines.length - 1 ? <br /> : null}
+        </span>
+      ))}
+    </>
+  );
+}
+
 export function OutfitOfTheDay({
   look,
   generated,
@@ -32,6 +120,7 @@ export function OutfitOfTheDay({
   sparkleIcon,
 }: OutfitOfTheDayProps) {
   const { t } = useTranslation();
+  const explanationText = explanation?.trim() ? toWeatherBulletLines(explanation.trim()) : null;
 
   return (
     <div className={styles.card}>
@@ -77,7 +166,9 @@ export function OutfitOfTheDay({
           </div>
           {explanation?.trim() && (
             <div className={styles.explanation}>
-              <p className={styles.explanationText}>{explanation.trim()}</p>
+              <p className={styles.explanationText}>
+                {explanationText ? renderMultilineText(explanationText) : null}
+              </p>
             </div>
           )}
         </>
