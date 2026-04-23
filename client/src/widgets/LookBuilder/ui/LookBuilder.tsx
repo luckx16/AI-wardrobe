@@ -187,7 +187,7 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
                                   removeClothFromSelected(sectionId, clothOfSection.id)
                                 }
                               >
-                                <X size={16} />
+                                <X size={12} />
                               </button>
                               <Image
                                 src={src}

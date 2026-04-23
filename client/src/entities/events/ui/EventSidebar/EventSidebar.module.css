@@ -1,31 +1,35 @@
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .sidebarTitle {
-  font-size: 14px;
+  font-size: 0.68rem;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.08em;
 }
+
 .loadingIcon {
   animation: spin 2s linear infinite;
 }
 
 .eventCard {
   animation: var(--anim-animate-up);
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  transition: border-color 0.15s;
+  border-radius: var(--radius);
+  padding: 1rem;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
 }
 
 .eventCard:hover {
   border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-dim), var(--shadow-glow);
 }
 
 .eventHeader {
@@ -35,58 +39,61 @@
 }
 
 .eventName {
-  font-size: 15px;
+  font-size: 0.9rem;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
 }
 
 .eventLook {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  color: var(--accent-bright);
-  background: var(--surface-elevated);
-  padding: 4px 10px;
-  border-radius: 6px;
+  font-size: 0.78rem;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
 }
 
 .noEvents {
   text-align: center;
-  padding: 32px 16px;
+  padding: 2rem 1rem;
   color: var(--muted);
-  font-size: 14px;
-  background: var(--surface);
-  border: 1px dashed var(--border);
-  border-radius: 12px;
+  font-size: 0.85rem;
+  background: var(--card);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
 }
 
 .activeBtns {
   display: flex;
-  gap: 12px;
+  gap: 0.5rem;
   margin-left: auto;
   align-items: center;
 }
 
 .btn {
-  padding: 4px;
+  padding: 0.3rem;
   background: none;
   border: none;
   display: inline-flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition:
-    color 0.15s,
-    background 0.15s;
+    color var(--transition-base),
+    background var(--transition-base);
 }
+
 .editBtn {
   color: var(--muted);
 }
+
 .editBtn:hover {
-  background: var(--border);
+  color: var(--foreground);
+  background: var(--surface-elevated);
 }
 
 .deleteBtn {
@@ -95,5 +102,10 @@
 
 .deleteBtn:hover {
   color: var(--danger);
-  background: var(--border);
+  background: rgba(240, 80, 112, 0.08);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }

@@ -199,7 +199,7 @@ export const LookCard = (props: Props) => {
             onClick={() => savedProps.toggleFav?.(look!.id)}
             aria-label={isFav ? t('lookCard.removeFromFavorites') : t('lookCard.addToFavorites')}
           >
-            {isFav ? <Heart size={16} /> : <HeartPlus size={16} color="#a8896e" />}
+            {isFav ? <Heart size={16} /> : <HeartPlus size={16}  />}
           </button>
         )}
       </div>

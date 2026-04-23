@@ -22,7 +22,7 @@
 .flatlay {
   position: relative;
   aspect-ratio: 4 / 5;
-  background: #f7f5f2;
+  background: var(--surface-elevated);
   border-radius: 12px 12px 0 0;
   overflow: hidden;
 }
@@ -61,7 +61,9 @@
   height: 34px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.92);
+  background: hsl(from var(--foreground) h s l / 0.6);
+  color: var(--background);
+  
   backdrop-filter: blur(6px);
   cursor: pointer;
   display: inline-flex;

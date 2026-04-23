@@ -15,7 +15,7 @@
   color: var(--card-foreground);
   width: 90vw;
   max-width: 400px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
   font-family: var(--font-sans);
   margin: 0;
   overflow: hidden;

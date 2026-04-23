@@ -1,16 +1,19 @@
 .card {
-  border: 1px solid var(--border, #e8e5e0);
-  border-radius: 8px;
-  background: var(--surface, #ffffff);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   height: 100%;
-  transition: box-shadow 0.2s ease;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
 }
 
 .card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-glow);
 }
 
 .header {
@@ -27,8 +30,8 @@
 }
 
 .iconWrap {
-  border-radius: 6px;
-  background: linear-gradient(135deg, var(--accent, #b09070), var(--accent-bright, #8a6a4a));
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent), var(--accent-bright));
   padding: 0.4rem;
   display: flex;
   align-items: center;
@@ -39,60 +42,61 @@
 .icon {
   width: 1rem;
   height: 1rem;
-  color: #ffffff;
+  color: var(--accent-foreground);
 }
 
 .title {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  color: var(--foreground, #111111);
+  color: var(--foreground);
 }
 
 .refreshBtn {
-  font-size: 0.75rem;
-  color: var(--muted, #737373);
+  font-size: 0.72rem;
+  color: var(--muted);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-pill);
   transition:
-    color 0.15s ease,
-    background 0.15s ease;
+    color var(--transition-base),
+    background var(--transition-base);
 }
 
 .refreshBtn:hover {
-  color: var(--foreground, #111111);
-  background: var(--surface-elevated, #f5f4f2);
+  color: var(--foreground);
+  background: var(--surface-elevated);
 }
 
 .weather {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border-radius: 6px;
-  background: var(--surface-elevated, #f5f4f2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
   padding: 0.45rem 0.75rem;
   margin-bottom: 1rem;
 }
 
 .weatherTip {
   margin: -0.5rem 0 1rem;
-  font-size: 0.75rem;
-  color: var(--muted, #737373);
+  font-size: 0.72rem;
+  color: var(--muted);
 }
 
 .weatherIcon {
   width: 1rem;
   height: 1rem;
-  color: var(--muted, #737373);
+  color: var(--muted);
   flex-shrink: 0;
 }
 
 .weatherText {
   font-size: 0.82rem;
-  color: var(--muted, #737373);
+  color: var(--muted);
 }
 
 .list {
@@ -106,7 +110,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--muted, #737373);
+  color: var(--muted);
   font-size: 0.85rem;
   padding: 1rem 0;
 }
@@ -115,15 +119,18 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border: 1px solid var(--border, #e8e5e0);
-  border-radius: 6px;
-  background: var(--background, #fafaf8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
   padding: 0.55rem 0.75rem;
-  transition: background 0.15s ease;
+  transition:
+    background var(--transition-base),
+    border-color var(--transition-base);
 }
 
 .item:hover {
-  background: var(--surface-elevated, #f5f4f2);
+  background: var(--surface-elevated);
+  border-color: var(--border-strong);
 }
 
 .itemEmoji {
@@ -141,7 +148,7 @@
   margin: 0;
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--foreground, #111111);
+  color: var(--foreground);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -150,34 +157,36 @@
 .itemCategory {
   margin: 0;
   font-size: 0.72rem;
-  color: var(--muted, #737373);
+  color: var(--muted);
 }
 
 .tip {
   margin: 1rem 0 0;
   padding-top: 0.75rem;
-  border-top: 1px solid var(--border, #e8e5e0);
+  border-top: 1px solid var(--border);
   font-size: 0.75rem;
   font-style: italic;
-  color: var(--muted, #737373);
+  color: var(--muted);
 }
 
 .explanation {
   margin: 1rem 0 0;
   padding-top: 0.75rem;
-  border-top: 1px solid var(--border, #e8e5e0);
+  border-top: 1px solid var(--border);
 }
 
 .explanationTitle {
   margin: 0 0 0.35rem;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--foreground, #111111);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
 }
 
 .explanationText {
   margin: 0;
   font-size: 0.75rem;
-  color: var(--muted, #737373);
-  line-height: 1.45;
+  color: var(--muted);
+  line-height: 1.5;
 }
