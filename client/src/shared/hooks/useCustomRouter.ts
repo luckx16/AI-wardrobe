@@ -41,5 +41,5 @@ export const useCustomRouter = () => {
     router.push(`${navigationPathname ?? currentPathname}?${params.toString()}`);
   };
 
-  return { router, searchParams, addQueryParams, deleteQueryParams };
+  return { router, searchParams, addQueryParams, deleteQueryParams, pathname: currentPathname };
 };

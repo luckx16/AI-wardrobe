@@ -75,8 +75,6 @@ export const ConfirmDialog = ({
   };
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
-    console.log('e.target', e.target);
-
     if (e.target === dialogRef.current && !isLoading) {
       handleCloseWithAnimation();
     }

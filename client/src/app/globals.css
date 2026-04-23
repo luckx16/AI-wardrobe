@@ -51,7 +51,8 @@
 
   --page-max-width: 64rem;
   --page-padding: 2rem 1.25rem 3rem;
-  --header-h: 4rem;
+  --header-h: 4.25rem;
+  --footer-h: 3.5rem;
 }
 
 html {
