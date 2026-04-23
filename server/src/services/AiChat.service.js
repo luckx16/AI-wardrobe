@@ -123,10 +123,20 @@ function normalizeReferencedIds(raw, allowedSet) {
   return out.slice(0, 3);
 }
 
+function stripReplyTextEnvelope(s) {
+  const input = String(s ?? '').trim();
+  const prefix = '{"replyText":"';
+  const suffix = '","imagePrompt":null}';
+  if (input.startsWith(prefix) && input.endsWith(suffix) && input.length >= prefix.length + suffix.length) {
+    return input.slice(prefix.length, input.length - suffix.length);
+  }
+  return input;
+}
+
 function extractJsonPayload(answer, wardrobeOptions) {
   const allowedSet = wardrobeOptions?.allowedClothIdSet ?? null;
   const fallback = {
-    replyText: answer?.trim?.() ?? '...',
+    replyText: stripReplyTextEnvelope(answer?.trim?.() ?? '...'),
     imagePrompt: null,
     referencedClothIds: [],
   };
