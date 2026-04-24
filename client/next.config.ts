@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
-
 const nextConfig: NextConfig = {
+  output: 'standalone',
   reactStrictMode: false,
   images: {
     remotePatterns: [
@@ -17,5 +17,4 @@ const nextConfig: NextConfig = {
     ],
   },
 };
-
 export default nextConfig;

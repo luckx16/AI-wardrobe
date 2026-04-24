@@ -1,0 +1,39 @@
+## =========================
+## docker-compose.yml
+## =========================
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: project-server
+    environment:
+      NODE_ENV: production
+      PORT: '4000'
+      DATABASE_URL_PROD: ${POSTGRES_URL_PROD}
+      JWT_ACCESS: ${JWT_ACCESS}
+      JWT_REFRESH: ${JWT_REFRESH}
+      GIGACHAT_CREDENTIALS: ${GIGACHAT_CREDENTIALS}
+      GIGACHAT_SCOPE: ${GIGACHAT_SCOPE}
+    ports:
+      - '4000:4000'
+
+    expose:
+      - '4000'
+    command: ['sh', '-c', 'npx sequelize-cli db:migrate && node ./src/app.js']
+    restart: unless-stopped
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: '/api'
+    container_name: project-client
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+    depends_on:
+      - server
+    ports:
+      - '80:3000'
+    restart: unless-stopped

@@ -1,0 +1,25 @@
+.git
+.gitignore
+
+# dependencies
+node_modules
+
+# runtime/build artifacts
+dist
+build
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# tests / coverage
+coverage
+
+# editor / OS
+.DS_Store
+Thumbs.db
+.vscode
+.idea
