@@ -27,6 +27,7 @@ export type GeneratedLook = {
     updatedAt?: string;
   };
   cloths: GeneratedLookCloth[];
+  comment?: string;
 };
 
 export interface ILook {

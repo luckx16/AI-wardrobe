@@ -1,8 +1,15 @@
 .card {
-  border: 1px solid var(--border, #e8e5e0);
-  border-radius: 10px;
-  background: var(--surface, #ffffff);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
   overflow: hidden;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.card:hover {
+  border-color: var(--border-strong);
 }
 
 .header {
@@ -11,8 +18,8 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1rem 1rem 0.85rem;
-  border-bottom: 1px solid var(--border, #e8e5e0);
-  background: linear-gradient(180deg, rgba(245, 244, 242, 0.6), rgba(255, 255, 255, 0));
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--surface-elevated) 0%, transparent 100%);
 }
 
 .headerText {
@@ -21,18 +28,18 @@
 
 .title {
   margin: 0;
-  font-size: 0.85rem;
-  letter-spacing: 0.14em;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 700;
-  color: var(--foreground, #111111);
+  color: var(--foreground);
 }
 
 .description {
-  margin: 0.45rem 0 0;
-  font-size: 0.84rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.82rem;
   line-height: 1.45;
-  color: var(--muted, #737373);
+  color: var(--muted);
 }
 
 .actions {
@@ -42,4 +49,3 @@
 .body {
   padding: 1rem;
 }
-

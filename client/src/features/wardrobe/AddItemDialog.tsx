@@ -1,17 +1,13 @@
 'use client';
 
 import { type ChangeEvent, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { ImagePlus, Plus, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
-import { axiosInstance } from '@/shared/lib/axiosInstance';
-import { resolveAssetUrl } from '@/shared/lib/uploadApi';
 import { getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 import { useToast } from '@/shared/ui';
 
-
-import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
 import styles from './AddItemDialog.module.css';
 import { createClothesItem } from './api/wardrobeApi';
 import {
@@ -21,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './components/dialog';
+import type { Category, Season, WardrobeItem } from './types';
 
 const seasons: Season[] = ['зима', 'весна', 'лето', 'осень', 'всесезон'];
 
@@ -98,7 +95,11 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
       );
 
       onAdd(item);
-      toast({ variant: 'success', title: 'Добавлено', description: `«${name}» добавлено в гардероб` });
+      toast({
+        variant: 'success',
+        title: 'Добавлено',
+        description: `«${name}» добавлено в гардероб`,
+      });
     } catch (error) {
       console.error(error);
       toast({ variant: 'error', title: 'Ошибка', description: 'Не удалось добавить вещь' });
@@ -134,7 +135,11 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
             <label className={styles.label}>{t('wardrobe.photo')}</label>
             {imagePreview ? (
               <div className={styles.imagePreviewWrap}>
-                <img src={imagePreview} alt={t('wardrobe.preview')} className={styles.imagePreview} />
+                <img
+                  src={imagePreview}
+                  alt={t('wardrobe.preview')}
+                  className={styles.imagePreview}
+                />
                 <button
                   type="button"
                   onClick={() => {
@@ -155,6 +160,7 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
               >
                 <ImagePlus className={styles.uploadIcon} />
                 <span className={styles.uploadText}>{t('wardrobe.uploadPhoto')}</span>
+                <span className={styles.uploadHint}>{t('wardrobe.uploadPhotoHint')}</span>
               </button>
             )}
             <input

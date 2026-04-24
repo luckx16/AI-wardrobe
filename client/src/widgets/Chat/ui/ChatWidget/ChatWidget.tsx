@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AxiosError } from 'axios';
-
 import { type Message, MessageBubble } from '@/entities/message';
 import {
   type ClientChat,
@@ -12,14 +10,14 @@ import {
   deleteChat,
   getChatMessages,
   getChats,
-  sendChatMessage,
+  setSuggestedLookId,
   updateChatTitle,
 } from '@/features/chat/api/chatApi';
-import { ChatInput, type ChatSendOptions, SuggestionChips } from '@/features/send-message';
+import { ChatInput, type ChatSendOptions } from '@/features/send-message';
 import { useAppSelector } from '@/shared/hooks';
+import { getAccessToken } from '@/shared/lib/axiosInstance';
 import { makeUniqueTitle } from '@/shared/lib/makeUniqueTitle';
 import { TrashIcon, useToast } from '@/shared/ui';
-import { ChatHeader } from '@/widgets';
 import { LookCard } from '@/widgets/LookCard';
 
 import styles from './ChatWidget.module.css';
@@ -70,12 +68,170 @@ export function ChatWidget() {
     { ...INITIAL_MESSAGES[0], content: t('chat.welcomeMessage') },
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [chatId, setChatId] = useState<string | null>(null);
   const [chats, setChats] = useState<ClientChat[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [chatPendingDeleteId, setChatPendingDeleteId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const wsConnectingRef = useRef<Promise<WebSocket> | null>(null);
+
+  const buildWsUrl = (token: string) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const derivedBase = apiUrl
+      ? apiUrl.replace(/\/api\/?$/, '').replace(/^http/i, 'ws')
+      : (typeof window !== 'undefined'
+          ? window.location.origin.replace(/^http/i, 'ws')
+          : 'ws://localhost:4000');
+    const base = process.env.NEXT_PUBLIC_WS_URL || derivedBase;
+    return `${base.replace(/\/$/, '')}/ws/chat?token=${encodeURIComponent(token)}`;
+  };
+
+  const attachWsHandlers = (ws: WebSocket) => {
+    ws.onmessage = (evt) => {
+      let payload: any;
+      try {
+        payload = JSON.parse(String(evt.data));
+      } catch {
+        return;
+      }
+
+      if (payload?.type === 'chat.upsert' && payload?.data?.id) {
+        const c = payload.data as ClientChat;
+        setChats((prev) => {
+          const rest = prev.filter((x) => x.id !== c.id);
+          return [c, ...rest];
+        });
+        setChatId((prev) => prev ?? String(c.id));
+        return;
+      }
+
+      if (payload?.type === 'chat.messageCreated' && payload?.data?.message) {
+        const m = payload.data.message;
+        const currentChatId = payload.data.chatId;
+        if (currentChatId) setChatId(String(currentChatId));
+
+        setMessages((prev) => {
+          const next = [...prev];
+          if (!m.look) {
+            next.push({
+              id: m.id,
+              role: m.role,
+              content: m.content,
+              createdAt: m.createdAt ? new Date(m.createdAt) : undefined,
+              cloths: m.cloths,
+            } satisfies Message);
+            return next;
+          }
+
+          const usedTitles = next.map((x) => x.lookTitle).filter(Boolean) as string[];
+          const usedSet = new Set(usedTitles);
+          const baseTitle = m.look.look.title;
+          const unique = makeUniqueTitle(baseTitle, usedSet);
+
+          const generated = {
+            ...m.look,
+            look: { ...m.look.look, title: unique },
+          };
+
+          next.push({
+            id: m.id,
+            role: m.role,
+            content: (
+              <LookCard
+                generated={generated}
+                onSaved={(savedLookId) => {
+                  void setSuggestedLookId(String(currentChatId), m.id, savedLookId);
+                }}
+              />
+            ),
+            createdAt: m.createdAt ? new Date(m.createdAt) : undefined,
+            cloths: undefined,
+            lookTitle: unique,
+          } satisfies Message);
+          return next;
+        });
+
+        // Пузырёк загрузки ассистента показываем только после того,
+        // как сервер подтвердил user-сообщение (чтобы не мигал).
+        if (m.role === 'user') {
+          setIsAssistantTyping(true);
+        }
+        if (m.role === 'assistant') {
+          setIsAssistantTyping(false);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      if (payload?.type === 'chat.error') {
+        const msg = payload?.data?.message ?? 'Не удалось отправить сообщение';
+        setMessages((prev) => [
+          ...prev,
+          { id: (Date.now() + 1).toString(), role: 'assistant', content: `Ошибка: ${String(msg)}` },
+        ]);
+        setIsAssistantTyping(false);
+        setIsLoading(false);
+      }
+    };
+
+    ws.onerror = () => {
+      // ignore (UI покажет ошибку при отправке)
+    };
+
+    ws.onclose = () => {
+      if (wsRef.current === ws) {
+        wsRef.current = null;
+      }
+    };
+  };
+
+  const ensureWsOpen = async () => {
+    const existing = wsRef.current;
+    if (existing && existing.readyState === WebSocket.OPEN) {
+      return existing;
+    }
+
+    const token = getAccessToken();
+    if (!token) {
+      throw new Error('Нужно войти в аккаунт, чтобы пользоваться AI-чатом.');
+    }
+
+    if (wsConnectingRef.current) {
+      return wsConnectingRef.current;
+    }
+
+    const p = new Promise<WebSocket>((resolve, reject) => {
+      const url = buildWsUrl(token);
+      const ws = new WebSocket(url);
+      wsRef.current = ws;
+      attachWsHandlers(ws);
+
+      const timeout = window.setTimeout(() => {
+        try {
+          ws.close();
+        } catch {
+          // ignore
+        }
+        reject(new Error('Не удалось подключиться к чату. Попробуйте ещё раз.'));
+      }, 2500);
+
+      ws.onopen = () => {
+        window.clearTimeout(timeout);
+        resolve(ws);
+      };
+      ws.onclose = () => {
+        window.clearTimeout(timeout);
+      };
+    }).finally(() => {
+      wsConnectingRef.current = null;
+    });
+
+    wsConnectingRef.current = p;
+    return p;
+  };
 
   const scrollToBottom = () => {
     if (scrollRef.current) {
@@ -130,7 +286,15 @@ export function ChatWidget() {
               return {
                 id: message.id,
                 role: message.role,
-                content: <LookCard generated={generated} />,
+                content: (
+                  <LookCard
+                    generated={generated}
+                    onSaved={(savedLookId) => {
+                      if (!nextChatId) return;
+                      void setSuggestedLookId(nextChatId, message.id, savedLookId);
+                    }}
+                  />
+                ),
                 createdAt: message.createdAt ? new Date(message.createdAt) : undefined,
                 cloths: undefined,
                 lookTitle: unique,
@@ -179,6 +343,28 @@ export function ChatWidget() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      return;
+    }
+
+    const token = getAccessToken();
+    if (!token) return;
+    const ws = new WebSocket(buildWsUrl(token));
+    wsRef.current = ws;
+    attachWsHandlers(ws);
+
+    return () => {
+      ws.close();
+      if (wsRef.current === ws) wsRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const handleSelectChat = async (nextChatId: string) => {
     if (nextChatId === chatId || isLoading || isBootstrapping) {
@@ -287,100 +473,33 @@ export function ChatWidget() {
       return;
     }
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: trimmed,
-      cloths: options?.clothPreview,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    // Сообщение пользователя добавится из WS (chat.messageCreated).
+    // Здесь только блокируем ввод; "typing" ассистента включим после подтверждения user-msg от сервера.
     setIsLoading(true);
+    setIsAssistantTyping(false);
 
     try {
-      let currentChatId = chatId;
-      if (!currentChatId) {
-        const initialChatTitle = buildChatNameFromMessage(trimmed);
-        const createdChatId = await createChat(initialChatTitle);
-        currentChatId = createdChatId;
-        setChatId(createdChatId);
-        const t = new Date().toISOString();
-        setChats((prev) => [
-          {
-            id: createdChatId,
-            title: initialChatTitle,
-            createdAt: t,
-            updatedAt: t,
+      const currentChatId = chatId;
+      const ws = await ensureWsOpen();
+
+      setIsLoading(true);
+      ws.send(
+        JSON.stringify({
+          type: 'chat.send',
+          data: {
+            chatId: currentChatId,
+            text: trimmed,
+            options: {
+              createLook: Boolean(options?.createLook),
+              useWardrobe: Boolean(options?.useWardrobe),
+              clothIds: options?.clothIds,
+              weather: options?.weather ?? null,
+            },
           },
-          ...prev,
-        ]);
-      }
-
-      const existingChat = chats.find((chat) => chat.id === currentChatId);
-      if (existingChat && isTemporaryChatTitle(existingChat.title)) {
-        const nextChatTitle = buildChatNameFromMessage(trimmed);
-        const updatedChat = await updateChatTitle(currentChatId, nextChatTitle);
-        setChats((prev) => [
-          updatedChat,
-          ...prev.filter((chat) => chat.id !== currentChatId),
-        ]);
-      }
-
-      const assistantMessage = await sendChatMessage(currentChatId, trimmed, {
-        createLook: Boolean(options?.createLook),
-        useWardrobe: Boolean(options?.useWardrobe),
-        clothIds: options?.clothIds,
-        weather: options?.weather ?? null,
-      });
-
-      setMessages((prev) => [
-        ...prev,
-        (() => {
-          if (!assistantMessage.look) {
-            return {
-              id: assistantMessage.id,
-              role: 'assistant',
-              content: assistantMessage.content,
-              createdAt: assistantMessage.createdAt ? new Date(assistantMessage.createdAt) : undefined,
-              cloths: assistantMessage.cloths,
-            } satisfies Message;
-          }
-
-          const used = prev.map((m) => m.lookTitle).filter(Boolean) as string[];
-          const unique = makeUniqueTitle(assistantMessage.look.look.title, used);
-          const generated = {
-            ...assistantMessage.look,
-            look: { ...assistantMessage.look.look, title: unique },
-          };
-
-          return {
-            id: assistantMessage.id,
-            role: 'assistant',
-            content: <LookCard generated={generated} />,
-            createdAt: assistantMessage.createdAt ? new Date(assistantMessage.createdAt) : undefined,
-            cloths: undefined,
-            lookTitle: unique,
-          } satisfies Message;
-        })(),
-      ]);
-
-      setChats((prev) => {
-        const currentChat = prev.find((chat) => chat.id === currentChatId);
-        const t = new Date().toISOString();
-        const updatedChat: ClientChat = {
-          id: currentChatId,
-          title: currentChat?.title ?? buildChatNameFromMessage(trimmed),
-          createdAt: currentChat?.createdAt ?? t,
-          updatedAt: t,
-        };
-
-        return [updatedChat, ...prev.filter((chat) => chat.id !== currentChatId)];
-      });
+        }),
+      );
     } catch (e) {
-      let errText = e instanceof Error ? e.message : t('chat.sendFailed');
-      if (e instanceof AxiosError && [401, 403].includes(e.response?.status ?? 0)) {
-        errText = t('chat.signInRequiredDetailed');
-      }
+      const errText = e instanceof Error ? e.message : 'Не удалось отправить сообщение';
       setMessages((prev) => [
         ...prev,
         {
@@ -389,15 +508,15 @@ export function ChatWidget() {
           content: `${t('chat.errorPrefix')}: ${errText}`,
         },
       ]);
-    } finally {
+      setIsAssistantTyping(false);
       setIsLoading(false);
+    } finally {
+      // isLoading сбрасывается по событию от WS (или по ошибке)
     }
   };
 
   return (
     <div className={styles.container}>
-      <ChatHeader onToggleHistory={() => setIsSidebarOpen((prev) => !prev)} />
-
       <div className={styles.layout}>
         <aside
           className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ''}`}
@@ -476,15 +595,9 @@ export function ChatWidget() {
                   cloths={message.cloths}
                 />
               ))}
-              {isLoading && <MessageBubble role="assistant" content="" isLoading />}
+              {isAssistantTyping && <MessageBubble role="assistant" content="" isLoading />}
             </div>
           </div>
-
-          {!isBootstrapping && (
-            <div className={styles.suggestionsWrapper}>
-              <SuggestionChips onSelect={handleSend} />
-            </div>
-          )}
 
           <div className={styles.inputArea}>
             <div className={styles.inputInner}>

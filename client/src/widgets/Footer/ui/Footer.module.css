@@ -3,6 +3,8 @@
   border-top: 1px solid var(--border, #e8e5e0);
   padding: 1rem 1.25rem;
   text-align: center;
+  min-height: var(--footer-h);
+  z-index: 1;
 }
 
 .text {

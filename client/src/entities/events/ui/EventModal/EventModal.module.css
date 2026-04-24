@@ -36,8 +36,12 @@
   margin-right: -20px;
 }
 .lookCard {
-  min-height: 415px;
+  min-height: fit-content;
+
   cursor: pointer;
+  & > *:last-child {
+    display: none;
+  }
 }
 .selectedLookCard {
   /* Многослойная мягкая тень */
@@ -103,7 +107,9 @@
   background: var(--surface);
   color: var(--foreground);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .createLookBtn:hover {

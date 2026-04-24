@@ -3,7 +3,7 @@
 import { type CSSProperties, type FC, type SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { BriefcaseIcon, ShirtIcon, SparklesIcon, SunIcon, UserIcon } from '@/shared/ui';
+import { BriefcaseIcon, SparklesIcon, SunIcon } from '@/shared/ui';
 
 import styles from './SuggestionChips.module.css';
 

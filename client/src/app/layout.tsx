@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 
 import { I18nProvider } from '@/app/providers/I18nProvider';
 import { ReduxProvider } from '@/app/providers/ReduxProvider';
+import { ConfirmProvider } from '@/shared/hooks/useConfirmContext';
 import { type AppLanguage, isSupportedLanguage } from '@/shared/i18n/languages';
 import { Footer, Header } from '@/widgets';
 
@@ -32,19 +33,27 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
+
   const langCookie = cookieStore.get('ai-wardrobe-language')?.value;
   const initialLang: AppLanguage = isSupportedLanguage(langCookie) ? langCookie : 'ru';
 
+  // Read theme cookie server-side so the correct data-theme is in the initial HTML.
+  // This prevents any flash of wrong theme on page reload — no client script needed.
+  const themeCookie = cookieStore.get('ai-wardrobe-theme')?.value;
+  const initialTheme = themeCookie === 'light' ? 'light' : undefined;
+
   return (
-    <html lang={initialLang}>
+    <html lang={initialLang} data-theme={initialTheme} suppressHydrationWarning>
       <body>
         <I18nProvider initialLang={initialLang}>
           <ReduxProvider>
-            <div className="app-shell">
-              <Header />
-              <main className="app-main">{children}</main>
-              <Footer />
-            </div>
+            <ConfirmProvider>
+              <div className="app-shell">
+                <Header />
+                <main className="app-main">{children}</main>
+                <Footer />
+              </div>
+            </ConfirmProvider>
           </ReduxProvider>
         </I18nProvider>
       </body>

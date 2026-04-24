@@ -171,7 +171,7 @@ function parsePossiblyWrappedJson(text) {
 }
 
 const geminiClient = {
-  async generateJson({ prompt, responseSchema, timeoutMs = 15000 }) {
+  async generateJson({ prompt, responseSchema, timeoutMs = 15000, generationConfig } = {}) {
     const key = requireEnv('GEMINI_API_KEY');
 
     // Gemini REST API: ключ можно передавать как query (?key=) или заголовком x-goog-api-key.
@@ -182,6 +182,7 @@ const geminiClient = {
         generationConfig: {
           responseMimeType: 'application/json',
           responseSchema,
+          ...(generationConfig && typeof generationConfig === 'object' ? generationConfig : {}),
         },
       },
     });
@@ -196,7 +197,7 @@ const geminiClient = {
 };
 
 const openaiClient = {
-  async generateJson({ prompt, timeoutMs = 15000 }) {
+  async generateJson({ prompt, timeoutMs = 15000, temperature } = {}) {
     const key = requireEnv('OPENAI_API_KEY');
 
     const { parsed: data, rawText } = await fetchJsonWithRaw(OPENAI_API_URL, {
@@ -209,6 +210,7 @@ const openaiClient = {
           { role: 'user', content: prompt },
         ],
         response_format: { type: 'json_object' },
+        ...(Number.isFinite(temperature) ? { temperature } : {}),
       },
     });
 

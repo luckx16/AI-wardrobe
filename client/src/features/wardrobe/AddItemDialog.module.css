@@ -125,6 +125,19 @@
   font-weight: 500;
 }
 
+.uploadHint {
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: var(--muted);
+  opacity: 0.6;
+  letter-spacing: 0.03em;
+  margin-top: -0.2rem;
+}
+
+.uploadButton:hover .uploadHint {
+  opacity: 0.9;
+}
+
 .hiddenInput {
   display: none;
 }
@@ -169,11 +182,11 @@
 .select {
   width: 100%;
   min-height: 2.5rem;
-  padding: 0.625rem 0.75rem;
+
   margin-top: 0.375rem;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) - 0.125rem);
-  background: var(--surface-elevated);
+  background-color: var(--surface-elevated);
   color: var(--foreground);
   font-size: 0.875rem;
   outline: none;

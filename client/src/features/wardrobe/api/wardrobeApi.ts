@@ -1,7 +1,75 @@
-import { WardrobeItem } from '@/app/wardrobe/types';
+import { type Category, WardrobeItem } from '@/features/wardrobe/types';
 import { WARDROBE_API_ROUTES } from '@/shared/constants/wardrobApiRoutes';
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import type { ServerResponseType } from '@/shared/types';
+
+const RUSSIAN_TO_CATEGORY: Record<string, Category> = {
+  // Верх
+  футболка: 'top',
+  поло: 'top',
+  топ: 'top',
+  рубашка: 'top',
+  блузка: 'top',
+  кофта: 'top',
+  платье: 'top',
+  сарафан: 'top',
+  комбинезон: 'top',
+  куртка: 'top',
+  пальто: 'top',
+  пиджак: 'top',
+  тренч: 'top',
+  пуховик: 'top',
+  ветровка: 'top',
+  жилет: 'top',
+  свитер: 'top',
+  джемпер: 'top',
+  кардиган: 'top',
+  худи: 'top',
+  толстовка: 'top',
+  // Низ
+  брюки: 'bottom',
+  джинсы: 'bottom',
+  леггинсы: 'bottom',
+  юбка: 'bottom',
+  'мини-юбка': 'bottom',
+  шорты: 'bottom',
+  бермуды: 'bottom',
+  // Головные уборы
+  шапка: 'headwear',
+  кепка: 'headwear',
+  шляпа: 'headwear',
+  // Аксессуары
+  шарф: 'accessory',
+  перчатки: 'accessory',
+  ремень: 'accessory',
+  очки: 'accessory',
+  украшения: 'accessory',
+  галстук: 'accessory',
+  носки: 'accessory',
+  // Сумки
+  сумка: 'bags',
+  рюкзак: 'bags',
+  клатч: 'bags',
+  шоппер: 'bags',
+  // Обувь
+  кроссовки: 'shoes',
+  кеды: 'shoes',
+  ботинки: 'shoes',
+  сапоги: 'shoes',
+  туфли: 'shoes',
+  босоножки: 'shoes',
+  балетки: 'shoes',
+  слипоны: 'shoes',
+  сандалии: 'shoes',
+  // Другое
+  другое: 'other',
+};
+
+function mapCategory(category: string | undefined): Category {
+  if (!category) return 'other';
+  const normalized = category.toLowerCase();
+  return RUSSIAN_TO_CATEGORY[normalized] ?? 'other';
+}
 
 type CreateClothRequest = {
   title: string;
@@ -66,10 +134,30 @@ export async function createClothesItem(
   return updateImagePath(data.data.cloth);
 }
 
-export async function updateClothesItem(id: string, data: UpdateClothRequest): Promise<WardrobeItem> {
+const CATEGORY_TO_RUSSIAN: Record<Category, string> = {
+  headwear: 'шапка',
+  top: 'футболка',
+  accessory: 'шарф',
+  bags: 'сумка',
+  bottom: 'брюки',
+  shoes: 'кроссовки',
+  other: 'другое',
+};
+
+function mapCategoryToRussian(category: Category): string {
+  return CATEGORY_TO_RUSSIAN[category] ?? 'другое';
+}
+
+export async function updateClothesItem(
+  id: string,
+  data: UpdateClothRequest,
+): Promise<WardrobeItem> {
   const result = await axiosInstance.put<ServerResponseType<WardrobeItem>>(
     WARDROBE_API_ROUTES.CLOTH(id),
-    data,
+    {
+      ...data,
+      category: data.category ? mapCategoryToRussian(data.category as Category) : undefined,
+    },
   );
   return updateImagePath(result.data.data);
 }
@@ -86,5 +174,9 @@ export async function getClothProcessingStatus(id: string): Promise<ClothStatusD
 }
 
 function updateImagePath(item: WardrobeItem): WardrobeItem {
-  return { ...item, image: `http://localhost:4000/uploads/processed/${item.image}` };
+  return {
+    ...item,
+    image: `http://localhost:4000/uploads/processed/${item.image}`,
+    category: mapCategory(item.category),
+  };
 }

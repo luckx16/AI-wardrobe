@@ -30,7 +30,7 @@
 .canvasSection {
   background: linear-gradient(180deg, var(--surface) 0%, var(--surface-elevated) 100%);
   position: sticky;
-  top: 4rem;
+  top: calc(var(--header-h) - 0.85rem);
   align-self: start;
 }
 
@@ -53,7 +53,7 @@
   gap: 0.4rem;
   padding-block: 0.85rem;
   position: sticky;
-  top: 3.2rem;
+  top: calc(var(--header-h) - 0.325rem);
   background-color: inherit;
 }
 
@@ -124,6 +124,8 @@
   object-fit: cover;
   border: 1px solid var(--border);
   flex-shrink: 0;
+
+  background: var(--surface-elevated);
 }
 
 .color {
@@ -187,10 +189,13 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   background: radial-gradient(circle at top, #fff 0%, var(--surface-elevated) 75%);
-  padding: 1rem 1rem 1.1rem;
-  margin-bottom: 0.85rem;
+  padding: 1rem 1rem 0.5rem;
+  margin-bottom: 0;
 
   position: relative;
+}
+:global(html[data-theme='light']) .mannequin {
+  background: unset;
 }
 
 .head {
@@ -199,7 +204,7 @@
   margin: 0 auto 0.5rem;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: #ece9e3;
+  background: var(--surface-elevated);
 }
 
 .body {
@@ -224,13 +229,13 @@
     width: fit-content;
   }
 }
+
 .leftSlot {
   position: absolute;
   flex-direction: column;
 
   left: 4px;
-  top: 30%;
-  translate: 0 -50%;
+  top: 15%;
 
   scale: 0.7;
 }
@@ -238,11 +243,31 @@
 .rightSlot {
   position: absolute;
   flex-direction: column;
-  right: 4px;
+  right: 2px;
   top: 55%;
   translate: 0 -50%;
 
   scale: 0.9;
+}
+
+.leftBottomSlot {
+  position: absolute;
+  flex-direction: column;
+
+  left: 8px;
+  bottom: 10%;
+  translate: 0 -50%;
+
+  scale: 0.9;
+}
+
+.headwearSlot {
+  margin-top: -15px;
+  scale: 0.8;
+}
+.shoesSlot {
+  scale: 0.8;
+  margin-top: -10px;
 }
 
 .mannequinSlot[data-active-drop='true'] {
@@ -268,6 +293,15 @@
   letter-spacing: 0.08em;
   color: var(--muted);
   font-weight: 600;
+}
+
+.headwearSlot .slotTag {
+  color: var(--background);
+  opacity: 0.3;
+}
+:global(html[data-theme='light']) .slotTag {
+  color: var(--muted);
+  opacity: 1;
 }
 
 .mannequinItem {
@@ -309,22 +343,50 @@
   overflow: hidden;
 }
 
-.removeButton {
+/* .removeButton {
   position: absolute;
   right: 0;
   translate: -25% -25%;
 
   border: none;
-  background: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  background: hsl(from var(--foreground) h s l / 0.6);
+  color: var(--background);
   color: var(--danger);
   cursor: pointer;
   font-size: 0.74rem;
   padding: 0;
+} */
+
+.removeButton {
+  position: absolute;
+  right: 0;
+  translate: -25% -25%;
+
+  z-index: 10;
+  padding: 0.375rem;
+  border-radius: 9999px;
+  border: none;
+  background: hsl(from var(--foreground) h s l / 0.6);
+  color: var(--background);
+
+  transition:
+    opacity 0.2s,
+    background 0.2s;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.removeButton:hover {
+  background: var(--destructive);
 }
 
 .saveBlock {
-  margin-top: 0.95rem;
-  border-top: 1px solid var(--border);
   padding-top: 0.95rem;
   display: grid;
   gap: 0.45rem;
@@ -351,10 +413,11 @@
 }
 
 .saveButton {
+  margin-top: 0.75rem;
   border: 1px solid transparent;
   border-radius: 10px;
-  background: var(--accent-bright);
-  color: #fff;
+  background: var(--accent);
+  color: var(--background);
   padding: 0.55rem 0.75rem;
   font-size: 0.82rem;
   font-weight: 600;

@@ -2,30 +2,125 @@
 
 import { useTranslation } from 'react-i18next';
 
+import type { GeneratedLook, ILook } from '@/entities/look';
+import { Spinner } from '@/shared/ui';
+import { LookCard } from '@/widgets/LookCard';
+
 import styles from './OutfitOfTheDay.module.css';
 
-type OutfitItem = {
-  id: string | number;
-  emoji: string;
-  name: string;
-  category: string;
-};
-
-type Outfit = {
-  weather: string;
-  items: OutfitItem[];
-  tip: string;
-};
-
 type OutfitOfTheDayProps = {
-  outfit: Outfit;
+  look?: ILook | null;
+  generated?: GeneratedLook | null;
+  weather: string;
+  tip: string;
+  explanation?: string | null;
+  isLoading?: boolean;
   onRefresh?: () => void;
   weatherIcon?: React.ReactNode;
   sparkleIcon?: React.ReactNode;
 };
 
-export function OutfitOfTheDay({ outfit, onRefresh, weatherIcon, sparkleIcon }: OutfitOfTheDayProps) {
+function normalizeBulletLines(text: string) {
+  if (!text) return text;
+  if (text.includes('•')) {
+    const parts = text
+      .split('•')
+      .map((p) => p.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    if (parts.length >= 2) {
+      return parts.map((p) => `• ${p}`).join('\n');
+    }
+  }
+  return text.replace(/[ \t]*•[ \t]*/g, '\n• ').replace(/^\n+/, '');
+}
+
+function splitIntoSentences(text: string) {
+  const normalized = String(text ?? '')
+    .replace(/\s+/g, ' ')
+    .replace(/•/g, '')
+    .trim();
+  if (!normalized) return [];
+  // Простой сплит по окончанию предложения. Нам достаточно эвристики для UI.
+  return normalized.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
+}
+
+function isWeatherRelated(sentence: string) {
+  const s = sentence.toLowerCase();
+  const keywords = [
+    'уют',
+    'погод',
+    'температур',
+    'градус',
+    'холод',
+    'прохлад',
+    'тепл',
+    'жар',
+    'ветер',
+    'влажн',
+    'дожд',
+    'лив',
+    'снег',
+    'осад',
+    'слякот',
+    'скольз',
+    'мороз',
+    'сезон',
+    'сло',
+    'утеп',
+    'верхн',
+    'непромока',
+    'промока',
+    'зонт',
+    'sun',
+    'rain',
+    'wind',
+    'snow',
+    'cold',
+    'warm',
+    'hot',
+    'weather',
+    'temperature',
+    'humid',
+  ];
+  return keywords.some((k) => s.includes(k));
+}
+
+function toWeatherBulletLines(text: string) {
+  const sentences = splitIntoSentences(normalizeBulletLines(text));
+  const weather = sentences.filter(isWeatherRelated);
+  if (!weather.length) return '';
+  return weather.map((t) => `• ${t}`).join('\n');
+}
+
+function renderMultilineText(text: string) {
+  const lines = text.split('\n');
+  if (lines.length <= 1) return text;
+  return (
+    <>
+      {lines.map((line, idx) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <span key={idx}>
+          {line}
+          {idx < lines.length - 1 ? <br /> : null}
+        </span>
+      ))}
+    </>
+  );
+}
+
+export function OutfitOfTheDay({
+  look,
+  generated,
+  weather,
+  tip,
+  explanation,
+  isLoading,
+  onRefresh,
+  weatherIcon,
+  sparkleIcon,
+}: OutfitOfTheDayProps) {
   const { t } = useTranslation();
+  const explanationText = explanation?.trim() ? toWeatherBulletLines(explanation.trim()) : null;
 
   return (
     <div className={styles.card}>
@@ -36,29 +131,48 @@ export function OutfitOfTheDay({ outfit, onRefresh, weatherIcon, sparkleIcon }: 
           </div>
           <h3 className={styles.title}>{t('dashboard.outfit.title')}</h3>
         </div>
-        <button className={styles.refreshBtn} onClick={onRefresh} type="button">
+        <button
+          className={styles.refreshBtn}
+          onClick={onRefresh}
+          type="button"
+          disabled={Boolean(isLoading)}
+        >
           {t('dashboard.outfit.refresh')}
         </button>
       </div>
 
       <div className={styles.weather}>
         {weatherIcon && <span className={styles.weatherIcon}>{weatherIcon}</span>}
-        <span className={styles.weatherText}>{outfit.weather}</span>
+        <span className={styles.weatherText}>{weather}</span>
       </div>
 
-      <div className={styles.list}>
-        {outfit.items.map((item) => (
-          <div key={item.id} className={styles.item}>
-            <span className={styles.itemEmoji}>{item.emoji}</span>
-            <div className={styles.itemInfo}>
-              <p className={styles.itemName}>{item.name}</p>
-              <p className={styles.itemCategory}>{item.category}</p>
-            </div>
+      {tip?.trim() && <p className={styles.weatherTip}>{tip.trim()}</p>}
+
+      {isLoading && (
+        <div className={styles.loader}>
+          <Spinner size="md" color="muted" />
+          <span>Подбираем лук...</span>
+        </div>
+      )}
+
+      {!isLoading && (look || generated) && (
+        <>
+          <div className={styles.list}>
+            {look ? (
+              <LookCard look={look} />
+            ) : generated ? (
+              <LookCard generated={generated} />
+            ) : null}
           </div>
-        ))}
-      </div>
-
-      <p className={styles.tip}>{outfit.tip}</p>
+          {explanation?.trim() && (
+            <div className={styles.explanation}>
+              <p className={styles.explanationText}>
+                {explanationText ? renderMultilineText(explanationText) : null}
+              </p>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

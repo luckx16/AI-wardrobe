@@ -75,10 +75,9 @@
 }
 
 .select {
-  padding: 0.375rem 0.625rem;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) - 0.125rem);
-  background: var(--surface-elevated);
+  background-color: var(--surface-elevated);
   color: var(--foreground);
   font-size: 0.75rem;
   outline: none;

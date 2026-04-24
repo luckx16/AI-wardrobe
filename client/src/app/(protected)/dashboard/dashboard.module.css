@@ -1,0 +1,61 @@
+.page {
+  min-height: 100vh;
+  background: var(--background);
+  margin: 0 auto;
+  max-width: var(--page-max-width);
+  padding: var(--page-padding);
+}
+
+/* ─── Welcome ─── */
+.welcome {
+  margin-bottom: 2rem;
+}
+
+/* ─── Stats grid ─── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* staggered entrance for each stat card */
+.statsGrid > *:nth-child(1) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.05s both; }
+.statsGrid > *:nth-child(2) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.10s both; }
+.statsGrid > *:nth-child(3) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.15s both; }
+.statsGrid > *:nth-child(4) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.20s both; }
+
+/* ─── Widgets grid ─── */
+.widgetsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .widgetsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.widgetItem:nth-child(1) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both; }
+.widgetItem:nth-child(2) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.32s both; }
+.widgetItem:nth-child(3) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.39s both; }
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,10 +1,11 @@
 'use client';
 import { DialogTitle } from '@radix-ui/react-dialog';
-import { CalendarDays, Package, Palette, Sun, Tag } from 'lucide-react';
+import { CalendarDays, Palette, Sun, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import type { WardrobeItem } from '../../app/wardrobe/types';
+import type { WardrobeItem } from '@/features/wardrobe/types';
 import { getCategoryLabel, getSeasonLabel } from '@/shared/lib/wardrobeI18n';
+
 import { Dialog, DialogContent } from './components/dialog';
 import styles from './ItemDetailDialog.module.css';
 
@@ -58,7 +59,11 @@ const ItemDetailDialog = ({ item, open, onOpenChange }: ItemDetailDialogProps) =
               label={t('wardrobe.category')}
               value={getCategoryLabel(item.category, t)}
             />
-            <InfoRow icon={Sun} label={t('wardrobe.season')} value={getSeasonLabel(item.season, t)} />
+            <InfoRow
+              icon={Sun}
+              label={t('wardrobe.season')}
+              value={getSeasonLabel(item.season, t)}
+            />
             <InfoRow icon={Palette} label={t('wardrobe.color')} value={item.color} />
             <InfoRow icon={CalendarDays} label={t('wardrobe.added')} value={dateFormatted} />
           </div>

@@ -2,13 +2,21 @@
 
 import { useEffect, useState } from 'react';
 
-import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
 import styles from './AddItemDialog.module.css';
 import { updateClothesItem } from './api/wardrobeApi';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './components/dialog';
+import type { Category, Season, WardrobeItem } from './types';
 
 const seasons: Season[] = ['зима', 'весна', 'лето', 'осень', 'всесезон'];
-const categories: Category[] = ['headwear', 'top', 'accessory', 'bags', 'bottom', 'shoes', 'other'];
+const categoryOptions: Array<{ value: Category; label: string }> = [
+  { value: 'headwear', label: 'Головные уборы' },
+  { value: 'top', label: 'Верх' },
+  { value: 'accessory', label: 'Аксессуары' },
+  { value: 'bags', label: 'Сумки' },
+  { value: 'bottom', label: 'Нижняя одежда' },
+  { value: 'shoes', label: 'Обувь' },
+  { value: 'other', label: 'Другое' },
+];
 
 interface EditItemDialogProps {
   item: WardrobeItem | null;
@@ -18,12 +26,12 @@ interface EditItemDialogProps {
 }
 
 const EditItemDialog = ({ item, open, onOpenChange, onSave }: EditItemDialogProps) => {
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<Category>('top');
-  const [season, setSeason] = useState<Season>('всесезон');
-  const [brand, setBrand] = useState('');
-  const [material, setMaterial] = useState('');
-  const [color, setColor] = useState('');
+  const [name, setName] = useState(item?.title ?? '');
+  const [category, setCategory] = useState<Category>(item?.category ?? 'top');
+  const [season, setSeason] = useState<Season>(item?.season ?? 'всесезон');
+  const [brand, setBrand] = useState(item?.brand ?? '');
+  const [material, setMaterial] = useState(item?.material ?? '');
+  const [color, setColor] = useState(item?.color ?? '');
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -33,8 +41,8 @@ const EditItemDialog = ({ item, open, onOpenChange, onSave }: EditItemDialogProp
     setName(item.title);
     setCategory(item.category);
     setSeason(item.season);
-    setBrand((item as WardrobeItem & { brand?: string }).brand ?? '');
-    setMaterial((item as WardrobeItem & { material?: string }).material ?? '');
+    setBrand(item.brand ?? '');
+    setMaterial(item.material ?? '');
     setColor(item.color);
     setSaveError(null);
   }, [item]);
@@ -45,8 +53,8 @@ const EditItemDialog = ({ item, open, onOpenChange, onSave }: EditItemDialogProp
     setName(item.title);
     setCategory(item.category);
     setSeason(item.season);
-    setBrand((item as WardrobeItem & { brand?: string }).brand ?? '');
-    setMaterial((item as WardrobeItem & { material?: string }).material ?? '');
+    setBrand(item.brand ?? '');
+    setMaterial(item.material ?? '');
     setColor(item.color);
     setSaveError(null);
   };
@@ -123,9 +131,9 @@ const EditItemDialog = ({ item, open, onOpenChange, onSave }: EditItemDialogProp
                 onChange={(e) => setCategory(e.target.value as Category)}
                 className={styles.select}
               >
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {categoryOptions.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
                   </option>
                 ))}
               </select>

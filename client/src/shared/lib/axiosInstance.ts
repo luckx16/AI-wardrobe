@@ -25,6 +25,10 @@ export function setAccessToken(token: string): void {
   // console.log('Access token updated:', accessToken);
 }
 
+export function getAccessToken(): string {
+  return accessToken;
+}
+
 axiosInstance.interceptors.request.use(
   (config: ExtendedAxiosRequestConfig): ExtendedAxiosRequestConfig => {
     if (config.headers && !config.headers.Authorization) {
