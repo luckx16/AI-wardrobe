@@ -1,7 +1,8 @@
 .container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - var(--header-h));
+  margin-top: calc(-1 * var(--header-h));
+  height: calc(100vh - var(--footer-h));
   background-color: var(--background);
   font-family: var(--font-sans);
 }
@@ -23,6 +24,7 @@
   width: min(18rem, 85vw);
   height: calc(100vh - 4rem);
   padding: 1rem;
+  padding-top: var(--header-h);
   border-right: 1px solid var(--border);
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
@@ -206,6 +208,8 @@
 
 /* ─── Chat panel ─── */
 .chatPanel {
+  padding-top: var(--header-h);
+
   display: flex;
   flex: 1;
   flex-direction: column;

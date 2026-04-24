@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react';
 
-import type { Category, Season, WardrobeItem } from '../../app/wardrobe/types';
 import styles from './AddItemDialog.module.css';
 import { updateClothesItem } from './api/wardrobeApi';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './components/dialog';
+import type { Category, Season, WardrobeItem } from './types';
 
 const seasons: Season[] = ['зима', 'весна', 'лето', 'осень', 'всесезон'];
-const categories: Category[] = ['headwear', 'top', 'accessory', 'bags', 'bottom', 'shoes', 'other'];
 const categoryOptions: Array<{ value: Category; label: string }> = [
   { value: 'headwear', label: 'Головные уборы' },
   { value: 'top', label: 'Верх' },

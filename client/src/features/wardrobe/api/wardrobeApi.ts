@@ -1,4 +1,4 @@
-import { type Category, WardrobeItem } from '@/app/wardrobe/types';
+import { type Category, WardrobeItem } from '@/features/wardrobe/types';
 import { WARDROBE_API_ROUTES } from '@/shared/constants/wardrobApiRoutes';
 import { axiosInstance } from '@/shared/lib/axiosInstance';
 import type { ServerResponseType } from '@/shared/types';

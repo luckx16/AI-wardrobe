@@ -1,4 +1,4 @@
-import type { Category, Season } from '@/app/wardrobe/types';
+import type { Category, Season } from '@/features/wardrobe/types';
 
 type TFunction = (key: string) => string;
 

@@ -6,7 +6,7 @@ import { Pencil } from 'lucide-react';
 
 import { getCategoryLabel, getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 
-import type { WardrobeItem } from '../../app/wardrobe/types';
+import type { WardrobeItem } from './types';
 import styles from './WardrobeCard.module.css';
 
 interface WardrobeCardProps {
