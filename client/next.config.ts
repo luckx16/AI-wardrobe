@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
         port: '4000',
         pathname: '/uploads/**',
       },
+      { protocol: 'https', hostname: 'ai-wardrobe.ru', pathname: '/uploads/**' },
     ],
   },
 };

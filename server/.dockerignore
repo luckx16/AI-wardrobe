@@ -1,6 +1,11 @@
 .git
 .gitignore
 
+# secrets
+.env
+.env.*
+!.env.example
+
 # dependencies
 node_modules
 

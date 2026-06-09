@@ -1,5 +1,9 @@
 const corsConfig = {
-  origin: ['http://localhost:3000', 'http://178.72.128.74:3000', 'http://178.72.128.74:80'],
+  origin: [
+    'http://localhost:3000',
+    'https://ai-wardrobe.ru',
+    'https://www.ai-wardrobe.ru',
+  ],
   credentials: true,
 };
 
