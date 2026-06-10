@@ -3,9 +3,7 @@
 ## =========================
 services:
   server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
+    image: luckx16/ai-wardrobe-server:latest
     container_name: project-server
     environment:
       NODE_ENV: production
@@ -23,11 +21,7 @@ services:
     restart: unless-stopped
 
   client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: '/api'
+    image: luckx16/ai-wardrobe-client:latest
     container_name: project-client
     environment:
       NODE_ENV: production
