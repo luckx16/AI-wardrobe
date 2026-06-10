@@ -3,20 +3,20 @@ ai-wardrobe.ru, www.ai-wardrobe.ru {
 
     @api path /api/*
     handle @api {
-        reverse_proxy server:4000
+        reverse_proxy localhost:4000
     }
 
     @uploads path /uploads/*
     handle @uploads {
-        reverse_proxy server:4000
+        reverse_proxy localhost:4000
     }
 
     @ws path /ws/*
     handle @ws {
-        reverse_proxy server:4000
+        reverse_proxy localhost:4000
     }
 
     handle {
-        reverse_proxy client:3000
+        reverse_proxy localhost:3000
     }
 }

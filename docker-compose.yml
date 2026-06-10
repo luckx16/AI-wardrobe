@@ -13,8 +13,8 @@ services:
       JWT_REFRESH: ${JWT_REFRESH}
       GIGACHAT_CREDENTIALS: ${GIGACHAT_CREDENTIALS}
       GIGACHAT_SCOPE: ${GIGACHAT_SCOPE}
-    expose:
-      - '4000'
+    ports:
+      - '4000:4000'
     volumes:
       - uploads_data:/app/src/public/uploads
     command: ['sh', '-c', 'npx sequelize-cli db:migrate && node ./src/app.js']
@@ -28,15 +28,13 @@ services:
       PORT: '3000'
     depends_on:
       - server
-    expose:
-      - '3000'
+    ports:
+      - '3000:3000'
     restart: unless-stopped
 
   caddy:
     image: caddy:2-alpine
-    ports:
-      - '80:80'
-      - '443:443'
+    network_mode: host
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
