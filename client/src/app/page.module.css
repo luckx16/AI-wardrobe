@@ -8,9 +8,6 @@
   overflow: hidden;
 }
 
-/* ─── Light theme: лавандовый намёк сверху, растворяется в нейтральном ─── */
-:global(header) {
-}
 
 .shaderContainer {
   position: fixed;

@@ -150,9 +150,6 @@
   }
 }
 
-select::-ms-expand {
-  display: none;
-}
 
 .modalActions {
   display: flex;
