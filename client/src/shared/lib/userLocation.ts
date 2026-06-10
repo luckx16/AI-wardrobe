@@ -66,7 +66,11 @@ function normalizeCityName(rawCity: string): string {
 function resolveCityFromSearchResult(searchResult: NominatimSearchResult): string | null {
   const address = searchResult.address;
   const directCity =
-    address?.city || address?.town || address?.village || address?.municipality || searchResult.name;
+    address?.city ||
+    address?.town ||
+    address?.village ||
+    address?.municipality ||
+    searchResult.name;
 
   if (directCity?.trim()) {
     return normalizeCityName(directCity);
@@ -159,11 +163,17 @@ function getCurrentPosition(): Promise<GeolocationPosition> {
 async function getCityByCoords(lat: number, lon: number): Promise<string | null> {
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`,
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&accept-language=en`,
     );
     const data = (await response.json()) as NominatimResponse;
 
-    return data.address?.city || data.address?.town || data.address?.village || data.address?.state || null;
+    return (
+      data.address?.city ||
+      data.address?.town ||
+      data.address?.village ||
+      data.address?.state ||
+      null
+    );
   } catch {
     return null;
   }
