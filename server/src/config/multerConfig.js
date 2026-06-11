@@ -18,12 +18,16 @@ const generateFilename = (originalname) => {
 // Фильтр для проверки типа файла
 const fileFilter = (req, file, cb) => {
   // Разрешаем только изображения
-  const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  
+  const allowedMimes = [
+    'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
+    'image/heic', 'image/heif',
+    'image/tiff', 'image/bmp',
+  ];
+
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Неверный формат файла. Разрешены только JPG, PNG, WEBP'));
+    cb(new Error('Неверный формат файла. Разрешены: JPG, PNG, WebP, HEIC, HEIF, TIFF, BMP'));
   }
 };
 
