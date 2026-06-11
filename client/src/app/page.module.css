@@ -25,6 +25,7 @@
   width: 100%;
   height: inherit;
   overflow-x: hidden;
+  overflow-y: auto;
   z-index: 100;
 }
 
@@ -358,9 +359,14 @@
 }
 
 /* ─── Responsive ─── */
-@media (max-width: 900px) {
-  .infoGrid,
+@media (max-width: 1100px) {
   .featureGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .infoGrid {
     grid-template-columns: 1fr;
   }
 
@@ -377,8 +383,37 @@
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 640px) {
+  .hero {
+    padding-top: 60px;
+    padding-bottom: 48px;
+  }
+
+  .closetSection,
+  .whySection,
+  .featuresInner {
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+
+  .ctaSection {
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+
   .featureGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+  }
+
+  .infoCard {
+    min-height: auto;
+  }
+
+  .infoPreview {
+    height: 180px;
+  }
+
+  .ctaCard {
+    padding: 32px 20px 28px;
   }
 }
