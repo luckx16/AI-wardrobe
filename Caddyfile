@@ -1,4 +1,13 @@
-ai-wardrobe.ru, www.ai-wardrobe.ru {
+{
+    email ra1606olhk@gmail.com
+    acme_ca https://acme-v02.api.letsencrypt.org/directory
+}
+
+http://ai-wardrobe.ru, http://www.ai-wardrobe.ru {
+    redir https://{host}{uri} 308
+}
+
+https://ai-wardrobe.ru, https://www.ai-wardrobe.ru {
     encode gzip
 
     @api path /api/*

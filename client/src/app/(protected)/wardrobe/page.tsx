@@ -16,6 +16,7 @@ import { type Category, type Season, type WardrobeItem } from '@/features/wardro
 import WardrobeCard from '@/features/wardrobe/WardrobeCard';
 import WardrobeToolbar from '@/features/wardrobe/WardrobeToolbar';
 import { useConfirm } from '@/shared/hooks/useConfirmContext';
+import { getImgSrc } from '@/shared/lib/getImgSrc';
 import { PageLoader, useToast } from '@/shared/ui';
 
 import styles from './WardrobePage.module.css';
@@ -141,7 +142,7 @@ const WardrobePage = () => {
                       processing_status: statusData.processingStatus,
                       image:
                         statusData.imageUrl && statusData.processingStatus === 'completed'
-                          ? `http://localhost:4000${statusData.imageUrl}`
+                          ? (getImgSrc(statusData.imageUrl?.split('/').pop() ?? null) ?? prevItem.image) as string
                           : prevItem.image,
                     }
                   : prevItem,

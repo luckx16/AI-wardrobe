@@ -1,6 +1,7 @@
 import { type Category, WardrobeItem } from '@/features/wardrobe/types';
 import { WARDROBE_API_ROUTES } from '@/shared/constants/wardrobApiRoutes';
 import { axiosInstance } from '@/shared/lib/axiosInstance';
+import { getImgSrc } from '@/shared/lib/getImgSrc';
 import type { ServerResponseType } from '@/shared/types';
 
 const RUSSIAN_TO_CATEGORY: Record<string, Category> = {
@@ -176,7 +177,7 @@ export async function getClothProcessingStatus(id: string): Promise<ClothStatusD
 function updateImagePath(item: WardrobeItem): WardrobeItem {
   return {
     ...item,
-    image: `http://localhost:4000/uploads/processed/${item.image}`,
+    image: getImgSrc(item.image) ?? item.image,
     category: mapCategory(item.category),
   };
 }
