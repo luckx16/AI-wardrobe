@@ -132,3 +132,9 @@
     display: flex;
   }
 }
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+}

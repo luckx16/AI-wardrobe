@@ -518,6 +518,9 @@ export function ChatWidget() {
   return (
     <div className={styles.container}>
       <div className={styles.layout}>
+        {isSidebarOpen && (
+          <div className={styles.sidebarBackdrop} onClick={() => setIsSidebarOpen(false)} />
+        )}
         <aside
           className={`${styles.sidebar} ${isSidebarOpen ? styles.sidebarOpen : ''}`}
           aria-label={t('chat.history')}
