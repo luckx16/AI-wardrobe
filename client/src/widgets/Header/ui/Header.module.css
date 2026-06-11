@@ -542,6 +542,11 @@
     display: none;
   }
 
+  /* второй sep (перед profile/signout) остался бы без контента */
+  .sep:last-of-type {
+    display: none;
+  }
+
   .hamburger {
     display: inline-flex;
   }
@@ -552,7 +557,8 @@
     padding: 0.5rem 0.75rem 0;
   }
 
-  .ctaBtn {
+  /* на маленьких телефонах authToggle не влезает — доступен через hamburger-меню */
+  .authToggle {
     display: none;
   }
 }
