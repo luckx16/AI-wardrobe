@@ -157,3 +157,15 @@
 .daySelected .dayMore {
   color: var(--accent);
 }
+
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+  .calendar {
+    padding: 1rem 0.75rem;
+  }
+
+  .day {
+    min-height: 52px;
+    padding: 4px;
+  }
+}
