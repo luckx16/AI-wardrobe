@@ -11,9 +11,10 @@
 FROM node:22-bookworm-slim
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends libvips libheif-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends libvips libvips-dev libheif-dev && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
+ENV SHARP_FORCE_GLOBAL_LIBVIPS=1
 RUN npm ci --omit=dev
 ## Копируем остальной код сервера.
 ## - Обязательность: да (нужны исходники, конфиги, миграции и т.д.).

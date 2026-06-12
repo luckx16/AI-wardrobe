@@ -2,13 +2,29 @@
 ## docker-compose.yml
 ## =========================
 services:
+  db:
+    image: dockerhub.timeweb.cloud/library/postgres:16-alpine
+    container_name: project-db
+    environment:
+      POSTGRES_DB: aiwardrobe
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   server:
     image: luckx16/ai-wardrobe-server:latest
     container_name: project-server
     environment:
       NODE_ENV: production
       PORT: '4000'
-      DATABASE_URL_PROD: ${POSTGRES_URL_PROD}
+      DATABASE_URL_PROD: postgresql://postgres:postgres@db:5432/aiwardrobe
       JWT_ACCESS: ${JWT_ACCESS}
       JWT_REFRESH: ${JWT_REFRESH}
       GIGACHAT_CREDENTIALS: ${GIGACHAT_CREDENTIALS}
@@ -17,7 +33,11 @@ services:
       - '4000:4000'
     volumes:
       - uploads_data:/app/src/public/uploads
-    command: ['sh', '-c', 'npx sequelize-cli db:migrate && node ./src/app.js']
+      - ./.env:/app/.env:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ['sh', '-c', 'npx sequelize-cli db:migrate; node ./src/app.js']
     restart: unless-stopped
 
   client:
@@ -46,3 +66,4 @@ services:
 volumes:
   caddy_data:
   uploads_data:
+  db_data:
