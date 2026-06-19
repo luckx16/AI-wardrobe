@@ -50,10 +50,13 @@ class ImageProcessingService {
       const fileUrl = `file://${preparedPath}`;
       console.log('Using file URL:', fileUrl);
 
-      const resultBlob = await removeBackground(fileUrl, {
-        model: 'small',
-        output: { format: 'image/png' },
-      });
+      const TIMEOUT_MS = 60_000;
+      const resultBlob = await Promise.race([
+        removeBackground(fileUrl, { model: 'small', output: { format: 'image/png' } }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Background removal timed out after ${TIMEOUT_MS}ms`)), TIMEOUT_MS),
+        ),
+      ]);
 
       console.log('Result blob type:', resultBlob?.type);
 
