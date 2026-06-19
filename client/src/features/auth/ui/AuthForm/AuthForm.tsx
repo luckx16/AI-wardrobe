@@ -48,13 +48,18 @@ export function AuthForm(): React.JSX.Element {
       rafRef.current = requestAnimationFrame(animate);
     };
     rafRef.current = requestAnimationFrame(animate);
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (lastXRef.current !== null) {
       const delta = e.clientX - lastXRef.current;
-      targetRotationRef.current = Math.max(-25, Math.min(25, targetRotationRef.current + delta * 0.25));
+      targetRotationRef.current = Math.max(
+        -25,
+        Math.min(25, targetRotationRef.current + delta * 0.25),
+      );
     }
     lastXRef.current = e.clientX;
   };
@@ -70,7 +75,7 @@ export function AuthForm(): React.JSX.Element {
           .string()
           .trim()
           .min(1, t('auth.validation.enterEmail'))
-          .email(t('auth.validation.invalidEmail')),
+          .email({ message: t('auth.validation.invalidEmail') }),
         password: z.string().min(1, t('auth.validation.enterPassword')),
       }),
     [t],
@@ -80,8 +85,10 @@ export function AuthForm(): React.JSX.Element {
     const passwordRules = z
       .string()
       .min(8, t('auth.validation.minChars'))
-      .regex(/[A-Za-z]/, t('auth.validation.needLetter'))
-      .regex(/[0-9]/, t('auth.validation.needDigit'));
+      .regex(/[a-z]/, t('auth.validation.needLetter'))
+      .regex(/[A-Z]/, t('auth.validation.needUpper'))
+      .regex(/[0-9]/, t('auth.validation.needDigit'))
+      .regex(/[!@#$%^&*()\-,.?":{}|<>]/, t('auth.validation.needSpecial'));
 
     return z
       .object({
@@ -94,7 +101,7 @@ export function AuthForm(): React.JSX.Element {
           .string()
           .trim()
           .min(1, t('auth.validation.enterEmail'))
-          .email(t('auth.validation.invalidEmail')),
+          .email({ message: t('auth.validation.invalidEmail') }),
         password: passwordRules,
         confirmPassword: passwordRules,
       })
@@ -153,6 +160,25 @@ export function AuthForm(): React.JSX.Element {
     }
   });
 
+  const [isGuestSigningIn, setIsGuestSigningIn] = React.useState(false);
+
+  const handleGuestSignIn = async () => {
+    setIsGuestSigningIn(true);
+    try {
+      await dispatch(signInThunk({ email: 'guest@gmail.com', password: 'Guest1Qq!' })).unwrap();
+      await requestAndStoreUserLocation().catch(() => null);
+      router.push(CLIENT_ROUTES.DASHBOARD);
+    } catch (_error) {
+      toast({
+        variant: 'error',
+        title: 'Ошибка входа',
+        description: 'Не удалось войти как гость. Повторите попытку позже',
+      });
+    } finally {
+      setIsGuestSigningIn(false);
+    }
+  };
+
   return (
     <section
       className={styles.authPage}
@@ -160,6 +186,7 @@ export function AuthForm(): React.JSX.Element {
       onMouseLeave={handleMouseLeave}
     >
       <div className={styles.bgImage} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img ref={bgRef} src="/auth/auth-mannequin.png" className={styles.mannequin} alt="" />
       <div className={styles.bgOverlay} />
 
@@ -234,6 +261,14 @@ export function AuthForm(): React.JSX.Element {
 
               <button className={styles.submitButton} type="submit" disabled={isSignInSubmitting}>
                 {isSignInSubmitting ? t('auth.signingIn') : t('auth.signIn')}
+              </button>
+              <button
+                type="button"
+                className={styles.guestButton}
+                disabled={isGuestSigningIn}
+                onClick={handleGuestSignIn}
+              >
+                {isGuestSigningIn ? t('auth.signingIn') : 'Войти как гость'}
               </button>
             </form>
           ) : (

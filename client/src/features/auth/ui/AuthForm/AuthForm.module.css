@@ -272,6 +272,35 @@
   cursor: default;
 }
 
+/* ─── Guest button ─── */
+.guestButton {
+  width: 100%;
+  height: 42px;
+  margin-top: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color var(--transition-base),
+    color var(--transition-base),
+    background var(--transition-base);
+}
+
+.guestButton:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--foreground);
+  background: var(--accent-dim);
+}
+
+.guestButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .backHome {
   display: block;
   margin: 12px 0 4px;

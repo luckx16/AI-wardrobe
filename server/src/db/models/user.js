@@ -38,14 +38,14 @@ module.exports = (sequelize, DataTypes) => {
       if (!email || typeof email !== 'string' || email.trim().length === 0) {
         return {
           isValid: false,
-          error: 'Email should not be empty',
+          error: 'Email не может быть пустым',
         };
       }
 
       if (!password || typeof password !== 'string' || password.trim().length === 0) {
         return {
           isValid: false,
-          error: 'Password should not be empty',
+          error: 'Пароль не может быть пустым',
         };
       }
 
@@ -59,7 +59,7 @@ module.exports = (sequelize, DataTypes) => {
       if (!name || typeof name !== 'string' || name.trim().length === 0) {
         return {
           isValid: false,
-          error: 'Name field should not be empty',
+          error: 'Имя не может быть пустым',
         };
       }
 
@@ -71,7 +71,7 @@ module.exports = (sequelize, DataTypes) => {
       ) {
         return {
           isValid: false,
-          error: 'Email must be valid',
+          error: 'Введите корректный email',
         };
       }
 
@@ -84,7 +84,7 @@ module.exports = (sequelize, DataTypes) => {
         return {
           isValid: false,
           error:
-            'Password should not be empty, must contain one uppercase letter, one lowercase letter, one special character, and be at least 8 characters long',
+            'Пароль должен содержать минимум 8 символов, одну заглавную букву, одну строчную букву и один специальный символ',
         };
       }
 
