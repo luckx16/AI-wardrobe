@@ -5,6 +5,7 @@ import { type ChangeEvent, useRef, useState } from 'react';
 import { ImagePlus, Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { convertHeicIfNeeded } from '@/shared/lib/convertHeic';
 import { getSeasonLabel } from '@/shared/lib/wardrobeI18n';
 import { useToast } from '@/shared/ui';
 
@@ -70,12 +71,12 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
     setImageFile(null);
   };
 
-  const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setImageFile(file);
-    const url = URL.createObjectURL(file);
-    setImagePreview(url);
+    const converted = await convertHeicIfNeeded(file);
+    setImageFile(converted);
+    setImagePreview(URL.createObjectURL(converted));
   };
 
   const handleSubmit = async () => {
