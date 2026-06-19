@@ -6,7 +6,7 @@ module.exports = {
       // ── ЗИМА ──────────────────────────────────────────────────────────────
       {
         title: 'Черный свитер водолазка',
-        user_id: 4,
+        user_id: 5,
         brand: 'Uniqlo',
         material: 'Шерсть',
         color: 'Черный',
@@ -25,7 +25,7 @@ module.exports = {
       },
       {
         title: 'Синее пальто',
-        user_id: 4,
+        user_id: 5,
         brand: 'London Fog',
         material: 'Шерсть',
         color: 'Темно-синий',
@@ -44,7 +44,7 @@ module.exports = {
       },
       {
         title: 'Черные зимние сапоги',
-        user_id: 4,
+        user_id: 5,
         brand: 'Sorel',
         material: 'Кожа',
         color: 'Черный',
@@ -63,7 +63,7 @@ module.exports = {
       },
       {
         title: 'Черная вязаная шапка-бини',
-        user_id: 4,
+        user_id: 5,
         brand: 'Carhartt',
         material: 'Акрил',
         color: 'Черный',
@@ -82,7 +82,7 @@ module.exports = {
       },
       {
         title: 'Коричневый шарф',
-        user_id: 4,
+        user_id: 5,
         brand: 'Burberry',
         material: 'Шерсть',
         color: 'Коричневый',
@@ -101,7 +101,7 @@ module.exports = {
       },
       {
         title: 'Серый свитер',
-        user_id: 4,
+        user_id: 5,
         brand: 'Uniqlo',
         material: 'Шерсть',
         color: 'Серый',
@@ -122,7 +122,7 @@ module.exports = {
       // ── ОСЕНЬ ─────────────────────────────────────────────────────────────
       {
         title: 'Бежевый кардиган',
-        user_id: 4,
+        user_id: 5,
         brand: 'John Smedley',
         material: 'Кашемир',
         color: 'Бежевый',
@@ -141,7 +141,7 @@ module.exports = {
       },
       {
         title: 'Серая толстовка худи',
-        user_id: 4,
+        user_id: 5,
         brand: 'Nike',
         material: 'Флис',
         color: 'Серый',
@@ -160,7 +160,7 @@ module.exports = {
       },
       {
         title: 'Черная кожаная куртка',
-        user_id: 4,
+        user_id: 5,
         brand: 'Schott NYC',
         material: 'Кожа',
         color: 'Черный',
@@ -179,7 +179,7 @@ module.exports = {
       },
       {
         title: 'Коричневые замшевые ботинки',
-        user_id: 4,
+        user_id: 5,
         brand: 'Clarks',
         material: 'Замша',
         color: 'Коричневый',
@@ -200,7 +200,7 @@ module.exports = {
       // ── ЛЕТО ──────────────────────────────────────────────────────────────
       {
         title: 'Белая футболка',
-        user_id: 4,
+        user_id: 5,
         brand: 'Nike',
         material: 'Хлопок',
         color: 'Белый',
@@ -219,7 +219,7 @@ module.exports = {
       },
       {
         title: 'Синяя футболка поло',
-        user_id: 4,
+        user_id: 5,
         brand: 'Fred Perry',
         material: 'Хлопок',
         color: 'Синий',
@@ -238,7 +238,7 @@ module.exports = {
       },
       {
         title: 'Хаки шорты',
-        user_id: 4,
+        user_id: 5,
         brand: 'Carhartt',
         material: 'Хлопок',
         color: 'Хаки',
@@ -257,7 +257,7 @@ module.exports = {
       },
       {
         title: 'Белые кеды Converse',
-        user_id: 4,
+        user_id: 5,
         brand: 'Converse',
         material: 'Холст',
         color: 'Белый',
@@ -276,7 +276,7 @@ module.exports = {
       },
       {
         title: 'Синяя бейсболка New Era',
-        user_id: 4,
+        user_id: 5,
         brand: 'New Era',
         material: 'Хлопок',
         color: 'Синий',
@@ -297,7 +297,7 @@ module.exports = {
       // ── ВЕСНА / ВСЕСЕЗОН ──────────────────────────────────────────────────
       {
         title: 'Зеленая ветровка',
-        user_id: 4,
+        user_id: 5,
         brand: 'The North Face',
         material: 'Нейлон',
         color: 'Оливковый',
@@ -316,7 +316,7 @@ module.exports = {
       },
       {
         title: 'Хаки брюки чинос',
-        user_id: 4,
+        user_id: 5,
         brand: 'Dockers',
         material: 'Хлопок',
         color: 'Хаки',
@@ -335,7 +335,7 @@ module.exports = {
       },
       {
         title: 'Белая классическая рубашка',
-        user_id: 4,
+        user_id: 5,
         brand: 'Ermenegildo Zegna',
         material: 'Хлопок',
         color: 'Белый',
@@ -354,7 +354,7 @@ module.exports = {
       },
       {
         title: 'Синие джинсы прямого кроя',
-        user_id: 4,
+        user_id: 5,
         brand: "Levi's 501",
         material: 'Деним',
         color: 'Синий',
@@ -373,7 +373,7 @@ module.exports = {
       },
       {
         title: 'Черные классические брюки',
-        user_id: 4,
+        user_id: 5,
         brand: 'Hugo Boss',
         material: 'Шерсть',
         color: 'Черный',
@@ -392,7 +392,7 @@ module.exports = {
       },
       {
         title: 'Черные классические туфли',
-        user_id: 4,
+        user_id: 5,
         brand: 'Loake',
         material: 'Кожа',
         color: 'Черный',
@@ -411,7 +411,7 @@ module.exports = {
       },
       {
         title: 'Коричневый кожаный ремень',
-        user_id: 4,
+        user_id: 5,
         brand: 'Timberland',
         material: 'Кожа',
         color: 'Коричневый',
@@ -430,7 +430,7 @@ module.exports = {
       },
       {
         title: 'Черный рюкзак',
-        user_id: 4,
+        user_id: 5,
         brand: 'Herschel',
         material: 'Полиэстер',
         color: 'Черный',
@@ -451,6 +451,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('Cloths', { user_id: 4 }, {});
+    await queryInterface.bulkDelete('Cloths', { user_id: 5 }, {});
   },
 };
