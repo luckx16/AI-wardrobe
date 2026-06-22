@@ -14,23 +14,54 @@
 /* ─── Stats grid ─── */
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
   margin-bottom: 1.25rem;
+}
+
+.statsGrid span {
+  min-width: 20px;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.statsGrid span:first-child {
+  min-width: 37px;
+}
+
+.dashboardStatCard {
+  min-width: 0;
+  overflow: hidden;
+  padding: 0.75rem;
+}
+
+@media (min-width: 480px) {
+  .statsGrid {
+    gap: 0.75rem;
+  }
 }
 
 @media (min-width: 1024px) {
   .statsGrid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
   }
 }
 
 /* staggered entrance for each stat card */
-.statsGrid > *:nth-child(1) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.05s both; }
-.statsGrid > *:nth-child(2) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.10s both; }
-.statsGrid > *:nth-child(3) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.15s both; }
-.statsGrid > *:nth-child(4) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.20s both; }
+.statsGrid > *:nth-child(1) {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.05s both;
+}
+.statsGrid > *:nth-child(2) {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both;
+}
+.statsGrid > *:nth-child(3) {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.15s both;
+}
+.statsGrid > *:nth-child(4) {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+}
 
 /* ─── Widgets grid ─── */
 .widgetsGrid {
@@ -45,9 +76,15 @@
   }
 }
 
-.widgetItem:nth-child(1) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both; }
-.widgetItem:nth-child(2) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.32s both; }
-.widgetItem:nth-child(3) { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.39s both; }
+.widgetItem:nth-child(1) {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both;
+}
+.widgetItem:nth-child(2) {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.32s both;
+}
+.widgetItem:nth-child(3) {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.39s both;
+}
 
 @keyframes slideUp {
   from {

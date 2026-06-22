@@ -38,5 +38,10 @@
   },
   "devDependencies": {
     "cross-env": "^10.1.0"
+  },
+  "overrides": {
+    "@imgly/background-removal-node": {
+      "sharp": "^0.35.0"
+    }
   }
 }

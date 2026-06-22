@@ -2,6 +2,7 @@
 
 import { type ChangeEvent, useRef, useState } from 'react';
 
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { ImagePlus, Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -126,9 +127,13 @@ const AddItemDialog = ({ onAdd }: AddItemDialogProps) => {
         </button>
       </DialogTrigger>
 
-      <DialogContent className={styles.dialogContent}>
-        <DialogHeader>
+      <DialogContent className={styles.dialogContent} hasClose={false}>
+        <DialogHeader className={styles.dialogHeader}>
           <DialogTitle className={styles.dialogTitle}>{t('wardrobe.newItem')}</DialogTitle>
+          <DialogPrimitive.Close className={styles.closeHeaderBtn}>
+            <X className={styles.icon} />
+            <span className={styles.srOnly}>Close</span>
+          </DialogPrimitive.Close>
         </DialogHeader>
 
         <div className={styles.form}>

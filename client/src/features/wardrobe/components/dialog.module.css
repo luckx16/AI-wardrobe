@@ -6,7 +6,7 @@
   animation: overlayIn 0.2s ease;
 }
 
-.overlay[data-state="closed"] {
+.overlay[data-state='closed'] {
   animation: overlayOut 0.2s ease;
 }
 
@@ -26,9 +26,11 @@
   transform: translate(-50%, -50%);
   animation: contentIn 0.2s ease;
   justify-items: center;
+  overflow: scroll;
+  max-height: calc(100dvh - 2 * var(--header-h));
 }
 
-.content[data-state="closed"] {
+.content[data-state='closed'] {
   animation: contentOut 0.2s ease;
 }
 
@@ -110,13 +112,16 @@
   font-size: 0.875rem;
 }
 
-@media (min-width: 640px) {
+@media (max-width: 640px) {
   .content {
     border-radius: calc(var(--radius) + 0.125rem);
+    justify-items: unset;
   }
 
   .header {
     text-align: left;
+    position: sticky;
+    top: 0;
   }
 
   .footer {

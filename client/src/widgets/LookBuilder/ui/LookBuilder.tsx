@@ -1,10 +1,11 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useMemo } from 'react';
 
 import clsx from 'clsx';
-import { X } from 'lucide-react';
+import { MoveUp, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ClothingSection, IClothFromDb } from '@/entities/cloth';
@@ -52,7 +53,11 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
   };
   return (
     <section className={styles.page}>
-      <header className={styles.header}>
+      <Link href={'#headerLookBuilder'} className={clsx(styles.saveButton, styles.anchorLink)}>
+        К холсту
+        <MoveUp size={13} />
+      </Link>
+      <header className={styles.header} id="#headerLookBuilder">
         <h1 className={clsx('pageTitle')}>
           {editedLook ? t('lookBuilder.edit') : t('lookBuilder.build')} {t('lookBuilder.titleTail')}
         </h1>
@@ -232,59 +237,3 @@ export function LookBuilder({ lookId }: { lookId?: string }) {
     </section>
   );
 }
-
-//  <div className={styles.canvas}>
-//    {sectionsIdsArr.map((sectionId) => {
-//      if (sectionId === 'all') return null;
-
-//      const clothesInSectionArr = [...filledSectionsState[sectionId]]
-//        .map((clothId) => clothesMap.get(clothId))
-//        .filter(Boolean) as IClothFromDb[];
-
-//      return (
-//        <article key={sectionId} className={styles.slotCard}>
-//          <div className={styles.slotLabelRow}>
-//            <span className={styles.slotLabel}>{sectionId}</span>
-//            {clothesInSectionArr.map((clothOfSection) => {
-//              return (
-//                <Fragment key={clothOfSection.id}>
-//                  <button
-//                    type="button"
-//                    className={styles.removeButton}
-//                    onClick={() => removeClothFromSelected(sectionId, clothOfSection.id)}
-//                  >
-//                    Убрать
-//                  </button>
-//                  <div className={styles.slotContent}>
-//                    {clothOfSection.image ? (
-//                      <Image
-//                        src={clothOfSection.image}
-//                        alt={clothOfSection.title}
-//                        width={72}
-//                        height={72}
-//                        className={styles.slotPhoto}
-//                        unoptimized
-//                      />
-//                    ) : (
-//                      <span className={styles.slotFallbackIcon}>{clothOfSection.category}</span>
-//                    )}
-//                    <span
-//                      className={styles.slotColor}
-//                      style={{ backgroundColor: clothOfSection.color }}
-//                    />
-//                    <div>
-//                      <p className={styles.slotName}>{clothOfSection.title}</p>
-//                      {/* <p className={styles.slotDescription}>{clothOfSection.description}</p> */}
-//                    </div>
-//                  </div>
-//                </Fragment>
-//              );
-//            })}
-//          </div>
-//          {clothesInSectionArr.length === 0 && (
-//            <p className={styles.slotPlaceholder}>Добавь вещь из списка слева</p>
-//          )}
-//        </article>
-//      );
-//    })}
-//  </div>;

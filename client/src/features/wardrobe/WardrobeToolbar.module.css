@@ -1,6 +1,12 @@
 .root {
+  position: sticky;
+  top: calc(var(--header-h) - 1rem);
   display: grid;
   gap: 1rem;
+  z-index: 1;
+  background: inherit;
+  padding: 1rem;
+  margin: -1rem;
 }
 
 .header {
@@ -89,6 +95,14 @@
 }
 
 @media (max-width: 639px) {
+  .root {
+    top: calc(var(--header-h) + 1.875rem);
+
+    padding-top: 3rem;
+    margin-top: -3rem;
+    translate: 0 -3rem;
+  }
+
   .header {
     align-items: flex-start;
     flex-direction: column;

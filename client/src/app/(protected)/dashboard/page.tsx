@@ -297,7 +297,7 @@ export default function DashboardPage() {
 
       <div className={styles.statsGrid}>
         {statsData.map((stat) => (
-          <StatsCard key={stat.title} {...stat} />
+          <StatsCard key={stat.title} {...stat} className={styles.dashboardStatCard} />
         ))}
       </div>
 

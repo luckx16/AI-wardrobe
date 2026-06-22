@@ -69,6 +69,7 @@
 
 .day {
   animation: var(--anim-animate-up);
+  max-width: 5rem;
   min-height: 72px;
   display: flex;
   flex-direction: column;
@@ -163,8 +164,12 @@
   .calendar {
     padding: 1rem 0.75rem;
   }
+  .weekdays {
+    text-align: left;
+  }
 
   .day {
+    max-width: 2.5rem;
     min-height: 52px;
     padding: 4px;
   }

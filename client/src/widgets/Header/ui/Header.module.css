@@ -13,7 +13,7 @@
   pointer-events: all;
   margin: 0 auto;
   max-width: var(--page-max-width);
-  height: 3rem;
+  min-height: 3rem;
   display: flex;
   align-items: center;
   gap: 0;
@@ -534,6 +534,12 @@
 }
 
 @media (max-width: 900px) {
+  .brandLogoWrap,
+  .brandLogo,
+  .brand {
+    max-width: 5.5rem;
+  }
+
   .desktopNav {
     display: none;
   }
@@ -557,18 +563,35 @@
     padding: 0.5rem 0.75rem 0;
   }
 
+  .bar {
+    flex-wrap: wrap;
+    padding-block: 8px;
+  }
+
+  .controls {
+    justify-content: space-between;
+  }
+
+  .cityGroup {
+    margin-right: auto;
+  }
+
   /* на маленьких телефонах authToggle не влезает — доступен через hamburger-меню */
   .authToggle {
     display: none;
   }
-}
 
-@media (max-width: 400px) {
-  .cityGroup {
-    display: none;
+  .brandLogoWrap,
+  .brandLogo,
+  .brand {
+    max-width: 5rem;
   }
 
   .sep:first-of-type {
     display: none;
+  }
+
+  .cityBadge {
+    max-width: unset;
   }
 }

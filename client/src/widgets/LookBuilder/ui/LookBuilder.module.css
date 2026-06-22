@@ -8,6 +8,38 @@
   padding: var(--page-padding);
 }
 
+@keyframes fadeInAt30 {
+  /* От 0% до 30% скролла кнопка полностью невидима */
+  0%,
+  25% {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+  }
+  /* Сразу после 31% она становится видимой и доступной для клика */
+  26%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+}
+
+.anchorLink {
+  display: none;
+  position: fixed;
+  bottom: 1rem;
+  right: 2rem;
+  z-index: 2;
+
+  align-items: center;
+  column-gap: 0.5rem;
+  justify-content: space-between;
+
+  animation: fadeInAt30 linear both;
+  animation-timeline: scroll(root);
+}
+
 .header {
   display: flex;
   flex-direction: column;
@@ -454,6 +486,15 @@
   .layout {
     grid-template-columns: 1fr;
   }
+
+  .anchorLink {
+    display: flex;
+  }
+
+  .canvasSection {
+    position: static;
+    order: -1;
+  }
 }
 
 @media (max-width: 640px) {
@@ -467,5 +508,11 @@
 
   .filterRow {
     gap: 0.3rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .filterRow {
+    top: calc(var(--header-h) + 1.5rem);
   }
 }
