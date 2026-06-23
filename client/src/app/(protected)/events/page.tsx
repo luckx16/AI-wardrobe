@@ -49,7 +49,6 @@ export default function EventsPage() {
 
       map[key].push(e);
     });
-    console.log('map', map);
 
     return map;
   }, [events]);

@@ -43,7 +43,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const initialTheme = themeCookie === 'light' ? 'light' : undefined;
 
   return (
-    <html lang={initialLang} data-theme={initialTheme} suppressHydrationWarning>
+    <html lang={initialLang} data-theme={initialTheme} data-scroll-behavior="smooth" suppressHydrationWarning>
       <body>
         <I18nProvider initialLang={initialLang}>
           <ReduxProvider>

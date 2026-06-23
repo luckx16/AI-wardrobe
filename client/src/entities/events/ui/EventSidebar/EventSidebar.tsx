@@ -31,7 +31,6 @@ export function EventSidebar({
       day: 'numeric',
       month: 'long',
     });
-  console.log('selectedDate', selectedDate);
 
   return (
     <div className={styles.sidebar}>

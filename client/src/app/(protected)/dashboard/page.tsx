@@ -190,7 +190,6 @@ export default function DashboardPage() {
         userPrompt: prompt,
         weather: weatherData,
       });
-      console.log('generated', generated);
 
       setOutfitGenerated(generated ?? null);
       const exp =
@@ -229,8 +228,6 @@ export default function DashboardPage() {
   useEffect(() => {
     dispatch(getAllEventsThunk());
   }, [dispatch]);
-
-  console.log('events', events);
 
   const statsData = useMemo(
     () => [
@@ -286,7 +283,6 @@ export default function DashboardPage() {
     ],
     [dashboardNumbers],
   );
-  console.log('outfitGenerated', outfitGenerated);
 
   return (
     <div className={styles.page}>

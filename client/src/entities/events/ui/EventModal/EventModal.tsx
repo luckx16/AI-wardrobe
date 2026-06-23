@@ -1,10 +1,10 @@
 'use client';
 
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import clsx from 'clsx';
 import { BadgePlus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { getAllLooksThunk } from '@/entities/look';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
@@ -143,7 +143,9 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
 
     try {
       if (isEditing) {
-        await dispatch(updateEventThunk({ editedEventId: editedEventId, ...eventDataFromClient })).unwrap();
+        await dispatch(
+          updateEventThunk({ editedEventId: editedEventId, ...eventDataFromClient }),
+        ).unwrap();
         toast({ variant: 'success', title: 'Событие обновлено' });
       } else {
         await dispatch(createEventThunk(eventDataFromClient)).unwrap();
@@ -184,21 +186,19 @@ export function EventModal({ initialDate, onClose }: EventModalProps) {
     }
   };
 
-  console.log('form', form);
-
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modalInnerWrapper} onClick={(e) => e.stopPropagation()}>
         <form
           className={styles.form}
           onSubmit={(e) => {
-            console.log('1', 1);
-
             e.preventDefault();
             handleSave();
           }}
         >
-          <div className={styles.modalTitle}>{isEditing ? t('eventModal.editTitle') : t('eventModal.newTitle')}</div>
+          <div className={styles.modalTitle}>
+            {isEditing ? t('eventModal.editTitle') : t('eventModal.newTitle')}
+          </div>
 
           {/* ----Event */}
           <div className={styles.field}>
