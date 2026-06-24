@@ -10,6 +10,14 @@
  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝    ╚═╝  ╚═╝╚═╝
 ```
 
+<br/>
+
+<p align="center">
+  <img src="./demo.gif" alt="Pathora AI Demo" width="800">
+</p>
+
+<br/>
+
 **Your personal AI-powered wardrobe stylist**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org)
