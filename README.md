@@ -443,3 +443,7 @@ User ────────── Profile (1:1)
 - **ESLint** — удаляет неиспользуемые импорты, сортирует группы импортов
 - **TypeScript** — `strict: true`, без implicit any
 - Порядок импортов: `side-effects → react/next → external → @/* aliases → relative`
+
+## ✦ Демо
+
+🔗 [ai-wardrobe.ru](https://ai-wardrobe.ru)
