@@ -23,6 +23,7 @@ import useDebouncedValue from '@/shared/hooks/useDebouncedValue';
 import { useTheme } from '@/shared/hooks/useTheme';
 import { AppLanguage, supportedLngs } from '@/shared/i18n/config';
 import {
+  OPEN_CITY_MODAL_EVENT,
   requestAndStoreUserLocation,
   setAndStoreUserCity,
   userLocationStorage,
@@ -115,6 +116,14 @@ export function Header() {
     setIsCityModalOpen(false);
     setCityError(null);
   };
+
+  useEffect(() => {
+    window.addEventListener(OPEN_CITY_MODAL_EVENT, openCityModal);
+    return () => {
+      window.removeEventListener(OPEN_CITY_MODAL_EVENT, openCityModal);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [city]);
 
   const saveCityHandler = useCallback(async () => {
     const normalizedCity = cityInput.trim();
@@ -232,7 +241,7 @@ export function Header() {
 
         {/* Right-side controls */}
         <div className={styles.controls}>
-          {isAuthenticated && city ? (
+          {isAuthenticated ? (
             <div className={styles.cityGroup}>
               <button
                 type="button"
@@ -240,7 +249,7 @@ export function Header() {
                 onClick={openCityModal}
                 aria-label={t('header.editCity')}
               >
-                {city}
+                {city ?? t('header.cityUnknown')}
               </button>
               <button
                 type="button"

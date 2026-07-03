@@ -1,6 +1,7 @@
 const USER_CITY_KEY = 'user_city';
 const USER_COORDS_KEY = 'user_coords';
 export const USER_LOCATION_UPDATED_EVENT = 'user-location-updated';
+export const OPEN_CITY_MODAL_EVENT = 'open-city-modal';
 
 export type UserCoords = {
   lat: number;
@@ -145,6 +146,12 @@ function notifyUserLocationUpdated(): void {
   }
 }
 
+export function requestOpenCityModal(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(OPEN_CITY_MODAL_EVENT));
+  }
+}
+
 function getCurrentPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
@@ -174,6 +181,34 @@ async function getCityByCoords(lat: number, lon: number): Promise<string | null>
       data.address?.state ||
       null
     );
+  } catch {
+    return null;
+  }
+}
+
+type IpApiResponse = {
+  city?: string;
+  region?: string;
+  latitude?: number;
+  longitude?: number;
+};
+
+async function getLocationByIP(): Promise<UserLocation | null> {
+  try {
+    const response = await fetch('https://ipapi.co/json/');
+    const data = (await response.json()) as IpApiResponse;
+    const city = data.city || data.region || null;
+    if (!city) {
+      return null;
+    }
+
+    return {
+      city: normalizeCityName(city),
+      coords:
+        typeof data.latitude === 'number' && typeof data.longitude === 'number'
+          ? { lat: data.latitude, lon: data.longitude }
+          : null,
+    };
   } catch {
     return null;
   }
@@ -224,16 +259,26 @@ export async function setAndStoreUserCity(city: string): Promise<UserLocation> {
 }
 
 export async function requestAndStoreUserLocation(): Promise<UserLocation> {
-  const position = await getCurrentPosition();
-  const coords = {
-    lat: position.coords.latitude,
-    lon: position.coords.longitude,
-  };
-  const city = await getCityByCoords(coords.lat, coords.lon);
+  try {
+    const position = await getCurrentPosition();
+    const coords = {
+      lat: position.coords.latitude,
+      lon: position.coords.longitude,
+    };
+    const city = await getCityByCoords(coords.lat, coords.lon);
 
-  const location = { city, coords };
-  userLocationStorage.setLocation(location);
-  notifyUserLocationUpdated();
+    const location = { city, coords };
+    userLocationStorage.setLocation(location);
+    notifyUserLocationUpdated();
 
-  return location;
+    return location;
+  } catch {
+    // Геолокация браузера недоступна/запрещена (частый случай на мобильных) — пробуем по IP.
+    const ipLocation = await getLocationByIP();
+    const location = ipLocation ?? { city: null, coords: null };
+    userLocationStorage.setLocation(location);
+    notifyUserLocationUpdated();
+
+    return location;
+  }
 }

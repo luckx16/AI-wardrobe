@@ -40,6 +40,7 @@ const resources = {
         saveCityFail: 'Не удалось обновить город. Попробуйте еще раз',
         geolocationFail: 'Не удалось обновить геолокацию. Проверьте доступ к местоположению',
         detectCityAutomatically: 'Определить город автоматически',
+        cityUnknown: 'Город не определён',
       },
       looks: {
         title: 'Образы',
@@ -556,6 +557,7 @@ const resources = {
         saveCityFail: 'Could not update city. Try again.',
         geolocationFail: 'Could not refresh geolocation. Check location permissions.',
         detectCityAutomatically: 'Detect city automatically',
+        cityUnknown: 'City not detected',
       },
       looks: {
         title: 'Looks',
@@ -1064,6 +1066,7 @@ const resources = {
         geolocationFail:
           'Geolokalisierung konnte nicht aktualisiert werden. Standortfreigabe prüfen.',
         detectCityAutomatically: 'Stadt automatisch bestimmen',
+        cityUnknown: 'Stadt nicht erkannt',
       },
       looks: {
         title: 'Looks',
@@ -1580,6 +1583,7 @@ const resources = {
         geolocationFail:
           'Impossible de mettre a jour la geolocalisation. Verifiez les permissions.',
         detectCityAutomatically: 'Detecter la ville automatiquement',
+        cityUnknown: 'Ville non detectee',
       },
       looks: {
         title: 'Looks',
@@ -2094,6 +2098,7 @@ const resources = {
         geolocationFail:
           'No se pudo actualizar la geolocalizacion. Comprueba permisos de ubicacion.',
         detectCityAutomatically: 'Detectar ciudad automaticamente',
+        cityUnknown: 'Ciudad no detectada',
       },
       looks: {
         title: 'Looks',
@@ -2603,6 +2608,7 @@ const resources = {
         saveCityFail: '无法更新城市，请重试。',
         geolocationFail: '无法更新定位，请检查定位权限。',
         detectCityAutomatically: '自动定位城市',
+        cityUnknown: '未检测到城市',
       },
       looks: {
         title: '穿搭',

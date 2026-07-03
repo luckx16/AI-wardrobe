@@ -21,7 +21,11 @@ import type { WeatherByCoordsResponse } from '@/entities/weather/model/types';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch, useAppSelector } from '@/shared/hooks';
 import { useCustomRouter } from '@/shared/hooks/useCustomRouter';
-import { USER_LOCATION_UPDATED_EVENT, userLocationStorage } from '@/shared/lib/userLocation';
+import {
+  requestOpenCityModal,
+  USER_LOCATION_UPDATED_EVENT,
+  userLocationStorage,
+} from '@/shared/lib/userLocation';
 import { StatsCard } from '@/shared/ui';
 import { CalendarPlans, OutfitOfTheDay } from '@/widgets';
 import { CategoryBreakdown } from '@/widgets/CategoryBreakdown';
@@ -306,6 +310,7 @@ export default function DashboardPage() {
             explanation={outfitExplanation}
             isLoading={outfitGenerating}
             onRefresh={refreshOutfitOfTheDay}
+            onWeatherClick={requestOpenCityModal}
           />
         </div>
         <div className={styles.widgetItem}>
