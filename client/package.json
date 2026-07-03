@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "mobile:tunnel": "bash ../scripts/mobile-tunnel.sh",
     "build": "next build && cp -r .next/static .next/standalone/client/.next/static && cp -r public .next/standalone/client/public",
     "start": "node .next/standalone/client/server.js",
     "lint": "eslint .",
