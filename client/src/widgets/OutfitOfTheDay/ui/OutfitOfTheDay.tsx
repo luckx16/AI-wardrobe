@@ -16,6 +16,7 @@ type OutfitOfTheDayProps = {
   explanation?: string | null;
   isLoading?: boolean;
   onRefresh?: () => void;
+  onWeatherClick?: () => void;
   weatherIcon?: React.ReactNode;
   sparkleIcon?: React.ReactNode;
 };
@@ -116,6 +117,7 @@ export function OutfitOfTheDay({
   explanation,
   isLoading,
   onRefresh,
+  onWeatherClick,
   weatherIcon,
   sparkleIcon,
 }: OutfitOfTheDayProps) {
@@ -141,10 +143,17 @@ export function OutfitOfTheDay({
         </button>
       </div>
 
-      <div className={styles.weather}>
-        {weatherIcon && <span className={styles.weatherIcon}>{weatherIcon}</span>}
-        <span className={styles.weatherText}>{weather}</span>
-      </div>
+      {onWeatherClick ? (
+        <button type="button" className={styles.weather} onClick={onWeatherClick}>
+          {weatherIcon && <span className={styles.weatherIcon}>{weatherIcon}</span>}
+          <span className={styles.weatherText}>{weather}</span>
+        </button>
+      ) : (
+        <div className={styles.weather}>
+          {weatherIcon && <span className={styles.weatherIcon}>{weatherIcon}</span>}
+          <span className={styles.weatherText}>{weather}</span>
+        </div>
+      )}
 
       {tip?.trim() && <p className={styles.weatherTip}>{tip.trim()}</p>}
 

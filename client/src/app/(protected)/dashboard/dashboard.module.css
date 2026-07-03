@@ -19,14 +19,14 @@
   margin-bottom: 1.25rem;
 }
 
-.statsGrid span {
+.statsGrid span:not([role='status']) {
   min-width: 20px;
   word-break: break-word;
   overflow-wrap: anywhere;
   hyphens: auto;
 }
 
-.statsGrid span:first-child {
+.statsGrid span:first-child:not([role='status']) {
   min-width: 37px;
 }
 

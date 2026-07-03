@@ -8,7 +8,6 @@
   overflow: hidden;
 }
 
-
 .shaderContainer {
   position: fixed;
   top: 0;
@@ -34,7 +33,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin: 0;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
   padding: 6px 18px;
@@ -385,7 +383,7 @@
 
 @media (max-width: 640px) {
   .hero {
-    padding-top: 60px;
+    padding-top: calc(var(--header-h) + 16px);
     padding-bottom: 48px;
   }
 

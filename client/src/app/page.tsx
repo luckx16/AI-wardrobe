@@ -26,12 +26,8 @@ export default function Home() {
   const user = useAppSelector((state) => state.user.user);
   const isAuthenticated = Boolean(user);
 
-  // const handleTryClick = () => {
-  //   router.push(CLIENT_ROUTES.DASHBOARD);
-  // };
-
   const handleStartClick = () => {
-    router.push(isAuthenticated ? CLIENT_ROUTES.DASHBOARD : `${CLIENT_ROUTES.AUTH}?tab=sign-up`);
+    router.push(isAuthenticated ? CLIENT_ROUTES.DASHBOARD : `${CLIENT_ROUTES.AUTH}?tab=sign-in`);
   };
 
   return (

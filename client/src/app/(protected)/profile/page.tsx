@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 
 import { useAppSelector } from '@/shared/hooks';
@@ -218,7 +220,7 @@ export default function ProfilePage(): React.JSX.Element {
 
         <section className={styles.main} aria-label={t('profile.title')}>
           <div className={styles.titleRow}>
-            <h1 className={styles.title}>{t('profile.title')}</h1>
+            <h1 className={clsx(styles.title, 'pageTitle')}>{t('profile.title')}</h1>
           </div>
 
           {error ? <p className={styles.userSub}>{error}</p> : null}
