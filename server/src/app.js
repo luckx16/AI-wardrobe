@@ -9,7 +9,12 @@ const app = express();
 const BASE_PORT = Number(process.env.PORT ?? 4000);
 
 function ensureNoProxyForGigachat() {
-  const hasProxy = Boolean(process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy);
+  const hasProxy = Boolean(
+    process.env.HTTPS_PROXY ||
+    process.env.https_proxy ||
+    process.env.HTTP_PROXY ||
+    process.env.http_proxy,
+  );
   if (!hasProxy) return;
 
   const hosts = ['ngw.devices.sberbank.ru', 'gigachat.devices.sberbank.ru'];
@@ -33,6 +38,23 @@ serverConfig(app);
 
 // Запуск маршрутизации
 app.use('/', mainRouter);
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With',
+    'Content-Type',
+    'Accept',
+    'Authorization',
+  );
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200); // iOS критически важно получить 200 на OPTIONS
+  }
+  next();
+});
 
 // Прогреваем RAG-индекс правил на старте (best-effort, без падения сервера).
 getStyleRagStore()
