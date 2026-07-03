@@ -15,7 +15,7 @@ import { signInThunk, signUpThunk } from '@/entities/user/api/apiUserThunk';
 import { CLIENT_ROUTES } from '@/shared/constants/clientRoutes';
 import { useAppDispatch } from '@/shared/hooks/useAppDispatch';
 import { requestAndStoreUserLocation } from '@/shared/lib/userLocation';
-import { useToast } from '@/shared/ui';
+import { Spinner, useToast } from '@/shared/ui';
 
 import styles from './AuthForm.module.css';
 
@@ -260,7 +260,14 @@ export function AuthForm(): React.JSX.Element {
               ) : null}
 
               <button className={styles.submitButton} type="submit" disabled={isSignInSubmitting}>
-                {isSignInSubmitting ? t('auth.signingIn') : t('auth.signIn')}
+                {isSignInSubmitting ? (
+                  <span className={styles.submitButtonContent}>
+                    <Spinner size="sm" color="white" />
+                    {t('auth.signingIn')}
+                  </span>
+                ) : (
+                  t('auth.signIn')
+                )}
               </button>
               <button
                 type="button"
@@ -268,7 +275,14 @@ export function AuthForm(): React.JSX.Element {
                 disabled={isGuestSigningIn}
                 onClick={handleGuestSignIn}
               >
-                {isGuestSigningIn ? t('auth.signingIn') : 'Войти как гость'}
+                {isGuestSigningIn ? (
+                  <span className={styles.submitButtonContent}>
+                    <Spinner size="sm" color="muted" />
+                    {t('auth.signingIn')}
+                  </span>
+                ) : (
+                  'Войти как гость'
+                )}
               </button>
             </form>
           ) : (
@@ -363,7 +377,14 @@ export function AuthForm(): React.JSX.Element {
               ) : null}
 
               <button className={styles.submitButton} type="submit" disabled={isSignUpSubmitting}>
-                {isSignUpSubmitting ? t('auth.creating') : t('auth.createAccount')}
+                {isSignUpSubmitting ? (
+                  <span className={styles.submitButtonContent}>
+                    <Spinner size="sm" color="white" />
+                    {t('auth.creating')}
+                  </span>
+                ) : (
+                  t('auth.createAccount')
+                )}
               </button>
             </form>
           )}
