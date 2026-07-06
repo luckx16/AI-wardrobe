@@ -51,5 +51,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             cd ~/AI-wardrobe
+            git fetch origin dev
+            git reset --hard origin/dev
             docker compose pull server client
             docker compose up -d server client
