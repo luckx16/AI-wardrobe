@@ -1,0 +1,55 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [dev]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: luckx16
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push server image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/ai-wardrobe-server:latest
+
+      - name: Build and push client image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./client
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/ai-wardrobe-client:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd ~/AI-wardrobe
+            docker compose pull server client
+            docker compose up -d server client
