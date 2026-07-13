@@ -1,8 +1,4 @@
-{
-    auto_https off
-}
-
-:80 {
+ai-wardrobe.ru, www.ai-wardrobe.ru {
     log {
         output stdout
         format json
