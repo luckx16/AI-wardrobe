@@ -57,3 +57,19 @@ jobs:
             docker compose pull server client
             docker compose up -d db server client
             docker image prune -f
+
+            # nginx-конфиг раскладывается из репозитория, а не правится на сервере:
+            # разошедшийся с git конфиг прокси уже ронял HTTPS, причём молча —
+            # до ближайшей перезагрузки хоста всё выглядело рабочим.
+            # Если новый конфиг не проходит проверку, откатываем файл: иначе битая
+            # версия осталась бы на диске и убила бы nginx (вместе с соседним сайтом)
+            # при первом же reload или ребуте.
+            cp /etc/nginx/sites-available/ai-wardrobe /tmp/vhost.bak
+            install -m 644 deploy/nginx/ai-wardrobe.conf /etc/nginx/sites-available/ai-wardrobe
+            if nginx -t; then
+              systemctl reload nginx
+            else
+              cp /tmp/vhost.bak /etc/nginx/sites-available/ai-wardrobe
+              echo "nginx -t не прошёл, конфиг откачен" >&2
+              exit 1
+            fi
