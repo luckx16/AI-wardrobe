@@ -50,8 +50,10 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd ~/AI-wardrobe
+            set -e
+            cd /var/www/ai-wardrobe
             git fetch origin dev
             git reset --hard origin/dev
             docker compose pull server client
-            docker compose up -d server client
+            docker compose up -d db server client
+            docker image prune -f

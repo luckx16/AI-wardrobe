@@ -3,7 +3,7 @@
 ## =========================
 services:
   db:
-    image: dockerhub.timeweb.cloud/library/postgres:16-alpine
+    image: postgres:16-alpine
     container_name: project-db
     environment:
       POSTGRES_DB: aiwardrobe
@@ -30,7 +30,8 @@ services:
       GIGACHAT_CREDENTIALS: ${GIGACHAT_CREDENTIALS}
       GIGACHAT_SCOPE: ${GIGACHAT_SCOPE}
     ports:
-      - '4000:4000'
+      # Только localhost: наружу ходит nginx хоста, напрямую порт светить не нужно.
+      - '127.0.0.1:4000:4000'
     volumes:
       - uploads_data:/app/src/public/uploads
       - ./.env:/app/.env:ro
@@ -49,21 +50,10 @@ services:
     depends_on:
       - server
     ports:
-      - '3000:3000'
-    restart: unless-stopped
-
-  caddy:
-    image: caddy:2-alpine
-    network_mode: host
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-    depends_on:
-      - server
-      - client
+      # 3000 на хосте занят бэкендом pathora, поэтому снаружи 3001.
+      - '127.0.0.1:3001:3000'
     restart: unless-stopped
 
 volumes:
-  caddy_data:
   uploads_data:
   db_data:

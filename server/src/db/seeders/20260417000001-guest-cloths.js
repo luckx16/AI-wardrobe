@@ -1,12 +1,30 @@
 'use strict';
 
+const GUEST_EMAIL = 'guest@gmail.com';
+
+// Гостя создаёт сидер mockUsers, но его id зависит от состояния базы:
+// на чистой БД он получает 4, а на старом проде из-за сдвинутой нумерации был 5.
+// Захардкоженный id ронял сидер по FK, поэтому ищем гостя по email.
+async function getGuestId(queryInterface) {
+  const [rows] = await queryInterface.sequelize.query(
+    'SELECT id FROM "Users" WHERE email = :email LIMIT 1',
+    { replacements: { email: GUEST_EMAIL } },
+  );
+  if (!rows.length) {
+    throw new Error(`Гость ${GUEST_EMAIL} не найден — сначала прогоните сидер mockUsers`);
+  }
+  return rows[0].id;
+}
+
 module.exports = {
   async up(queryInterface, Sequelize) {
+    const guestId = await getGuestId(queryInterface);
+
     return queryInterface.bulkInsert('Cloths', [
       // ── ЗИМА ──────────────────────────────────────────────────────────────
       {
         title: 'Черный свитер водолазка',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Uniqlo',
         material: 'Шерсть',
         color: 'Черный',
@@ -25,7 +43,7 @@ module.exports = {
       },
       {
         title: 'Синее пальто',
-        user_id: 5,
+        user_id: guestId,
         brand: 'London Fog',
         material: 'Шерсть',
         color: 'Темно-синий',
@@ -44,7 +62,7 @@ module.exports = {
       },
       {
         title: 'Черные зимние сапоги',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Sorel',
         material: 'Кожа',
         color: 'Черный',
@@ -63,7 +81,7 @@ module.exports = {
       },
       {
         title: 'Черная вязаная шапка-бини',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Carhartt',
         material: 'Акрил',
         color: 'Черный',
@@ -82,7 +100,7 @@ module.exports = {
       },
       {
         title: 'Коричневый шарф',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Burberry',
         material: 'Шерсть',
         color: 'Коричневый',
@@ -101,7 +119,7 @@ module.exports = {
       },
       {
         title: 'Серый свитер',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Uniqlo',
         material: 'Шерсть',
         color: 'Серый',
@@ -122,7 +140,7 @@ module.exports = {
       // ── ОСЕНЬ ─────────────────────────────────────────────────────────────
       {
         title: 'Бежевый кардиган',
-        user_id: 5,
+        user_id: guestId,
         brand: 'John Smedley',
         material: 'Кашемир',
         color: 'Бежевый',
@@ -141,7 +159,7 @@ module.exports = {
       },
       {
         title: 'Серая толстовка худи',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Nike',
         material: 'Флис',
         color: 'Серый',
@@ -160,7 +178,7 @@ module.exports = {
       },
       {
         title: 'Черная кожаная куртка',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Schott NYC',
         material: 'Кожа',
         color: 'Черный',
@@ -179,7 +197,7 @@ module.exports = {
       },
       {
         title: 'Коричневые замшевые ботинки',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Clarks',
         material: 'Замша',
         color: 'Коричневый',
@@ -200,7 +218,7 @@ module.exports = {
       // ── ЛЕТО ──────────────────────────────────────────────────────────────
       {
         title: 'Белая футболка',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Nike',
         material: 'Хлопок',
         color: 'Белый',
@@ -219,7 +237,7 @@ module.exports = {
       },
       {
         title: 'Синяя футболка поло',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Fred Perry',
         material: 'Хлопок',
         color: 'Синий',
@@ -238,7 +256,7 @@ module.exports = {
       },
       {
         title: 'Хаки шорты',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Carhartt',
         material: 'Хлопок',
         color: 'Хаки',
@@ -257,7 +275,7 @@ module.exports = {
       },
       {
         title: 'Белые кеды Converse',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Converse',
         material: 'Холст',
         color: 'Белый',
@@ -276,7 +294,7 @@ module.exports = {
       },
       {
         title: 'Синяя бейсболка New Era',
-        user_id: 5,
+        user_id: guestId,
         brand: 'New Era',
         material: 'Хлопок',
         color: 'Синий',
@@ -297,7 +315,7 @@ module.exports = {
       // ── ВЕСНА / ВСЕСЕЗОН ──────────────────────────────────────────────────
       {
         title: 'Зеленая ветровка',
-        user_id: 5,
+        user_id: guestId,
         brand: 'The North Face',
         material: 'Нейлон',
         color: 'Оливковый',
@@ -316,7 +334,7 @@ module.exports = {
       },
       {
         title: 'Хаки брюки чинос',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Dockers',
         material: 'Хлопок',
         color: 'Хаки',
@@ -335,7 +353,7 @@ module.exports = {
       },
       {
         title: 'Белая классическая рубашка',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Ermenegildo Zegna',
         material: 'Хлопок',
         color: 'Белый',
@@ -354,7 +372,7 @@ module.exports = {
       },
       {
         title: 'Синие джинсы прямого кроя',
-        user_id: 5,
+        user_id: guestId,
         brand: "Levi's 501",
         material: 'Деним',
         color: 'Синий',
@@ -373,7 +391,7 @@ module.exports = {
       },
       {
         title: 'Черные классические брюки',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Hugo Boss',
         material: 'Шерсть',
         color: 'Черный',
@@ -392,7 +410,7 @@ module.exports = {
       },
       {
         title: 'Черные классические туфли',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Loake',
         material: 'Кожа',
         color: 'Черный',
@@ -411,7 +429,7 @@ module.exports = {
       },
       {
         title: 'Коричневый кожаный ремень',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Timberland',
         material: 'Кожа',
         color: 'Коричневый',
@@ -430,7 +448,7 @@ module.exports = {
       },
       {
         title: 'Черный рюкзак',
-        user_id: 5,
+        user_id: guestId,
         brand: 'Herschel',
         material: 'Полиэстер',
         color: 'Черный',
@@ -451,6 +469,7 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('Cloths', { user_id: 5 }, {});
+    const guestId = await getGuestId(queryInterface);
+    await queryInterface.bulkDelete('Cloths', { user_id: guestId }, {});
   },
 };
