@@ -3,7 +3,12 @@ const { setTimeout: delay } = require('node:timers/promises');
 
 //   Для Gemini structured outputs используем официальный Gemini API endpoint.
 // - Для GPT-4o-mini фоллбэка используем GenAPI proxy endpoint.
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_MODEL = process.env.GEMINI_MODEL?.trim() || 'gemini-3.6-flash';
+const GEMINI_API_URL =
+  process.env.GEMINI_API_URL?.trim() ||
+  `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+// Секрет шлюза: без него прокси стал бы открытым релеем к Google для кого угодно.
+const GEMINI_PROXY_KEY = process.env.GEMINI_PROXY_KEY?.trim() || '';
 // GenAPI OpenAI-compatible proxy (returns JSON like OpenAI chat completions)
 const OPENAI_API_URL = 'https://proxy.gen-api.ru/v1/chat/completions';
 
@@ -177,6 +182,7 @@ const geminiClient = {
     // Gemini REST API: ключ можно передавать как query (?key=) или заголовком x-goog-api-key.
     const data = await fetchJson(`${GEMINI_API_URL}?key=${encodeURIComponent(key)}`, {
       timeoutMs,
+      headers: GEMINI_PROXY_KEY ? { 'x-proxy-key': GEMINI_PROXY_KEY } : {},
       body: {
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: {
