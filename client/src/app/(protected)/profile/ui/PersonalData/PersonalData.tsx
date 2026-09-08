@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import formStyles from '@/shared/styles/form.module.css';
 import { Card } from '@/shared/ui';
+import { convertHeicIfNeeded } from '@/shared/lib/convertHeic';
 import { resolveAssetUrl, uploadPortraitPhoto } from '@/shared/lib/uploadApi';
 
 import styles from './PersonalData.module.css';
@@ -104,7 +105,10 @@ export function PersonalData({
                 setIsUploading(true);
                 setUploadError(null);
                 try {
-                  const uploaded = await uploadPortraitPhoto(file);
+                  // Снимки с айфона приходят в HEIC, а сервер их не декодирует и отдаёт как есть —
+                  // на Windows и Android такое фото не отобразится. Конвертируем в браузере,
+                  // так же как это делает форма добавления вещи.
+                  const uploaded = await uploadPortraitPhoto(await convertHeicIfNeeded(file));
                   onPortraitPhotoChange(uploaded.url);
                 } catch {
                   setUploadError(t('profile.personal.uploadFailed'));

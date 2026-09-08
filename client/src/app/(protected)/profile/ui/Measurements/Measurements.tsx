@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import formStyles from '@/shared/styles/form.module.css';
 import { Card } from '@/shared/ui';
+import { convertHeicIfNeeded } from '@/shared/lib/convertHeic';
 import { resolveAssetUrl, uploadBodyPhoto } from '@/shared/lib/uploadApi';
 
 import styles from './Measurements.module.css';
@@ -191,7 +192,9 @@ export function Measurements({
               setIsUploading(true);
               setUploadError(null);
               try {
-                const uploaded = await uploadBodyPhoto(file);
+                // Как и в форме добавления вещи: HEIC с айфона сервер не декодирует,
+                // поэтому переводим снимок в JPEG на стороне браузера.
+                const uploaded = await uploadBodyPhoto(await convertHeicIfNeeded(file));
                 onBodyPhotoChange(uploaded.url);
               } catch {
                 setUploadError(t('profile.measurements.uploadFailed'));
