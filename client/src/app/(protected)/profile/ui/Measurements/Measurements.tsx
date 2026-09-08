@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+
 import { useTranslation } from 'react-i18next';
 
-import formStyles from '@/shared/styles/form.module.css';
-import { Card } from '@/shared/ui';
 import { convertHeicIfNeeded } from '@/shared/lib/convertHeic';
 import { resolveAssetUrl, uploadBodyPhoto } from '@/shared/lib/uploadApi';
+import formStyles from '@/shared/styles/form.module.css';
+import { Card } from '@/shared/ui';
 
 import styles from './Measurements.module.css';
 
@@ -230,4 +231,3 @@ export function Measurements({
     </Card>
   );
 }
-

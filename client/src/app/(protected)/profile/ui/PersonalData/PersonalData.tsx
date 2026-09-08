@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+
 import { useTranslation } from 'react-i18next';
 
-import formStyles from '@/shared/styles/form.module.css';
-import { Card } from '@/shared/ui';
 import { convertHeicIfNeeded } from '@/shared/lib/convertHeic';
 import { resolveAssetUrl, uploadPortraitPhoto } from '@/shared/lib/uploadApi';
+import formStyles from '@/shared/styles/form.module.css';
+import { Card } from '@/shared/ui';
 
 import styles from './PersonalData.module.css';
 
@@ -32,10 +33,7 @@ export function PersonalData({
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   return (
-    <Card
-      title={t('profile.personal.title')}
-      description={t('profile.personal.description')}
-    >
+    <Card title={t('profile.personal.title')} description={t('profile.personal.description')}>
       <div className={styles.grid}>
         <div className={styles.infoCard}>
           <p className={styles.subTitle}>{t('profile.personal.basic')}</p>
@@ -126,4 +124,3 @@ export function PersonalData({
     </Card>
   );
 }
-
