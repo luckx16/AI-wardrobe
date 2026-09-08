@@ -1,34 +1,33 @@
-## =========================
-## SERVER Dockerfile (Node.js)
-## =========================
-##
-## FROM — базовый образ с Node.js.
-## - Обязательность: ОБЯЗАТЕЛЬНО.
-## - node:22-alpine:
-##   - Node.js нужен для запуска вашего backend (и для установки зависимостей).
-##   - Alpine делает образ меньше, но если у зависимостей есть нативные модули, иногда
-##     требуются системные пакеты (python3/make/g++).
 FROM node:22-bookworm-slim
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends libvips libvips-dev libheif-dev && rm -rf /var/lib/apt/lists/*
-
 COPY package.json package-lock.json ./
-ENV SHARP_FORCE_GLOBAL_LIBVIPS=1
-RUN npm ci --omit=dev
-## Копируем остальной код сервера.
-## - Обязательность: да (нужны исходники, конфиги, миграции и т.д.).
-## - Рекомендация: держать `.dockerignore`, чтобы не копировать мусор (node_modules, логи).
+
+# Системный libvips здесь не нужен: sharp ставит собственную сборку
+# (@img/sharp-libvips-linux-x64), и она умеет HEIF — фото с айфонов читаются.
+# Раньше стояли libvips-dev и libheif-dev вместе с SHARP_FORCE_GLOBAL_LIBVIPS=1,
+# но переменная не срабатывала (npm всё равно ставил готовые бинарники), а
+# заголовочные пакеты тянули libicu-dev, libx265-dev, libhdf5-dev и весили 512 МБ впустую.
+#
+# Дальше выбрасываем то, что не нужно этой платформе:
+#   - провайдер CUDA у onnxruntime-node весит 480 МБ и бесполезен без видеокарты,
+#     tensorrt — туда же; darwin и win32 — бинарники под чужие ОС.
+#     Остаются libonnxruntime.so, onnxruntime_binding.node и пустой
+#     providers_shared.so, на который есть ссылки.
+#   - образ собран на glibc, поэтому сборки sharp под musl и wasm не используются.
+RUN npm ci --omit=dev \
+ && npm cache clean --force \
+ && rm -rf node_modules/onnxruntime-node/bin/napi-v3/darwin \
+           node_modules/onnxruntime-node/bin/napi-v3/win32 \
+           node_modules/@img/sharp-libvips-linuxmusl-x64 \
+           node_modules/@img/sharp-linuxmusl-x64 \
+           node_modules/@img/sharp-wasm32 \
+ && rm -f node_modules/onnxruntime-node/bin/napi-v3/linux/x64/libonnxruntime_providers_cuda.so \
+          node_modules/onnxruntime-node/bin/napi-v3/linux/x64/libonnxruntime_providers_tensorrt.so
+
 COPY . .
-## NODE_ENV=production — стандартная переменная для Node.js приложений.
-## - Обязательность: обычно да (включает прод-режим библиотек, отключает dev-поведение).
+
 ENV NODE_ENV=production
-## EXPOSE — "подсказка" какой порт слушает приложение внутри контейнера.
-## - Обязательность: ОПЦИОНАЛЬНО (сам по себе порт не пробрасывает).
-## - Реальный проброс наружу делается через docker run -p или compose ports.
 EXPOSE 4000
-## CMD — команда по умолчанию, которая запускает сервер.
-## - Обязательность: не строго обязательна (можно переопределять в compose `command`),
-##   но ПРАКТИЧЕСКИ ОБЯЗАТЕЛЬНА, чтобы контейнер стартовал.
-## - Здесь вы запускаете `./src/app.js` напрямую (без nodemon).
+
 CMD ["node", "./src/app.js"]
